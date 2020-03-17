@@ -4,8 +4,6 @@ FIXME: description
 
 ## Usage
 
-FIXME: explanation
-
     $ sudo rm -rf /
 
 ## Options
