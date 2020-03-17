@@ -1,7 +1,8 @@
 (ns main.core
-  (:require [ontology.loader :as l])
+  (:require [ontology.loader :as l][ontology.components :as c])
   )
 
 (defn -main [& args]
-  (println (l/getAxioms (l/loadOntology "enslavedv2.owl")))
+  (println (str c/rdfLiteral))
+  ; (println (l/getAxioms (l/loadOntology "enslavedv2.owl")))
   )

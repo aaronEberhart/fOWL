@@ -8,5 +8,5 @@
 )
 
 (defn getAxioms [ontology]
-  (util/streamToList (.axioms ontology))
+  (util/streamToList (.axioms nil ontology))
 )
