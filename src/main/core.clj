@@ -3,6 +3,6 @@
   )
 
 (defn -main [& args]
-  (println (str c/rdfLiteral))
-  ; (println (l/getAxioms (l/loadOntology "enslavedv2.owl")))
+  (println (str c/rdfsLiteral))
+  (println (type (l/getAxioms (l/loadOntology "enslavedv2.owl"))))
   )

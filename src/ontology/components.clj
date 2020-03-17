@@ -21,4 +21,4 @@
 
 (def owlThing (OWLClassImpl. (IRI/create (str (OWL/THING)))))
 (def owlNothing (OWLClassImpl. (IRI/create (str (OWL/NOTHING)))))
-(def rdfLiteral (OWLDatatypeImpl. (IRI/create (str (RDFS/LITERAL)))))
+(def rdfsLiteral (OWLDatatypeImpl. (IRI/create (str (RDFS/LITERAL)))))
