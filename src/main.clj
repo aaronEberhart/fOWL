@@ -1,11 +1,9 @@
 (ns main
-	(:import (java.io FileOutputStream PrintStream))
-	(:require [ontology.loader :as l][ontology.components :as c])
+	(:require [ontology.loader :as loader][ontology.components :as components][util.msc :as msc])
 )
 
-(def closeStdError (.close System/err))
+(def redirectErrors (msc/redirectStdErr msc/stdErr msc/newStdErr))
 
 (defn -main [& args]
-	(println (str c/rdfsLiteral))
-	(println (type (l/getAxioms (l/loadOntology "enslavedv2.owl"))))
+	(println (first (loader/getAxioms (loader/loadOntology "enslavedv2.owl"))))
 )
