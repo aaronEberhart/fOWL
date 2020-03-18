@@ -1,6 +1,9 @@
 (ns main
+	(:import (java.io FileOutputStream PrintStream))
 	(:require [ontology.loader :as l][ontology.components :as c])
 )
+
+(def closeStdError (.close System/err))
 
 (defn -main [& args]
 	(println (str c/rdfsLiteral))
