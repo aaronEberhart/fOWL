@@ -15,7 +15,7 @@
      (msc/strToFile (str "Reading and Copying " (.getName file)))
      (oio/makeOWLFile (str "OWL/copies/" (.getName file)) (time (oio/readFunctionalFile (io/file file))))
      (msc/strToFile (str "Reading Copy Of " (.getName file)))
-     (prn (type (rest (rest (:axioms (oio/readFunctionalFile (str "OWL/copies/" (.getName file))))))))
+     (oio/readFunctionalFile (str "OWL/copies/" (.getName file)))
      (msc/strToFile (str "Moving Original " (.getName file)))
      (io/copy file (io/file (str "OWL/checked/" (.getName file))))
      ;(io/delete-file file)
@@ -23,7 +23,7 @@
 
 (defn runReasonerTests []
  (io/delete-file "output.txt" true)
- (doseq [file (file-seq (io/file "OWL/fs/cree.owlfs.owl"))]
+ (doseq [file (file-seq (io/file "OWL/fs/enslavedv2.owlfs.owl"))]
   (if (and (.isFile file) (not (re-matches #"^catalog[\s\S]*" (.getName file))))
     (let [_ (println "Reading" (.getName file))
        ontology (time (oio/readFunctionalFile (io/file file)))
@@ -53,7 +53,7 @@
       j (ax/classImplication (ex/not (ex/not (ex/and (ex/class "b" "" ":") (ex/class "c" "" ":"))))(ex/not (ex/not (ex/and (ex/class "r" "" ":") (ex/class "o" "" ":")))))
       k (ax/classImplication (ex/not (ex/and (ex/not (ex/or (ex/class "b" "" ":") (ex/class "c" "" ":"))) (ex/or (ex/class "a" "" ":") (ex/class "d" "" ":"))))
                   (ex/not (ex/and (ex/or (ex/class "e" "" ":") (ex/class "g" "" ":")) (ex/not (ex/or (ex/class "f" "" ":") (ex/class "h" "" ":"))))))
-        l (ax/disjClasses [(ex/class "a" "" ":") (ex/class "b" "" ":") (ex/class "c" "" ":") (ex/class "d" "" ":") (ex/class "e" "" ":")])
+      l (ax/disjClasses [(ex/class "a" "" ":") (ex/class "b" "" ":") (ex/class "c" "" ":") (ex/class "d" "" ":") (ex/class "e" "" ":")])
       m (ax/disjClasses [(ex/class "a") (ex/class "b")(ex/class "c")])
       ]
       (pre/process classAxioms)))));(lazy-seq (list l m)))))));
@@ -61,7 +61,7 @@
 
 
 (defn -main [& args]
- (runReasonerTests))
+ (runFileTests))
 
 (comment " IMPORTANT NOTES
 
