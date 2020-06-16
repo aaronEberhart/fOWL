@@ -56,9 +56,7 @@
 				val (get splits 1)
 				rep nil
 				rep (str/join (map (fn [x] (if (= key (:prefix x)) (:iri x) rep)) prefixes))]
-				(if rep [val rep key][name])
-		)
-	)
+				(if rep [val rep key][name])))
 
 (defn- parseIRI [name prefixes]
 	(apply co/IRI (smushPrefix name prefixes)))
