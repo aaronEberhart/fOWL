@@ -5,8 +5,7 @@
            [unReasoner.preprocessing :as pre][unReasoner.consistency :as con][unReasoner.tableau :as tab]
            [util.msc :as msc]
            [clojure.string :as str][clojure.java.io :as io])
- (:use [slingshot.slingshot :only [try+  throw+]])
-)
+ (:use [slingshot.slingshot :only [try+  throw+]]))
 
 (defn runFileTests []
  (io/delete-file "output.txt" true)
