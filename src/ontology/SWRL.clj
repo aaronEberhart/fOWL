@@ -1,7 +1,6 @@
 (ns ontology.SWRL
   (:use [slingshot.slingshot :only [throw+]])
-  (:require [ontology.expressions :as ex][ontology.components :as co]);[ontology.annotations :as ann]
-  )
+  (:require [ontology.expressions :as ex][ontology.components :as co]))
 
 (def atomTypes
   #{:classAtom :roleAtom :dataRoleAtom :dataRangeAtom :builtInAtom :=individualsAtom :!=individualsAtom})

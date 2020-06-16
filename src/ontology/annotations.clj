@@ -1,27 +1,26 @@
 (ns ontology.annotations
   (:require [ontology.components :as co])
-  (:use [slingshot.slingshot :only [throw+]])
-  )
+  (:use [slingshot.slingshot :only [throw+]]))
 
 (def annotationRoles
-	#{"rdfs:label" "rdfs:comment"	"rdfs:seeAlso" "rdfs:isDefinedBy"	"owl:versionInfo"	"owl:deprecated"	"owl:backwardCompatibleWith" "owl:incompatibleWith" "owl:priorVersion"})
+ #{"rdfs:label" "rdfs:comment" "rdfs:seeAlso" "rdfs:isDefinedBy" "owl:versionInfo" "owl:deprecated" "owl:backwardCompatibleWith" "owl:incompatibleWith" "owl:priorVersion"})
 
 (defn annotationRole
-	"AnnotationProperty := IRI"
-	([iri]
+ "AnnotationProperty := IRI"
+ ([iri]
     (if (:iri iri)
       (assoc iri :type :annotationRole :innerType :annotationRole)
-  		(if (not (string? iri))
-  			(throw+ {:type ::notStringIRI :iri iri})
-  			{:namespace "" :short iri :prefix "" :iri (str "<" iri ">")})))
+    (if (not (string? iri))
+     (throw+ {:type ::notStringIRI :iri iri})
+     {:namespace "" :short iri :prefix "" :iri (str "<" iri ">")})))
   ([iri namespace prefix]
-  	(if (and (and (string? iri)(string? namespace))(string? prefix))
-  		(let [check (str prefix iri)]
-  			{:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}))
-  			(throw+ {:type ::notStringIRI :iri iri})))
+   (if (and (and (string? iri)(string? namespace))(string? prefix))
+    (let [check (str prefix iri)]
+     {:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}))
+     (throw+ {:type ::notStringIRI :iri iri})))
 
 (defn annotationValue [value]
-	"AnnotationValue := AnonymousIndividual | IRI | Literal"
+ "AnnotationValue := AnonymousIndividual | IRI | Literal"
     (if (= (:type value) :literal)
       (assoc value :type :annotationValue)
       (if (= (:innerType value) :anonymousIndividual)
@@ -76,6 +75,6 @@
   (-axiomAnnotations annotations))
 
 (defn annotationDataType
-	"Datatype := IRI"
-	([iri] (assoc (co/XSDDatatype iri) :arity 1 :type :dataType :innerType :dataType))
-	([iri namespace prefix](assoc (co/XSDDatatype iri namespace prefix) :arity 1 :type :dataType :innerType :dataType)))
+ "Datatype := IRI"
+ ([iri] (assoc (co/XSDDatatype iri) :arity 1 :type :dataType :innerType :dataType))
+ ([iri namespace prefix](assoc (co/XSDDatatype iri namespace prefix) :arity 1 :type :dataType :innerType :dataType)))

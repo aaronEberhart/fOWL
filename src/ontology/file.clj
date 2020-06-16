@@ -1,25 +1,23 @@
 (ns ontology.file
-	;(:require	[clojure.java.io :as io][util.msc :as util})
-  (:use [slingshot.slingshot :only [throw+]])
-	)
+  (:use [slingshot.slingshot :only [throw+]]))
 
 (defn- -ontologyFile
-	"ontologyDocument := { prefixDeclaration } Ontology"
+ "ontologyDocument := { prefixDeclaration } Ontology"
   ([ontology]
     (if (= (:type ontology) :ontology)
       ontology
       (throw+ {:type ::notOntology :ontology ontology})))
   ([prefixes ontology]
-  	(if (= (:type prefixes) :prefixes)
+   (if (= (:type prefixes) :prefixes)
       (if (= (:type ontology) :ontology)
         (assoc ontology :prefixes (:prefixes prefixes))
         (throw+ {:type ::notOntology :ontology ontology}))
       (throw+ {:type ::notPrefixes :prefixes prefixes}))))
 
 (defn prefix [prefixName longIRI]
-	"prefixDeclaration := 'Prefix' '(' prefixName '=' fullIRI ')'"
+ "prefixDeclaration := 'Prefix' '(' prefixName '=' fullIRI ')'"
   (if (and (string? prefixName)(string? longIRI))
-	 {:prefix prefixName :iri longIRI :type :prefix :innerType :prefix}
+  {:prefix prefixName :iri longIRI :type :prefix :innerType :prefix}
    (throw+ {:type ::notIRIs :prefixName prefixName :longIRI longIRI})))
 
 (defn prefixes [prefixes]
@@ -28,7 +26,7 @@
     (throw+ {:type ::notPrefixes :prefixes prefixes})))
 
 (defn- -ontology
-	"Ontology := 'Ontology' '(' [ ontologyIRI [ versionIRI ] ] directlyImportsDocuments ontologyAnnotations axioms ')'"
+ "Ontology := 'Ontology' '(' [ ontologyIRI [ versionIRI ] ] directlyImportsDocuments ontologyAnnotations axioms ')'"
   ([directImports ontologyAnnotations axioms]
     (if (or (= nil directImports)(= (:type directImports) :imports))
       (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
@@ -68,19 +66,19 @@
     :else (-ontology directImports ontologyAnnotations axioms)))
 
 (defn ontologyIRI [iri]
-	"ontologyIRI := IRI"
+ "ontologyIRI := IRI"
   (if (:iri iri)
     (assoc iri :type :ontologyIRI :innerType :ontologyIRI)
     (throw+ {:type ::notIRI :IRI iri})))
 
 (defn versionIRI [iri]
-	"versionIRI := IRI"
+ "versionIRI := IRI"
   (if (:iri iri)
     (assoc iri :type :versionIRI :innerType :versionIRI)
     (throw+ {:type ::notIRI :IRI iri})))
 
 (defn directImports [imports]
-	"directlyImportsDocuments := { 'Import' '(' IRI ')' }"
+ "directlyImportsDocuments := { 'Import' '(' IRI ')' }"
   (if (not (empty? imports))
     (if (every? (fn [x] (= (:type x) :import)) imports)
       {:imports imports :type :imports :innerType :imports}
@@ -88,7 +86,7 @@
     nil))
 
 (defn directImport [iri]
-	"'Import' '(' IRI ')'"
+ "'Import' '(' IRI ')'"
   (if (:iri iri)
   (do (println "Import: " (:short iri))
     (assoc iri :type :import :innerType :import)
@@ -96,7 +94,7 @@
     (throw+ {:type ::notIRI :IRIs iri})))
 
 (defn ontologyAnnotations [annotations]
-	"ontologyAnnotations := { Annotation }"
+ "ontologyAnnotations := { Annotation }"
   (if (not (empty? annotations))
     (if (every? (fn [x] (= (:type x) :annotation)) annotations)
       {:annotations annotations :type :annotations}
@@ -104,9 +102,9 @@
     nil))
 
 (defn axioms [axioms]
-	"axioms := { Axiom }"
+ "axioms := { Axiom }"
   (if (not (empty? axioms))
-  	(if (every? (fn [x] (= (:type x) :axiom)) axioms)
+   (if (every? (fn [x] (= (:type x) :axiom)) axioms)
       {:axioms axioms :type :axioms}
       (throw+ {:type ::notAxioms :Axioms axioms}))
     nil))

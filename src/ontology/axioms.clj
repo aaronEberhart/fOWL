@@ -1,7 +1,6 @@
 (ns ontology.axioms
   (:use [slingshot.slingshot :only [throw+]])
-  (:require [ontology.annotations :as ann][ontology.components :as co][ontology.expressions :as ex][ontology.SWRL :as swrl])
-  )
+  (:require [ontology.annotations :as ann][ontology.components :as co][ontology.expressions :as ex][ontology.SWRL :as swrl]))
 
 (def axiomTypes
   #{:declaration :classAxiom :roleAxiom :dataRoleAxiom :newDataType :hasKey :fact :annotationAxiom :rule :dgAxiom})
@@ -120,8 +119,8 @@
     (-axiom (-classAxiom (-classImplication (ann/axiomAnnotations annotations)(ex/class antecedent)(ex/class consequent))))))
 
 (defn- -=Classes
-	"EquivalentClasses := 'EquivalentClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
-  ([classes]
+ "EquivalentClasses := 'EquivalentClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
+ ([classes]
     (if (< 1 (count classes))
       (if (every? (fn [x] (= (:type x) :class)) classes)
         {:classes classes :type :=Classes :innerType :=Classes :outerType :=Classes}
@@ -143,7 +142,7 @@
     (-axiom (-classAxiom (-=Classes (ann/axiomAnnotations annotations) (into #{} (map ex/class classes)))))))
 
 (defn- -disjClasses
-	"DisjointClasses := 'DisjointClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
+ "DisjointClasses := 'DisjointClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
   ([classes]
     (if (< 1 (count classes))
       (if (every? (fn [x] (= (:type x) :class)) classes)
@@ -166,7 +165,7 @@
     (-axiom (-classAxiom (-disjClasses (ann/axiomAnnotations annotations) (into #{} (map ex/class classes)))))))
 
 (defn- -disjOr
-	"DisjointUnion := 'DisjointUnion' '(' axiomAnnotations Class disjointClassExpressions ')'"
+ "DisjointUnion := 'DisjointUnion' '(' axiomAnnotations Class disjointClassExpressions ')'"
   ([class classes]
     (if (or (= (:type classes) :disjClassesNoAnn)(= (:type classes) :disjClasses))
       (if (= (:type class) :class)
@@ -183,7 +182,7 @@
       (throw+ {:type ::notEnoughClasses :classes classes}))))
 
 (defn- -disjClassesNoAnn [classes]
-	"disjointClassExpressions := ClassExpression ClassExpression { ClassExpression }"
+ "disjointClassExpressions := ClassExpression ClassExpression { ClassExpression }"
   (if (< 1 (count classes))
     (if (every? (fn [x] (= (:type x) :class)) classes)
       {:classes classes :type :disjClassesNoAnn :innerType :disjOr}
@@ -197,7 +196,7 @@
     (-axiom (-classAxiom (-disjOr (ann/axiomAnnotations annotations) (ex/class class) (-disjClassesNoAnn (into #{} (map ex/class classes))))))))
 
 (defn- -roleAxiom [roleAxiom]
-	"ObjectPropertyAxiom := SubObjectPropertyOf | EquivalentObjectProperties | DisjointObjectProperties | InverseObjectProperties | ObjectPropertyDomain | ObjectPropertyRange | FunctionalObjectProperty | InverseFunctionalObjectProperty | ReflexiveObjectProperty | IrreflexiveObjectProperty | SymmetricObjectProperty | AsymmetricObjectProperty | TransitiveObjectProperty"
+ "ObjectPropertyAxiom := SubObjectPropertyOf | EquivalentObjectProperties | DisjointObjectProperties | InverseObjectProperties | ObjectPropertyDomain | ObjectPropertyRange | FunctionalObjectProperty | InverseFunctionalObjectProperty | ReflexiveObjectProperty | IrreflexiveObjectProperty | SymmetricObjectProperty | AsymmetricObjectProperty | TransitiveObjectProperty"
   (if (contains? roleAxiomTypes (:type roleAxiom))
     (assoc roleAxiom :outerType :roleAxiom)
     (throw+ {:type ::notRoleAxiom :roleAxiom roleAxiom})))
@@ -227,7 +226,7 @@
     (throw+ {:type ::notRole :role role})))
 
 (defn- -roleImplication
-	"SubObjectPropertyOf := 'SubObjectPropertyOf' '(' axiomAnnotations subObjectPropertyExpression superObjectPropertyExpression ')'"
+ "SubObjectPropertyOf := 'SubObjectPropertyOf' '(' axiomAnnotations subObjectPropertyExpression superObjectPropertyExpression ')'"
   ([antecedent consequent]
     (if (and (or (= (:type antecedent) :role)(= (:type antecedent) :roleChain))(= (:type consequent) :role))
       {:antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
@@ -246,7 +245,7 @@
     (-axiom (-roleAxiom (-roleImplication (ann/axiomAnnotations annotations)(ex/role antecedent)(ex/role consequent))))))
 
 (defn- -=Roles
-	"EquivalentObjectProperties := 'EquivalentObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ "EquivalentObjectProperties := 'EquivalentObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
   ([roles]
     (if (< 1 (count roles))
       (if (every? (fn [x] (= (:type x) :role)) roles)
@@ -269,7 +268,7 @@
     (-axiom (-roleAxiom (-=Roles (ann/axiomAnnotations annotations) (into #{} (map ex/role roles)))))))
 
 (defn- -disjRoles
-	"DisjointObjectProperties := 'DisjointObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ "DisjointObjectProperties := 'DisjointObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
   ([roles]
     (if (< 1 (count roles))
       (if (every? (fn [x] (= (:type x) :role)) roles)
@@ -292,7 +291,7 @@
     (-axiom (-roleAxiom (-disjRoles (ann/axiomAnnotations annotations) (into #{} (map ex/role roles)))))))
 
 (defn- -roleDomain
-	"ObjectPropertyDomain := 'ObjectPropertyDomain' '(' axiomAnnotations ObjectPropertyExpression ClassExpression ')'"
+ "ObjectPropertyDomain := 'ObjectPropertyDomain' '(' axiomAnnotations ObjectPropertyExpression ClassExpression ')'"
   ([role class]
     (if (and (= (:type role) :role)(= (:type class) :class))
       {:role role :class class :type :roleDomain :innerType :roleDomain :outerType :roleDomain}
@@ -311,7 +310,7 @@
     (-axiom (-roleAxiom (-roleDomain (ann/axiomAnnotations annotations) (ex/role role)(ex/class class))))))
 
 (defn- -roleRange
-	"ObjectPropertyRange := 'ObjectPropertyRange' '(' axiomAnnotations ObjectPropertyExpression ClassExpression ')'"
+ "ObjectPropertyRange := 'ObjectPropertyRange' '(' axiomAnnotations ObjectPropertyExpression ClassExpression ')'"
   ([role class]
     (if (and (= (:type role) :role)(= (:type class) :class))
       {:role role :class class :type :roleRange :innerType :roleRange :outerType :roleRange}
@@ -330,7 +329,7 @@
     (-axiom (-roleAxiom (-roleRange (ann/axiomAnnotations annotations) (ex/role role)(ex/class class))))))
 
 (defn- -inverseRoles
-	"InverseObjectProperties := 'InverseObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression ')'"
+ "InverseObjectProperties := 'InverseObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression ')'"
   ([role otherRole]
     (if (and (= (:type role) :role)(= (:type otherRole) :role))
       {:role role :inverse otherRole :type :inverseRoles :innerType :inverseRoles :outerType :inverseRoles}
@@ -349,7 +348,7 @@
     (-axiom (-roleAxiom (-inverseRoles (ann/axiomAnnotations annotations) (ex/role role)(ex/role otherRole) ))) ))
 
 (defn- -functionalRole
-	"FunctionalObjectProperty := 'FunctionalObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
+ "FunctionalObjectProperty := 'FunctionalObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (if (= (:type role) :role)
       {:role role :type :functionalRole :innerType :functionalRole :outerType :functionalRole}
@@ -368,7 +367,7 @@
     (-axiom (-roleAxiom (-functionalRole (ann/axiomAnnotations annotations) (ex/role role))))))
 
 (defn- -functionalInverseRole
-	"InverseFunctionalObjectProperty := 'InverseFunctionalObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
+ "InverseFunctionalObjectProperty := 'InverseFunctionalObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (if (= (:type role) :role)
       {:role role :type :functionalInverseRole :innerType :functionalInverseRole :outerType :functionalInverseRole}
@@ -387,7 +386,7 @@
     (-axiom (-roleAxiom (-functionalInverseRole (ann/axiomAnnotations annotations) (ex/role role))))))
 
 (defn- -reflexiveRole
-	"ReflexiveObjectProperty := 'ReflexiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
+ "ReflexiveObjectProperty := 'ReflexiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (if (= (:type role) :role)
       {:role role :type :reflexiveRole :innerType :reflexiveRole :outerType :reflexiveRole}
@@ -406,7 +405,7 @@
     (-axiom (-roleAxiom (-reflexiveRole (ann/axiomAnnotations annotations) (ex/role role))))))
 
 (defn- -irreflexiveRole
-	"IrreflexiveObjectProperty := 'IrreflexiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
+ "IrreflexiveObjectProperty := 'IrreflexiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (if (= (:type role) :role)
       {:role role :type :irreflexiveRole :innerType :irreflexiveRole :outerType :irreflexiveRole}
@@ -425,7 +424,7 @@
     (-axiom (-roleAxiom (-irreflexiveRole (ann/axiomAnnotations annotations) (ex/role role))))))
 
 (defn- -symmetricRole
-	"SymmetricObjectProperty := 'SymmetricObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
+ "SymmetricObjectProperty := 'SymmetricObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (if (= (:type role) :role)
       {:role role :type :symmetricRole :innerType :symmetricRole :outerType :symmetricRole}
@@ -444,7 +443,7 @@
     (-axiom (-roleAxiom (-symmetricRole (ann/axiomAnnotations annotations) (ex/role role))))))
 
 (defn- -asymmetricRole
-	"AsymmetricObjectProperty := 'AsymmetricObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
+ "AsymmetricObjectProperty := 'AsymmetricObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (if (= (:type role) :role)
       {:role role :type :asymmetricRole :innerType :asymmetricRole :outerType :asymmetricRole}
@@ -463,7 +462,7 @@
     (-axiom (-roleAxiom (-asymmetricRole (ann/axiomAnnotations annotations) (ex/role role))))))
 
 (defn- -transitiveRole
-	"TransitiveObjectProperty := 'TransitiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
+ "TransitiveObjectProperty := 'TransitiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (if (= (:type role) :role)
       {:role role :type :transitiveRole :innerType :transitiveRole :outerType :transitiveRole}
@@ -482,7 +481,7 @@
     (-axiom (-roleAxiom (-transitiveRole (ann/axiomAnnotations annotations) (ex/role role))))))
 
 (defn- -dataRoleAxiom [dataRoleAxiom]
-	"DataPropertyAxiom := SubDataPropertyOf | EquivalentDataProperties | DisjointDataProperties | DataPropertyDomain | DataPropertyRange | FunctionalDataProperty"
+ "DataPropertyAxiom := SubDataPropertyOf | EquivalentDataProperties | DisjointDataProperties | DataPropertyDomain | DataPropertyRange | FunctionalDataProperty"
   (if (contains? dataRoleAxiomTypes (:type dataRoleAxiom))
     (assoc dataRoleAxiom :outerType :dataRoleAxiom)
     (throw+ {:type ::notDataRoleAxiom :dataRoleAxiom dataRoleAxiom})))
@@ -500,7 +499,7 @@
     (throw+ {:type ::notDataRole :dataRole dataRole})))
 
 (defn- -dataRoleImplication
-	"SubDataPropertyOf := 'SubDataPropertyOf' '(' axiomAnnotations subDataPropertyExpression superDataPropertyExpression ')'"
+ "SubDataPropertyOf := 'SubDataPropertyOf' '(' axiomAnnotations subDataPropertyExpression superDataPropertyExpression ')'"
   ([antecedent consequent]
     (if (and(= (:type antecedent) :antecedentDataRole)(= (:type consequent) :consequentDataRole))
       {:antecedentDataRole antecedent :consequentDataRole consequent :type :dataRoleImplication :innerType :dataRoleImplication :outerType :dataRoleImplication}
@@ -519,7 +518,7 @@
     (-axiom (-dataRoleAxiom (-dataRoleImplication (ann/axiomAnnotations annotations)  (-antecedentDataRole (ex/dataRole antecedent)) (-consequentDataRole (ex/dataRole consequent)))))))
 
 (defn- -=DataRoles
-	"EquivalentDataProperties := 'EquivalentDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
+ "EquivalentDataProperties := 'EquivalentDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
   ([dataRoles]
     (if (< 1 (count dataRoles))
       (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
@@ -542,7 +541,7 @@
     (-axiom (-dataRoleAxiom (=DataRoles (ann/axiomAnnotations annotations) (into #{} (map ex/dataRole dataRoles)))))))
 
 (defn- -disjDataRoles
-	"DisjointDataProperties := 'DisjointDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
+ "DisjointDataProperties := 'DisjointDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
   ([dataRoles]
     (if (< 1 (count dataRoles))
       (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
@@ -565,7 +564,7 @@
     (-axiom (-dataRoleAxiom (-disjDataRoles (ann/axiomAnnotations annotations) (into #{} (map ex/dataRole dataRoles)))))))
 
 (defn- -dataRoleDomain
-	"DataPropertyDomain := 'DataPropertyDomain' '(' axiomAnnotations DataPropertyExpression ClassExpression ')'"
+ "DataPropertyDomain := 'DataPropertyDomain' '(' axiomAnnotations DataPropertyExpression ClassExpression ')'"
   ([dataRole class]
     (if (and (= (:type dataRole) :dataRole)(= (:type class) :class))
       {:dataRole dataRole :class class :type :dataRoleDomain :innerType :dataRoleDomain :outerType :dataRoleDomain}
@@ -584,7 +583,7 @@
     (-axiom (-dataRoleAxiom (-dataRoleDomain (ann/axiomAnnotations annotations) (ex/dataRole dataRole) (ex/class class))))))
 
 (defn- -dataRoleRange
-	"DataPropertyRange := 'DataPropertyRange' '(' axiomAnnotations DataPropertyExpression DataRange ')'"
+ "DataPropertyRange := 'DataPropertyRange' '(' axiomAnnotations DataPropertyExpression DataRange ')'"
   ([dataRole dataRange]
     (if (and (= (:type dataRole) :dataRole)(= (:type dataRange) :dataRange))
       {:dataRole dataRole :dataRange dataRange :type :dataRoleRange :innerType :dataRoleRange :outerType :dataRoleRange}
@@ -601,7 +600,7 @@
   ([annotations dataRole dataRange](-axiom (-dataRoleAxiom (-dataRoleRange (ann/axiomAnnotations annotations) (ex/dataRole dataRole) (co/dataRange dataRange))))))
 
 (defn- -functionalDataRole
-	"FunctionalDataProperty := 'FunctionalDataProperty' '(' axiomAnnotations DataPropertyExpression ')'"
+ "FunctionalDataProperty := 'FunctionalDataProperty' '(' axiomAnnotations DataPropertyExpression ')'"
   ([dataRole]
     (if (= (:type dataRole) :dataRole)
       {:dataRole dataRole :type :functionalDataRole :innerType :functionalDataRole :outerType :functionalDataRole}

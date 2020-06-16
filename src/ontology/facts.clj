@@ -1,9 +1,9 @@
 (ns ontology.facts
   (:use [slingshot.slingshot :only [throw+]])
-  (:require	[ontology.components :as co][ontology.axioms :as ax][ontology.annotations :as ann][ontology.expressions :as ex]))
+  (:require [ontology.components :as co][ontology.axioms :as ax][ontology.annotations :as ann][ontology.expressions :as ex]))
 
 (def factTypes
-  	#{:=individuals :!=individuals :classFact :roleFact :notRoleFact :dataRoleFact :notDataRoleFact})
+   #{:=individuals :!=individuals :classFact :roleFact :notRoleFact :dataRoleFact :notDataRoleFact})
 
 (defn- -fact [fact]
   "Assertion := SameIndividual | DifferentIndividuals | ClassAssertion | ObjectPropertyAssertion | NegativeObjectPropertyAssertion | DataPropertyAssertion | NegativeDataPropertyAssertion"

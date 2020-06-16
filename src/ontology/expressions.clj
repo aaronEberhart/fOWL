@@ -1,19 +1,18 @@
 (ns ontology.expressions
   (:require [ontology.components :as co])
   (:refer-clojure :exclude [class and or not])
-  (:use [slingshot.slingshot :only [throw+]])
-  )
+  (:use [slingshot.slingshot :only [throw+]]))
 
 (def classTypes
   #{:className :class :and :or :not :nominal :existential :universal :partialRole :Self :>=role :<=role :=role :dataExistential :dataUniversal :partialDataRole :>=dataRole :<=dataRole :=dataRole})
 
 (defn- -role [role]
-	"ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
-	(if (= (:type role) :roleName)
-		(assoc role :type :role)
+ "ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
+ (if (= (:type role) :roleName)
+  (assoc role :type :role)
     (if (= (:type role) :role)
       (assoc role :type :role)
-		  (throw+ {:type ::notRole :roleName role}))))
+    (throw+ {:type ::notRole :roleName role}))))
 
 (defn role
   ([iri]
@@ -34,12 +33,12 @@
   ([iri namespace prefix](-role (co/inverseRoleName iri namespace prefix))))
 
 (defn- -dataRole [dataRole]
-	"DataPropertyExpression := DataProperty"
-	(if (= (:type dataRole) :dataRole)
+ "DataPropertyExpression := DataProperty"
+ (if (= (:type dataRole) :dataRole)
     dataRole
     (if (= (:type dataRole) :dataRoleName)
-  		(assoc dataRole :type :dataRole)
-  		(throw+ {:type ::notDataRole :dataRole dataRole}))))
+    (assoc dataRole :type :dataRole)
+    (throw+ {:type ::notDataRole :dataRole dataRole}))))
 
 (defn dataRole
   ([iri]
@@ -110,9 +109,9 @@
   "ObjectSomeValuesFrom := 'ObjectSomeValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
   (if (= (:type role) :role)
     (if (= (:type class) :class)
-		  {:class class :role role :type :existential :innerType :existential}
+    {:class class :role role :type :existential :innerType :existential}
       (throw+ {:type ::notClass :class class}))
-		(throw+ {:type ::notRole :role role})))
+  (throw+ {:type ::notRole :role role})))
 
 (defn existential [r c]
   (-class (-existential (role r)(class c))))
@@ -121,9 +120,9 @@
   "ObjectAllValuesFrom := 'ObjectAllValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
   (if (= (:type role) :role)
     (if (= (:type class) :class)
-		  {:class class :role role :type :universal :innerType :universal}
+    {:class class :role role :type :universal :innerType :universal}
       (throw+ {:type ::notClass :role role :class class}))
-		(throw+ {:type ::notRole :role role})))
+  (throw+ {:type ::notRole :role role})))
 
 (defn universal [r c]
   (-class (-universal (role r)(class c))))
@@ -132,9 +131,9 @@
   "ObjectHasValue := 'ObjectHasValue' '(' ObjectPropertyExpression Individual ')'"
   (if (= (:type role) :role)
     (if (= (:type individual) :individual)
-		  {:individual individual :role role :type :partialRole :innerType :partialRole}
+    {:individual individual :role role :type :partialRole :innerType :partialRole}
       (throw+ {:type ::notIndividual :individual individual}))
-		(throw+ {:type ::notRole :role role})))
+  (throw+ {:type ::notRole :role role})))
 
 (defn partialRole [r i]
   (-class (-partialRole (role r) (co/individual i))))
@@ -142,8 +141,8 @@
 (defn- -Self [role]
   "ObjectHasSelf := 'ObjectHasSelf' '(' ObjectPropertyExpression ')'"
   (if (= (:type role) :role)
-		{:role role :type :Self :innerType :Self}
-		(throw+ {:type ::notRole :role role})))
+  {:role role :type :Self :innerType :Self}
+  (throw+ {:type ::notRole :role role})))
 
 (defn Self
   ([iri](class (-Self (role iri))))
@@ -217,10 +216,10 @@
   (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
     (if (= (:type dataRange) :dataRange)
       (if (= (:arity dataRange) (count dataRoles))
-		    {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataExistential :innerType :dataExistential}
+      {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataExistential :innerType :dataExistential}
         (throw+ {:type ::incorrectArity :dataRange dataRange}))
       (throw+ {:type ::notDataRange :dataRange dataRange}))
-		(throw+ {:type ::notDataRoles :role role})))
+  (throw+ {:type ::notDataRoles :role role})))
 
 (defn dataExistential [dataRoles dataRange]
   (-class (-dataExistential (into #{} (if (map? dataRoles) [(dataRole dataRoles)] (map dataRole dataRoles))) (co/dataRange dataRange))))
@@ -230,10 +229,10 @@
   (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
     (if (= (:type dataRange) :dataRange)
       (if (= (:arity dataRange) (count dataRoles))
-		    {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataUniversal :innerType :dataUniversal}
+      {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataUniversal :innerType :dataUniversal}
         (throw+ {:type ::incorrectArity :dataRange dataRange}))
       (throw+ {:type ::notDataRange :dataRange dataRange}))
-		(throw+ {:type ::notDataRoles :role role})))
+  (throw+ {:type ::notDataRoles :role role})))
 
 (defn dataUniversal [dataRoles dataRange]
   (-class (-dataUniversal (if (map? dataRoles) #{(dataRole dataRoles)} (into #{} (map dataRole dataRoles))) (co/dataRange dataRange))))
@@ -307,9 +306,9 @@
   "DataHasValue := 'DataHasValue' '(' DataPropertyExpression Literal ')'"
   (if (= (:type dataRole) :dataRole)
     (if (= (:type literal) :literal)
-		  {:literal literal :dataRole dataRole :type :partialDataRole :innerType :partialDataRole}
+    {:literal literal :dataRole dataRole :type :partialDataRole :innerType :partialDataRole}
       (throw+ {:type ::notLiteral :literal literal}))
-		(throw+ {:type ::notDataRole :dataRole dataRole})))
+  (throw+ {:type ::notDataRole :dataRole dataRole})))
 
 (defn partialDataRole [dr literal]
   (-class (-partialDataRole (dataRole dr) literal)))
