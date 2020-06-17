@@ -12,7 +12,7 @@
          (fct/roleFact (ex/inverseRole "s") "i" "j")
          (fct/classFact "A" "i")
          (ax/classImplication (ex/<=role 4 "r" "c") 
-                             (ex/not (ex/or (ex/and "d" "e") (ex/not (ex/and "f" "g")))))
+                              (ex/not (ex/or (ex/and "d" "e") (ex/not (ex/and "f" "g")))))
          (nml/getNNF (ax/classImplication (ex/<=role 4 "r" "c") 
                                          (ex/not (ex/or (ex/and "d" "e") (ex/not (ex/and "f" "g"))))))]]
   (println x)))
