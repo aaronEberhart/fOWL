@@ -5,11 +5,11 @@
  (:use [slingshot.slingshot :only [throw+]]))
 
 (def iriStopPat
- #"^(?:Annotation|Import|Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DGRule|DLSafeRule)[\s\S]*")
+ #"^(?:Annotation|Import|Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DatatypeDefinition|DGRule|DLSafeRule)[\s\S]*")
 (def closeParenPat
  #"^(\))\s*([\s\S]*)")
 (def axiomPat
- #"(Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DGRule|DLSafeRule)\s*\(\s*([\s\S]*)")
+ #"(Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DatatypeDefinition|DGRule|DLSafeRule)\s*\(\s*([\s\S]*)")
 (def fullIRIPat
  #"^[<]([^>]+)[>]\s*([\s\S]*)")
 (def prefIRIPat
@@ -71,7 +71,7 @@
   :namedIndividual "NamedIndividual("
   "Undefined("))
 
-(defn- toDLString [thing]
+(defn toDLString [thing]
  (case (:innerType thing)
 
   ;undefined
@@ -125,11 +125,11 @@
 
   ;classes
   :not (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "¬(" (toDLString (:class thing)) ")")(str "¬" (toDLString (:class thing))))
-  :or (str/join " ⊔ " (map (fn [x] (toDLString x)) (:classes thing)))
-  :and (str/join " ⊓ " (map (fn [x] (toDLString x )) (:classes thing)))
+  :or (str/join " ⊔ " (map (fn [x] (if (or (= (:innerType x) :or)(= (:innerType x) :and)) (str "(" (toDLString x) ")")(toDLString x))) (:classes thing)))
+  :and (str/join " ⊓ " (map (fn [x] (if (or (= (:innerType x) :or)(= (:innerType x) :and)) (str "(" (toDLString x) ")")(toDLString x))) (:classes thing)))
   :dataNot (str "¬" (toDLString (:dataRange thing)))
-  :dataOr (str/join " ∨ " (map (fn [x] (toDLString x)) (:dataRanges thing)))
-  :dataAnd (str/join " ∧ " (map (fn [x] (toDLString x)) (:dataRanges thing)))
+  :dataOr (str/join " ∨ " (map (fn [x] (if (or (= (:innerType x) :dataOr)(= (:innerType x) :dataAnd)) (str "(" (toDLString x) ")")(toDLString x))) (:dataRanges thing)))
+  :dataAnd (str/join " ∧ " (map (fn [x] (if (or (= (:innerType x) :dataOr)(= (:innerType x) :dataAnd)) (str "(" (toDLString x) ")")(toDLString x))) (:dataRanges thing)))
   :dataOneOf (str "[" (str/join "," (map (fn [x] (:value x)) (:literals thing))) "]")
   :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) (:short thing) " " (str/join " " (map toDLString (:restrictedValues thing)))")")
   :Self  (str "∃" (:role thing) ".Self")
@@ -176,7 +176,7 @@
   :=DataRoles (str (str/join " ≡ " (map (fn [x] (toDLString x )) (:dataRoles thing))) (if (:annotations thing) (str " (annotations: " (str/join " " (map (fn [x] (toDLString x)) (:annotations thing))) ")") ""))
   :disjDataRoles (str "disjDataRoles("  (str/join " " (map (fn [x] (toDLString x )) (:dataRoles thing))) ")" (if (:annotations thing) (str " (annotations: " (str/join " " (map (fn [x] (toDLString x)) (:annotations thing))) ")") ""))
   :dataRoleDomain (str "DataRoleDomain(" (toDLString (:dataRole thing) ) " " (toDLString (:class thing) ) ")" (if (:annotations thing) (str " (annotations: " (str/join " " (map (fn [x] (toDLString x)) (:annotations thing))) ")") ""))
-  :rangeDataRole (str "DataRoleRange("  (toDLString (:dataRole thing) ) " " (toDLString (:dataRange thing) ) ")" (if (:annotations thing) (str " (annotations: " (str/join " " (map (fn [x] (toDLString x)) (:annotations thing))) ")") ""))
+  :dataRoleRange (str "DataRoleRange("  (toDLString (:dataRole thing) ) " " (toDLString (:dataRange thing) ) ")" (if (:annotations thing) (str " (annotations: " (str/join " " (map (fn [x] (toDLString x)) (:annotations thing))) ")") ""))
   :functionalDataRole (str "FunctionalDataRole(" (toDLString (:dataRole thing) ) ")" (if (:annotations thing) (str " (annotations: " (str/join " " (map (fn [x] (toDLString x)) (:annotations thing))) ")") ""))
   :newDataType (str "DatatypeDefinition("  (toDLString (:dataType thing) ) " " (toDLString (:dataRange thing) ) ")" (if (:annotations thing) (str " (annotations: " (str/join " " (map (fn [x] (toDLString x)) (:annotations thing))) ")") ""))
 
@@ -191,7 +191,7 @@
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
   :variable (str "Variable(" (:iri thing) ")")))
 
-(defn- toString [thing]
+(defn toString [thing]
  (case (:innerType thing)
 
   ;undefined
@@ -311,6 +311,7 @@
   :variable (str "Variable(" (:iri thing) ")")
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
 
+;(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toString x)))
 (defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toDLString x)))
 
 (def extractParams
@@ -404,7 +405,7 @@
   "AnnotationPropertyRange" (comp (partial apply ax/annotationRange) extractParams)
   "DataHasValue" ex/partialDataRole
   "DataMaxCardinality" ex/<=dataRole
-  "ObjectPropertyChain" (comp ax/roleChain vector)
+  "ObjectPropertyChain" ax/roleChain
   "SubAnnotationPropertyOf" (comp (partial apply ax/annotationImplication) extractParams)
   "SameIndividual" (comp (partial apply fs/=individuals) extractParamList)
   "DifferentIndividuals" (comp (partial apply fs/!=individuals) extractParamList)
@@ -413,6 +414,7 @@
   "NegativeObjectPropertyAssertion" (comp (partial apply fs/notRoleFact) extractParams)
   "DataPropertyAssertion" (comp (partial apply fs/dataRoleFact) extractParams)
   "NegativeDataPropertyAssertion" (comp (partial apply fs/notDataRoleFact) extractParams)
+  "DatatypeDefinition" (comp (partial apply ax/dataTypeDefinition) extractParams)
   "DLSafeRule" (comp (partial apply ax/dlSafeRule) extractParams)
   "DescriptionGraphRule" ax/dgRule
   "Body" (comp swrl/body vector)
@@ -456,7 +458,9 @@
 
 (defn- parseOntologyIRILine [state ontologyIRI _ _ _ _]
  (loop [state state
-     ontologyIRI ontologyIRI]
+        ontologyIRI ontologyIRI]
+ (if-some [doneMatch (re-matches closeParenPat state)]
+  [state ontologyIRI]
  (if-some [blankMatch (re-matches blankPat state)]
   [state ontologyIRI]
  (if-some [ontMatch (re-matches ontPat state)]
@@ -470,11 +474,13 @@
  (if-some [annMatch (re-matches annotationPat state)]
   [state ontologyIRI]
  (if-some [axMatch (re-matches axiomPat state)]
-  [state ontologyIRI])))))))))
+  [state ontologyIRI]))))))))))
 
 (defn- parseVersionIRILine [state versionIRI _ _ _ _]
  (loop [state state
-     versionIRI versionIRI]
+        versionIRI versionIRI]
+ (if-some [doneMatch (re-matches closeParenPat state)]
+  [state versionIRI]
  (if-some [blankMatch (re-matches blankPat state)]
   [state versionIRI]
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
@@ -486,11 +492,13 @@
  (if-some [annMatch (re-matches annotationPat state)]
   [state versionIRI]
  (if-some [axMatch (re-matches axiomPat state)]
-  [state versionIRI]))))))))
+  [state versionIRI])))))))))
 
 (defn- parseImportLine [state imports _ _ _ _]
  (loop [state state
-     imports imports]
+        imports imports]
+ (if-some [doneMatch (re-matches closeParenPat state)]
+  [state imports]
  (if-some [blankMatch (re-matches blankPat state)]
   [state imports]
  (if-some [commMatch (re-matches commPat state)]
@@ -500,7 +508,7 @@
  (if-some [importMatch (re-matches importPat state)]
   (recur (get importMatch 2) (conj! imports (onf/directImport (co/IRI (get importMatch 1)))))
  (if-some [axMatch (re-matches axiomPat state)]
-  [state imports])))))))
+  [state imports]))))))))
 
 (defn- parseAnnotationLine [state annotations annFun exps expFuns prefixes]
  (loop [state state
@@ -511,7 +519,7 @@
  (if-some [doneMatch (re-matches closeParenPat state)]
   (cond
    (nil? annFun)
-    [(get doneMatch 2) annotations nil exps expFuns]
+    [(str (get doneMatch 1)(get doneMatch 2)) annotations nil exps expFuns]
    (empty? expFuns)
     (recur (get doneMatch 2) (conj! annotations (apply annFun (first exps))) nil (if (= 1 (count exps)) '([]) (rest exps)) '())
    (= 1 (count exps))
@@ -544,10 +552,10 @@
 
 (defn- parseAxiomLine [state axioms ax exs funs prefixes]
  (loop [state state
-     axioms axioms
-     axFun ax
-     exps exs
-     expFuns funs]
+        axioms axioms
+        axFun ax
+        exps exs
+        expFuns funs]
  (if-some [doneMatch (re-matches closeParenPat state)]
   (cond
    (nil? axFun)
@@ -587,26 +595,30 @@
 (defn- parseLines
   ([lineSeq loopFunction stopCondition prefixes]
   (loop [state (first lineSeq)
-        lines lineSeq
-      objects (transient #{})
-      function nil
-      expressions '([])
-      functionList '()]
-      (let [[state objects function expressions functionList] (loopFunction state objects function expressions functionList prefixes)]
+         lines lineSeq
+         objects (transient #{})
+         function nil
+         expressions '([])
+         functionList '()]
+   (let [[state objects function expressions functionList] (loopFunction state objects function expressions functionList prefixes)]
     (if (stopCondition [objects state lines])
-     [(persistent! objects) (lazy-seq (cons state (rest lines)))]
+     [(persistent! objects) (lazy-seq (cons state (if (some? lines)(rest lines))))]
      (recur (str state (first (rest lines))) (rest lines) objects function expressions functionList))))))
 
 (defn readFunctionalFile [file]
  (with-open [rdr (io/reader file)]
   (let [ontologyFile (line-seq rdr)
      [prefixes ontologyFile] (parseLines ontologyFile parsePrefixLine #(some? (re-matches ontPat (get % 1))) nil)
-     [ontologyIRI ontologyFile] (parseLines ontologyFile parseOntologyIRILine #(or (empty? (get % 2))(or (= 1 (count (get % 0)))(some? (re-matches iriStopPat (get % 1))))) nil)
-     [versionIRI ontologyFile] (parseLines ontologyFile parseVersionIRILine #(or (empty? (get % 2))(or (= 1 (count (get % 0)))(some? (re-matches iriStopPat (get % 1))))) nil)
-     [imports ontologyFile] (parseLines ontologyFile parseImportLine #(or (empty? (get % 2))(or (some? (re-matches annotationPat (get % 1)))(some? (re-matches axiomPat (get % 1))))) nil)
-     [annotations ontologyFile] (parseLines ontologyFile parseAnnotationLine #(or (empty? (get % 2))(re-find axiomPat (get % 1))) prefixes)
-     [axioms lastParen] (parseLines ontologyFile parseAxiomLine #(and (re-matches #"^\s*\)\s*$" (get % 1))((comp empty? rest) (get % 2))) prefixes)]
-     (onf/ontologyFile (onf/prefixes prefixes) (onf/ontology (first ontologyIRI) (first versionIRI) (onf/directImports imports) (onf/ontologyAnnotations annotations) (onf/axioms axioms))))))
+     [ontologyIRI ontologyFile] (parseLines ontologyFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
+     [versionIRI ontologyFile] (parseLines ontologyFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
+     [imports ontologyFile] (parseLines ontologyFile parseImportLine #(or (some? (re-matches annotationPat (get % 1)))(or (some? (re-matches axiomPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
+     [annotations ontologyFile] (parseLines ontologyFile parseAnnotationLine #(or (re-find axiomPat (get % 1))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2))))) prefixes)
+     [axioms lastParen] (parseLines ontologyFile parseAxiomLine #(and (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))) prefixes)]
+     (cond
+      (and (some? (first ontologyIRI))(some? (first versionIRI)))(onf/ontologyFile (onf/prefixes prefixes) (onf/ontology (first ontologyIRI)(first versionIRI) (onf/directImports imports) (onf/ontologyAnnotations annotations) (onf/axioms axioms)))
+      (some? (first ontologyIRI))(onf/ontologyFile (onf/prefixes prefixes) (onf/ontology (first ontologyIRI) (onf/directImports imports) (onf/ontologyAnnotations annotations) (onf/axioms axioms)))
+      :else (onf/ontologyFile (onf/prefixes prefixes) (onf/ontology (onf/directImports imports) (onf/ontologyAnnotations annotations) (onf/axioms axioms))))
+     )))
 
 (defn axioms [ontology]
  (msc/lazer (:axioms ontology)))
@@ -653,33 +665,32 @@
 (defn versionIRI [ontology]
  (:versionIRI ontology))
 
-
 (defn- updateOntology [ontology object fun key]
- (update ontology key (constantly (fun (key ontology) object))))
+ (update ontology key (fun (key ontology) object)))
 
 (defn addAxiomToOntology [ontology axiom]
- (updateOntology ontology axiom conj :axioms))
+ (updateOntology ontology axiom (comp constantly conj) :axioms))
 
 (defn addPrefixToOntology [ontology prefix]
- (updateOntology ontology prefix conj :prefixes))
+ (updateOntology ontology prefix (comp constantly conj) :prefixes))
 
 (defn addImportToOntology [ontology import]
- (updateOntology ontology import conj :imports))
+ (updateOntology ontology import (comp constantly conj) :imports))
 
 (defn addAnnotationToOntology [ontology annotation]
- (updateOntology ontology annotation conj :annotations))
+ (updateOntology ontology annotation (comp constantly conj) :annotations))
 
 (defn dropAxiomFromOntology [ontology axiom]
- (updateOntology ontology axiom disj :axioms))
+ (updateOntology ontology axiom (comp constantly disj) :axioms))
 
 (defn dropPrefixFromOntology [ontology prefix]
- (updateOntology ontology prefix disj :prefixes))
+ (updateOntology ontology prefix (comp constantly disj) :prefixes))
 
 (defn dropImportFromOntology [ontology import]
- (updateOntology ontology import disj :imports))
+ (updateOntology ontology import (comp constantly disj) :imports))
 
 (defn dropAnnotationFromOntology [ontology annotation]
- (updateOntology ontology annotation disj :annotations))
+ (updateOntology ontology annotation (comp constantly disj) :annotations))
 
 (def emptyOntology
- )
+ (onf/ontologyFile (onf/prefixes #{}) (onf/ontology (onf/directImports #{}) (onf/ontologyAnnotations #{}) (onf/axioms #{}))))

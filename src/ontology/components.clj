@@ -126,14 +126,22 @@
 (defn className
  "Class := IRI"
  ([iri]
-  (assoc iri :innerType :className :type :className))
+ 	(if (string? iri)
+  	(assoc (IRI iri) :innerType :className :type :className)
+  	(if (contains? iri :type)
+  		(throw+ {:type ::notClassName :iri iri})
+  		(assoc iri :innerType :className :type :className))))
  ([iri namespace prefix]
   (assoc (IRI iri namespace prefix) :innerType :className :type :className)))
 
 (defn roleName
  "ObjectProperty := IRI"
  ([iri]
-  (assoc iri :type :roleName :innerType :roleName))
+ 	(if (string? iri)
+  	(assoc (IRI iri) :type :roleName :innerType :roleName)
+  	(if (contains? iri :type)
+  		(throw+ {:type ::notRoleName :iri iri})
+  		(assoc iri :type :roleName :innerType :roleName))))
  ([iri namespace prefix]
   (assoc (IRI iri namespace prefix) :type :roleName :innerType :roleName)))
 
@@ -151,18 +159,24 @@
 
 (defn dataRoleName
  "DataProperty := IRI"
- ([iri](assoc iri :type :dataRoleName :innerType :dataRoleName))
- ([iri namespace prefix](assoc (IRI iri namespace prefix) :type :dataRoleName :innerType :dataRoleName)))
+ ([iri]
+  (assoc iri :type :dataRoleName :innerType :dataRoleName))
+ ([iri namespace prefix]
+  (assoc (IRI iri namespace prefix) :type :dataRoleName :innerType :dataRoleName)))
 
 (defn- -namedIndividual
  "NamedIndividual := IRI"
- ([iri](assoc iri :type :namedIndividual :innerType :namedIndividual))
- ([iri namespace prefix](assoc (IRI iri namespace prefix) :type :namedIndividual :innerType :namedIndividual)))
+ ([iri]
+  (assoc iri :type :namedIndividual :innerType :namedIndividual))
+ ([iri namespace prefix]
+  (assoc (IRI iri namespace prefix) :type :namedIndividual :innerType :namedIndividual)))
 
 (defn- -anonymousIndividual
  "AnonymousIndividual := nodeID"
- ([iri](assoc iri :type :anonymousIndividual :innerType :anonymousIndividual))
- ([iri namespace prefix](assoc (IRI iri namespace prefix) :type :anonymousIndividual :innerType :anonymousIndividual)))
+ ([iri]
+  (assoc iri :type :anonymousIndividual :innerType :anonymousIndividual))
+ ([iri namespace prefix]
+  (assoc (IRI iri namespace prefix) :type :anonymousIndividual :innerType :anonymousIndividual)))
 
 (defn- -individual [anyIndividual]
  "Individual := AnonymousIndividual | NamedIndividual"
@@ -172,7 +186,9 @@
 
 (defn individual
  ([iri]
-  (-individual (if (= (:prefix iri) "_")(-anonymousIndividual iri)(-namedIndividual iri))))
+  (if (string? iri)
+  	(-individual (-namedIndividual (IRI iri)))
+  	(-individual (if (= (:prefix iri) "_")(-anonymousIndividual iri)(-namedIndividual iri)))))
  ([iri namespace prefix]
   (-individual (if (= prefix "_")(-anonymousIndividual iri namespace prefix)(-namedIndividual iri namespace prefix)))))
 
@@ -286,33 +302,40 @@
 (defn dataType
  ([iri]
   (if (string? iri)
-   (-dataRange (-dataType (IRI iri)))
+   (-dataType (IRI iri))
    (if (contains? iri :type)
     (if (and (= (:innerType iri) :dataType)(= (:type iri) :dataRange))
      iri
-     (if (= (:innerType iri) :dataType)
-      (-dataRange iri)
-      (throw+ {:type ::notDataType :dataType iri})))
-    (-dataRange (-dataType iri)))))
+     (throw+ {:type ::notDataType :dataType iri}))
+    (-dataType iri))))
  ([iri namespace prefix]
-  (-dataRange (-dataType (XSDDatatype iri namespace prefix)))))
+  (-dataType (XSDDatatype iri namespace prefix))))
 
 (defn dataRange [dr]
  (if (contains? dr :type)
   (-dataRange dr)
-  (dataType dr)))
+  (-dataRange (dataType dr))))
 
-(defn dataAnd [datarange1 datarange2 & dataranges]
- (-dataRange (-dataAnd (into #{} (map dataRange [datarange1 datarange2 dataranges])))))
+(defn dataAnd 
+	([datarange1 datarange2]
+	 (-dataRange (-dataAnd (into #{} [(dataRange datarange1) (dataRange datarange2)]))))
+	([datarange1 datarange2 & dataranges]
+	 (-dataRange (-dataAnd (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))))))
 
-(defn dataOr [datarange1 datarange2 & dataranges]
- (-dataRange (-dataOr (into #{} (map dataRange [datarange1 datarange2 dataranges])))))
+(defn dataOr 
+	([datarange1 datarange2]
+	 (-dataRange (-dataOr (into #{} [(dataRange datarange1) (dataRange datarange2)]))))
+	([datarange1 datarange2 & dataranges]
+	 (-dataRange (-dataOr (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))))))
 
 (defn dataNot [datarange]
  (-dataRange (-dataNot (dataRange datarange))))
 
-(defn dataOneOf [literal & literals]
- (-dataRange (-dataOneOf (into #{} [literal literals]))))
+(defn dataOneOf
+	([literal]
+	 (-dataRange (-dataOneOf #{literal})))
+	([literal & literals]
+	 (-dataRange (-dataOneOf (into #{} (flatten [literal literals]))))))
 
 (defn datatypeRestriction
  [datatype restrictedvalues]

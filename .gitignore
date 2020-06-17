@@ -16,3 +16,4 @@ pom.xml.asc
 err
 *.owl
 *.xml
+project.sublime*

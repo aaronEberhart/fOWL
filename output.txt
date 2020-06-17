@@ -1,4 +1,0 @@
-Reading and Copying enslavedv2.owlfs.owl
-Reading Copy Of enslavedv2.owlfs.owl
-Moving Original enslavedv2.owlfs.owl
-finished enslavedv2.owlfs.owl

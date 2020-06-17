@@ -211,13 +211,15 @@
   "propertyExpressionChain := 'ObjectPropertyChain' '(' ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
   (if (< 1 (count roles))
     (if (every? (fn [x] (= (:type x) :role)) roles)
-      {:roles roles :type :role :innerType :roleChain}
+      {:roles roles :type :roleChain :innerType :roleChain}
       (throw+ {:type ::notRoles :roles roles}))
     (throw+ {:type ::notEnoughRoles :roles roles})))
 
 (defn roleChain
-  [roles]
-    (-roleChain (vec (map ex/role roles))))
+  ([role1 role2 & roles]
+    (-roleChain (into [] (map ex/role (flatten [role1 role2 roles])))))
+  ([role1 role2]
+    (-roleChain [(ex/role role1) (ex/role role2)])))
 
 (defn- -consequentRole [role]
   "superObjectPropertyExpression := ObjectPropertyExpression"
@@ -232,7 +234,7 @@
       {:antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
       (throw+ {:type ::notAntecedentConsequentRoles :antecedentRole antecedent :consequentRole consequent})))
   ([annotations antecedent consequent]
-    (if (and(= (:type antecedent) :antecedentRole)(= (:type consequent) :consequentRole))
+    (if (and(= (:type antecedent) :role)(= (:type consequent) :role))
       (if (= (:type annotations) :axiomAnnotations)
         {:annotations (:annotations annotations) :antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
         (throw+ {:type ::notAnnotations :annotations annotations}))
@@ -649,20 +651,20 @@
   "DatatypeDefinition := 'DatatypeDefinition' '(' axiomAnnotations Datatype DataRange ')'"
   ([dataType dataRange]
     (if (and (= (:type dataType) :dataType)(= (:type dataRange) :dataRange))
-      {:dataType dataType :dataRange dataRange :type :dataTypeDefinition :innerType :dataTypeDefinition :outerType :dataTypeDefinition}
+      {:dataType dataType :dataRange dataRange :type :newDataType :innerType :newDataType :outerType :newDataType}
       (throw+ {:type ::notDataTypeDef :dataType dataType :dataRange dataRange})))
   ([annotations dataType dataRange]
     (if (and (= (:type dataType) :dataType)(= (:type dataRange) :dataRange))
       (if (= (:type annotations) :axiomAnnotations)
-        {:dataType dataType :dataRange dataRange :annotations (:annotations annotations) :type :dataTypeDefinition :innerType :dataTypeDefinition :outerType :dataTypeDefinition}
+        {:dataType dataType :dataRange dataRange :annotations (:annotations annotations) :type :newDataType :innerType :newDataType :outerType :newDataType}
         (throw+ {:type ::notAnnotations :annotations annotations}))
       (throw+ {:type ::notDataTypeDef :dataType dataType :dataRange dataRange}))))
 
 (defn dataTypeDefinition
-  ([dataType dataRange]
-    (-axiom (-dataTypeDefinition dataType dataRange)))
-  ([annotations dataType dataRange]
-    (-axiom (-dataTypeDefinition (ann/axiomAnnotations annotations) dataType dataRange))))
+  ([datatype datarange](prn (:innerType (co/dataType datatype))(:innerType (co/dataRange datarange)))
+    (-axiom (-dataTypeDefinition (co/dataType datatype) (co/dataRange datarange))))
+  ([annotations datatype datarange]
+    (-axiom (-dataTypeDefinition (ann/axiomAnnotations annotations) (co/dataType datatype) (co/dataRange datarange)))))
 
 (defn- -annotationAxiom [annotationAxiom]
   "AnnotationAxiom := AnnotationAssertion | SubAnnotationPropertyOf | AnnotationPropertyDomain | AnnotationPropertyRange"

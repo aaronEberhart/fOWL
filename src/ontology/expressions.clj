@@ -10,26 +10,30 @@
  "ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
  (if (= (:type role) :roleName)
   (assoc role :type :role)
-    (if (= (:type role) :role)
-      (assoc role :type :role)
-    (throw+ {:type ::notRole :roleName role}))))
+  (if (= (:type role) :role)
+   (assoc role :type :role)
+  	(throw+ {:type ::notRole :roleName role}))))
 
 (defn role
   ([iri]
     (if (string? iri)
       (-role (co/roleName (co/IRI iri)))
       (if (contains? iri :type)
-        (-role iri)
+      		(if (= (:type iri) :roleChain)
+      			iri
+        	(-role iri))
         (-role (co/roleName iri)))))
   ([iri namespace prefix](-role (co/roleName iri namespace prefix))))
 
 (defn inverseRole
   ([iri]
-    (if (contains? iri :type)
-      (if (= (:innerType iri) :inverseRole)
-        iri
-        (throw+ {:type ::notInverseRole :roleName iri}))
-      (-role (co/inverseRoleName iri)) ))
+   (if (string? iri)
+     (-role (co/inverseRoleName (co/IRI iri)))
+	    (if (contains? iri :type)
+	      (if (= (:innerType iri) :inverseRole)
+	        iri
+	        (throw+ {:type ::notInverseRole :roleName iri}))
+	      (-role (co/inverseRoleName iri)))))
   ([iri namespace prefix](-role (co/inverseRoleName iri namespace prefix))))
 
 (defn- -dataRole [dataRole]
@@ -60,10 +64,10 @@
 (defn class
   ([iri]
     (if (string? iri)
-    (-class (co/className (co/IRI iri)))
-      (if (contains? iri :type)
-        (-class iri)
-        (-class (co/className iri)))))
+	    (-class (co/className (co/IRI iri)))
+	    (if (contains? iri :type)
+	      (-class iri)
+	      (-class (co/className iri)))))
   ([iri namespace prefix](-class (co/className iri namespace prefix))))
 
 (defn- -and [classes]
