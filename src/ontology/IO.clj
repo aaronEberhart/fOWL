@@ -652,3 +652,34 @@
 
 (defn versionIRI [ontology]
  (:versionIRI ontology))
+
+
+(defn- updateOntology [ontology object fun key]
+ (update ontology key (constantly (fun (key ontology) object))))
+
+(defn addAxiomToOntology [ontology axiom]
+ (updateOntology ontology axiom conj :axioms))
+
+(defn addPrefixToOntology [ontology prefix]
+ (updateOntology ontology prefix conj :prefixes))
+
+(defn addImportToOntology [ontology import]
+ (updateOntology ontology import conj :imports))
+
+(defn addAnnotationToOntology [ontology annotation]
+ (updateOntology ontology annotation conj :annotations))
+
+(defn dropAxiomFromOntology [ontology axiom]
+ (updateOntology ontology axiom disj :axioms))
+
+(defn dropPrefixFromOntology [ontology prefix]
+ (updateOntology ontology prefix disj :prefixes))
+
+(defn dropImportFromOntology [ontology import]
+ (updateOntology ontology import disj :imports))
+
+(defn dropAnnotationFromOntology [ontology annotation]
+ (updateOntology ontology annotation disj :annotations))
+
+(def emptyOntology
+ )
