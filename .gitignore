@@ -18,3 +18,4 @@ err
 *.xml
 *project.sublime*
 /src/unReasoner*
+/test*
