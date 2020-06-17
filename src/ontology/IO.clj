@@ -311,8 +311,8 @@
   :variable (str "Variable(" (:iri thing) ")")
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
 
-;(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toString x)))
-(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toDLString x)))
+(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toString x)))
+;(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toDLString x)))
 
 (def extractParams
  (comp
