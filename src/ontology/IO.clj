@@ -336,9 +336,9 @@
 (def extractFirstParamFromList
  (comp
   (fn [l]
-   (if (get (get l 0) 0)
-    [(into #{} (get (get l 0) 0))(first (get l 1)) (rest (get l 1))]
-    [(first (get l 1)) (rest (get l 1))]))
+   (if (empty? (get l 0))
+    [(first (get l 1)) (rest (get l 1))]
+    [(into #{} (get (get l 0) 0))(first (get l 1)) (rest (get l 1))]))
   (fn [l](split-with (fn [x] (or (= (:type x) :annotation)(and (set? x)(some #(= (:type %) :annotation) x)))) l))
   list))
 
@@ -666,28 +666,28 @@
 (defn- updateOntology [ontology object fun key]
  (update ontology key (fun (key ontology) object)))
 
-(defn addAxiomToOntology [ontology axiom]
+(defn addAxiom [ontology axiom]
  (updateOntology ontology axiom (comp constantly conj) :axioms))
 
-(defn addPrefixToOntology [ontology prefix]
+(defn addPrefix [ontology prefix]
  (updateOntology ontology prefix (comp constantly conj) :prefixes))
 
-(defn addImportToOntology [ontology import]
+(defn addImport [ontology import]
  (updateOntology ontology import (comp constantly conj) :imports))
 
-(defn addAnnotationToOntology [ontology annotation]
+(defn addAnnotation [ontology annotation]
  (updateOntology ontology annotation (comp constantly conj) :annotations))
 
-(defn dropAxiomFromOntology [ontology axiom]
+(defn dropAxiom [ontology axiom]
  (updateOntology ontology axiom (comp constantly disj) :axioms))
 
-(defn dropPrefixFromOntology [ontology prefix]
+(defn dropPrefix [ontology prefix]
  (updateOntology ontology prefix (comp constantly disj) :prefixes))
 
-(defn dropImportFromOntology [ontology import]
+(defn dropImport [ontology import]
  (updateOntology ontology import (comp constantly disj) :imports))
 
-(defn dropAnnotationFromOntology [ontology annotation]
+(defn dropAnnotation [ontology annotation]
  (updateOntology ontology annotation (comp constantly disj) :annotations))
 
 (def emptyOntology

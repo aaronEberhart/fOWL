@@ -15,5 +15,6 @@
          (ax/classImplication (ex/<=role 4 "r" "c") 
                               (ex/not (ex/or (ex/and "d" "e") (ex/not (ex/and "f" "g")))))
          (nml/getNNF (ax/classImplication (ex/<=role 4 "r" "c") 
-                                          (ex/not (ex/or (ex/and "d" "e") (ex/not (ex/and "f" "g"))))))]]
+                                          (ex/not (ex/or (ex/and "d" "e") (ex/not (ex/and "f" "g"))))))
+         (first (oio/axioms (oio/addAxiom oio/emptyOntology (ax/classImplication "b" "c"))))]]
   (println x)))

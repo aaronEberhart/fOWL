@@ -46,6 +46,6 @@
 	(io/delete-file "output.txt" true)
  (doseq [file (file-seq (io/file "OWL/fs/"))] (is (runFileTest file))))
 
-(deftest reasonerTests
-	(io/delete-file "output.txt" true)
- (doseq [file (file-seq (io/file "OWL/fs/"))] (is (runReasonerTest file))))
+;(deftest reasonerTests
+	;(io/delete-file "output.txt" true)
+ ;(doseq [file (file-seq (io/file "OWL/fs/"))] (is (runReasonerTest file))))

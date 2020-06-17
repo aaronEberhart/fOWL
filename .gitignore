@@ -17,3 +17,4 @@ err
 *.owl
 *.xml
 *project.sublime*
+/src/unReasoner*
