@@ -23,7 +23,7 @@
 (defn runReasonerTest [file]
  (if (and (.isFile file) (not (re-matches #"^catalog[\s\S]*" (.getName file))))
    (let [_ (println "Reading" (.getName file))
-      ontology (time (oio/readFunctionalFile (io/file file)))
+     ontology (time (oio/readFunctionalFile (io/file file)))
      prefixes (take-while some? (oio/prefixes ontology))
      _ (println "Prefixes: " (count prefixes))
      ontiri (oio/ontologyIRI ontology)
@@ -38,23 +38,9 @@
      roleAxioms (oio/roleAxiomsNoAnnotations ontology)
      facts (oio/factsNoAnnotations ontology)
      dataAxioms (oio/dataRoleAxiomsNoAnnotations ontology)
-     a (ax/classImplication (ex/or (ex/class "b") (ex/class "c")) (ex/or (ex/class "d" "" ":") (ex/class "e" "" ":")))
-     b (ax/classImplication (ex/not (ex/or (ex/class "b" "" ":") (ex/class "c" "" ":"))) (ex/or (ex/class "a" "" ":") (ex/class "g" "" ":")))
-     c (ax/classImplication (ex/or (ex/class "b" "" ":") (ex/class "c" "" ":")) (ex/not (ex/or (ex/class "d" "" ":") (ex/class "e" "" ":"))))
-     d (ax/classImplication (ex/not (ex/or (ex/class "b" "" ":") (ex/class "c" "" ":"))) (ex/not (ex/or (ex/class "f" "" ":") (ex/class "m" "" ":"))))
-     e (ax/classImplication (ex/not (ex/not (ex/or (ex/class "b" "" ":") (ex/class "c" "" ":"))))(ex/not (ex/not (ex/or (ex/class "r" "" ":") (ex/class "o" "" ":")))))
-     f (ax/classImplication (ex/and (ex/class "b" "" ":") (ex/class "c" "" ":")) (ex/and (ex/class "d" "" ":") (ex/class "e" "" ":")))
-     g (ax/classImplication (ex/not (ex/and (ex/class "b" "" ":") (ex/class "c" "" ":"))) (ex/and (ex/class "a" "" ":") (ex/class "g" "" ":")))
-     h (ax/classImplication (ex/and (ex/class "b" "" ":") (ex/class "c" "" ":")) (ex/not (ex/and (ex/class "d" "" ":") (ex/class "e" "" ":"))))
-     i (ax/classImplication (ex/not (ex/and (ex/class "b" "" ":") (ex/class "c" "" ":"))) (ex/not (ex/and (ex/class "f" "" ":") (ex/class "m" "" ":"))))
-     j (ax/classImplication (ex/not (ex/not (ex/and (ex/class "b" "" ":") (ex/class "c" "" ":"))))(ex/not (ex/not (ex/and (ex/class "r" "" ":") (ex/class "o" "" ":")))))
-     k (ax/classImplication (ex/not (ex/and (ex/not (ex/or (ex/class "b" "" ":") (ex/class "c" "" ":"))) (ex/or (ex/class "a" "" ":") (ex/class "d" "" ":"))))
-                            (ex/not (ex/and (ex/or (ex/class "e" "" ":") (ex/class "g" "" ":")) (ex/not (ex/or (ex/class "f" "" ":") (ex/class "h" "" ":"))))))
-     l (ax/disjClasses [(ex/class "a" "" ":") (ex/class "b" "" ":") (ex/class "c" "" ":") (ex/class "d" "" ":") (ex/class "e" "" ":")])
-     m (ax/disjClasses [(ex/class "a") (ex/class "b")(ex/class "c")])
      ]
      (pre/process classAxioms)))
- true);(lazy-seq (list l m)))))));
+ true);
 
 (deftest fileTests
 	(io/delete-file "output.txt" true)

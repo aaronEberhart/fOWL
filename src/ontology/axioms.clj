@@ -234,7 +234,7 @@
       {:antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
       (throw+ {:type ::notAntecedentConsequentRoles :antecedentRole antecedent :consequentRole consequent})))
   ([annotations antecedent consequent]
-    (if (and(= (:type antecedent) :role)(= (:type consequent) :role))
+    (if (and (or (= (:type antecedent) :role)(= (:type antecedent) :roleChain))(= (:type consequent) :role))
       (if (= (:type annotations) :axiomAnnotations)
         {:annotations (:annotations annotations) :antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
         (throw+ {:type ::notAnnotations :annotations annotations}))

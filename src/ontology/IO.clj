@@ -50,6 +50,7 @@
   "bottomObjectProperty" "∅"
   (:short iri)))
 
+;TODO fix this => bad
 (defn- smushPrefix [name prefixes]
  (let [splits (str/split name #":")
     key (str (get splits 0) ":")
