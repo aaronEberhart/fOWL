@@ -317,12 +317,11 @@
 
 (def extractParams
  (comp
-  (fn [l](if (empty? (get l 0))
-   (get l 1)
-   (concat [(into #{} (get l 0))](get l 1))))
-  (fn [l](split-with (fn [x]
-   (or (= (:type x) :annotation)
-     (and (set? x)(some #(= (:type %) :annotation) x))))l))
+  (fn [l]
+   (if (empty? (get l 0))
+    (get l 1)
+    (concat [(into #{} (get l 0))](get l 1))))
+  (fn [l] (split-with (fn [x](or (= (:type x) :annotation)(and (set? x)(some #(= (:type %) :annotation) x)))) l))
   list))
 
 (def extractParamList
@@ -331,18 +330,16 @@
    (if (empty? (get l 0))
     [(get l 1)]
     [(into #{} (get l 0))(get l 1)]))
-  (fn [l](split-with (fn [x]
-   (or (= (:type x) :annotation)
-     (and (set? x)(some #(= (:type %) :annotation) x))))l))
+  (fn [l](split-with (fn [x] (or (= (:type x) :annotation)(and (set? x)(some #(= (:type %) :annotation) x)))) l))
   list))
 
 (def extractFirstParamFromList
  (comp
-  (fn [l](if (get (get l 0) 0)
-  [(into #{} (get (get l 0) 0))(first (get l 1)) (rest (get l 1))][(first (get l 1)) (rest (get l 1))]))
-  (fn [l](split-with (fn [x]
-   (or (= (:type x) :annotation)
-     (and (set? x)(some #(= (:type %) :annotation) x))))l))
+  (fn [l]
+   (if (get (get l 0) 0)
+    [(into #{} (get (get l 0) 0))(first (get l 1)) (rest (get l 1))]
+    [(first (get l 1)) (rest (get l 1))]))
+  (fn [l](split-with (fn [x] (or (= (:type x) :annotation)(and (set? x)(some #(= (:type %) :annotation) x)))) l))
   list))
 
 (defn- getType [type]
