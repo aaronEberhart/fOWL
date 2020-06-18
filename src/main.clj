@@ -1,6 +1,5 @@
 (ns main
  (:require [ontology.IO :as oio][ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann][ontology.facts :as fct][ontology.file :as fl][ontology.SWRL :as swrl][ontology.normalize :as nml]
-           [unReasoner.preprocessing :as pre][unReasoner.consistency :as con][unReasoner.tableau :as tab][unReasoner.model :as mdl]
            [util.msc :as msc]
            [clojure.string :as str][clojure.java.io :as io]))
 
