@@ -1,6 +1,6 @@
 (ns ontology.components
  (:refer-clojure :exclude [name])
- (:require [clojure.string :as str][clojure.set :as set][clojure.core.reducers :as r])
+ (:require [clojure.string :as str][clojure.set :as set])
  (:use [slingshot.slingshot :only [throw+]]))
 
 (def xsdNS
@@ -42,7 +42,7 @@
 (def BotData
  {:namespace owlNS :short "bottomDataProperty" :prefix "owl:" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 
-(defn isReservedIRI? [iri]
+(defn- isReservedIRI? [iri]
  (contains? reservedIRIs iri))
 
 (defn namespace= [iri1 iri2]
@@ -341,8 +341,8 @@
  [datatype restrictedvalues]
   (-dataRange (-datatypeRestriction (dataType datatype) (into #{} (map restrictedValue (filter #(nil? (:type %)) restrictedvalues) (filter #(= (:type %) :literal) restrictedvalues))))))
 
-(defn name [thing]
-  "Entity := 'Class' '(' Class ')' | 'Datatype' '(' Datatype ')' | 'ObjectProperty' '(' ObjectProperty ')' | 'DataProperty' '(' DataProperty ')' | 'AnnotationProperty' '(' AnnotationProperty ')' | 'NamedIndividual' '(' NamedIndividual ')'"
+(defn entity [thing]
+ "Entity := 'Class' '(' Class ')' | 'Datatype' '(' Datatype ')' | 'ObjectProperty' '(' ObjectProperty ')' | 'DataProperty' '(' DataProperty ')' | 'AnnotationProperty' '(' AnnotationProperty ')' | 'NamedIndividual' '(' NamedIndividual ')'"
  (if (contains? nameTypes (:innerType thing))
   (assoc thing :type :name)
   (throw+ {:type ::notName :name thing})))

@@ -113,7 +113,7 @@
       (throw+ {:type ::notAntecedentConsequentClasses :antecedentClass antecedent :consequentClass consequent}))))
 
 (defn classImplication
-  ([antecedent consequent];(println antecedent)(prn consequent)
+  ([antecedent consequent]
     (-axiom (-classAxiom (-classImplication (ex/class antecedent)(ex/class consequent)))))
   ([annotations antecedent consequent]
     (-axiom (-classAxiom (-classImplication (ann/axiomAnnotations annotations)(ex/class antecedent)(ex/class consequent))))))
@@ -538,9 +538,9 @@
 
 (defn =DataRoles
   ([dataRoles]
-    (-axiom (-dataRoleAxiom (=DataRoles (into #{} (map ex/dataRole dataRoles))))))
+    (-axiom (-dataRoleAxiom (-=DataRoles (into #{} (map ex/dataRole dataRoles))))))
   ([annotations dataRoles]
-    (-axiom (-dataRoleAxiom (=DataRoles (ann/axiomAnnotations annotations) (into #{} (map ex/dataRole dataRoles)))))))
+    (-axiom (-dataRoleAxiom (-=DataRoles (ann/axiomAnnotations annotations) (into #{} (map ex/dataRole dataRoles)))))))
 
 (defn- -disjDataRoles
  "DisjointDataProperties := 'DisjointDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
@@ -661,7 +661,7 @@
       (throw+ {:type ::notDataTypeDef :dataType dataType :dataRange dataRange}))))
 
 (defn dataTypeDefinition
-  ([datatype datarange](prn (:innerType (co/dataType datatype))(:innerType (co/dataRange datarange)))
+  ([datatype datarange]
     (-axiom (-dataTypeDefinition (co/dataType datatype) (co/dataRange datarange))))
   ([annotations datatype datarange]
     (-axiom (-dataTypeDefinition (ann/axiomAnnotations annotations) (co/dataType datatype) (co/dataRange datarange)))))
@@ -706,21 +706,21 @@
 (defn- -annotationImplication
   "SubAnnotationPropertyOf := 'SubAnnotationPropertyOf' '(' axiomAnnotations subAnnotationProperty superAnnotationProperty ')'"
   ([antecedent consequent]
-    (if (and (= (:type antecedent) :fromAnnotation)(= (:type consequent) :toAnnotation))
-      {:fromAnnotation antecedent :toAnnotation consequent :type :annotationImplication :innerType :annotationImplication}
+    (if (and (= (:type antecedent) :annotationRole)(= (:type consequent) :annotationRole))
+      {:antecedent antecedent :consequent consequent :type :annotationImplication :innerType :annotationImplication}
       (throw+ {:type ::notAnnotationRoles :antecedent antecedent :consequent consequent})))
   ([annotations antecedent consequent]
-    (if (and (= (:type antecedent) :fromAnnotation)(= (:type consequent) :toAnnotation))
+    (if (and (= (:type antecedent) :annotationRole)(= (:type consequent) :annotationRole))
       (if (= (:type annotations) :axiomAnnotations)
-        {:fromAnnotation antecedent :toAnnotation consequent :type :annotationImplication :innerType :annotationImplication :annotations (:annotations annotations)}
+        {:antecedent antecedent :consequent consequent :type :annotationImplication :innerType :annotationImplication :annotations (:annotations annotations)}
         (throw+ {:type ::notAnnotations :annotations annotations}))
       (throw+ {:type ::notAnnotationRoles :antecedent antecedent :consequent consequent}))))
 
 (defn annotationImplication
   ([antecedent consequent]
-    (-axiom (-annotationAxiom (-annotationImplication (-fromAnnotation (ann/annotationRole antecedent)) (-toAnnotation (ann/annotationRole consequent))))))
+    (-axiom (-annotationAxiom (-annotationImplication (ann/annotationRole antecedent) (ann/annotationRole consequent)))))
   ([annotations antecedent consequent]
-    (-axiom (-annotationAxiom (-annotationImplication (ann/axiomAnnotations annotations) (-fromAnnotation antecedent) (-toAnnotation consequent))))))
+    (-axiom (-annotationAxiom (-annotationImplication (ann/axiomAnnotations annotations) (ann/annotationRole antecedent)(ann/annotationRole antecedent))))))
 
 (defn- -annotationDomain
   "AnnotationPropertyDomain := 'AnnotationPropertyDomain' '(' axiomAnnotations AnnotationProperty IRI ')'"

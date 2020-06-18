@@ -83,29 +83,29 @@
 (defn- -fromIndividual [individual]
   "sourceIndividual := Individual"
   (if (= (:type individual) :individual)
-    (assoc individual :type :fromIndividual)
+    individual;(assoc individual :type :fromIndividual)
     (throw+ {:type ::notIndividual :individual individual})))
 
 (defn- -toIndividual [individual]
   "targetIndividual := Individual"
   (if (= (:type individual) :individual)
-    (assoc individual :type :toIndividual)
+    individual;(assoc individual :type :toIndividual)
     (throw+ {:type ::notIndividual :individual individual})))
 
 (defn- -toLiteral [literal]
   "targetValue := Literal"
   (if (= (:type literal) :literal)
-    (assoc literal :type :toLiteral)
+    literal;;(assoc literal :type :toLiteral)
     (throw+ {:type ::notLiteral :literal literal})))
 
 (defn- -roleFact
   "ObjectPropertyAssertion := 'ObjectPropertyAssertion' '(' axiomAnnotations ObjectPropertyExpression sourceIndividual targetIndividual ')'"
   ([role fromIndividual toIndividual]
-    (if (and (and (= (:type role) :role)(= (:type fromIndividual) :fromIndividual))(= (:type toIndividual) :toIndividual))
+    (if (and (and (= (:type role) :role)(= (:type fromIndividual) :individual))(= (:type toIndividual) :individual))
       {:role role :fromIndividual fromIndividual :toIndividual toIndividual :type :roleFact :innerType :roleFact :outerType :roleFact}
     (throw+ {:type ::notRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual})))
   ([annotations role fromIndividual toIndividual]
-    (if (and (and (= (:type role) :role)(= (:type fromIndividual) :fromIndividual))(= (:type toIndividual) :toIndividual))
+    (if (and (and (= (:type role) :role)(= (:type fromIndividual) :individual))(= (:type toIndividual) :individual))
       (if (= (:type annotations) :axiomAnnotations)
         {:role role :fromIndividual fromIndividual :toIndividual toIndividual :annotations annotations :type :roleFact :innerType :roleFact :outerType :roleFact}
         (throw+ {:type ::notAnnotations :annotations annotations}))
@@ -120,11 +120,11 @@
 (defn- -notRoleFact
   "NegativeObjectPropertyAssertion := 'NegativeObjectPropertyAssertion' '(' axiomAnnotations ObjectPropertyExpression sourceIndividual targetIndividual ')'"
   ([role fromIndividual toIndividual]
-    (if (and (and (= (:type role) :role)(= (:type fromIndividual) :fromIndividual))(= (:type toIndividual) :toIndividual))
+    (if (and (and (= (:type role) :role)(= (:type fromIndividual) :individual))(= (:type toIndividual) :individual))
       {:role role :fromIndividual fromIndividual :toIndividual toIndividual :type :notRoleFact :innerType :notRoleFact :outerType :notRoleFact}
     (throw+ {:type ::notNotRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual})))
   ([role fromIndividual toIndividual annotations]
-    (if (and (and (= (:type role) :role)(= (:type fromIndividual) :fromIndividual))(= (:type toIndividual) :toIndividual))
+    (if (and (and (= (:type role) :role)(= (:type fromIndividual) :individual))(= (:type toIndividual) :individual))
       (if (= (:type annotations) :axiomAnnotations)
         {:role role :fromIndividual fromIndividual :toIndividual toIndividual :annotations annotations :type :notRoleFact :innerType :notRoleFact :outerType :notRoleFact}
         (throw+ {:type ::notAnnotations :annotations annotations}))
@@ -139,11 +139,11 @@
 (defn- -dataRoleFact
   "DataPropertyAssertion := 'DataPropertyAssertion' '(' axiomAnnotations DataPropertyExpression sourceIndividual targetValue ')'"
   ([dataRole fromIndividual toLiteral]
-    (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :fromIndividual))(= (:type toLiteral) :toLiteral))
+    (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :individual))(= (:type toLiteral) :literal))
       {:dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral :type :dataRoleFact :innerType :dataRoleFact :outerType :dataRoleFact}
       (throw+ {:type ::notDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral})))
   ([dataRole fromIndividual toLiteral annotations]
-    (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :fromIndividual))(= (:type toLiteral) :toLiteral))
+    (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :individual))(= (:type toLiteral) :literal))
       (if (= (:type annotations) :axiomAnnotations)
         {:dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral :annotations annotations :type :dataRoleFact :innerType :dataRoleFact :outerType :dataRoleFact}
         (throw+ {:type ::notAnnotations :annotations annotations}))
@@ -158,11 +158,11 @@
 (defn- -notDataRoleFact
   "NegativeDataPropertyAssertion := 'NegativeDataPropertyAssertion' '(' axiomAnnotations DataPropertyExpression sourceIndividual targetValue ')'"
   ([dataRole fromIndividual toLiteral]
-    (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :fromIndividual))(= (:type toLiteral) :toLiteral))
+    (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :individual))(= (:type toLiteral) :literal))
       {:dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral :type :notDataRoleFact :innerType :notDataRoleFact :outerType :notDataRoleFact}
       (throw+ {:type ::notNotDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral})))
   ([annotations dataRole fromIndividual toLiteral]
-    (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :fromIndividual))(= (:type toLiteral) :toLiteral))
+    (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :individual))(= (:type toLiteral) :literal))
       (if (= (:type annotations) :axiomAnnotations)
         {:dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral :annotations annotations :type :notDataRoleFact :innerType :notDataRoleFact :outerType :notDataRoleFact}
         (throw+ {:type ::notAnnotations :annotations annotations}))

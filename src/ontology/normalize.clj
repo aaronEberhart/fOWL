@@ -47,7 +47,7 @@
 (defn- notFun [fun]
   (comp fun negate))
 
-(defn constantlyMapToClassSet [fun classes]
+(defn- constantlyMapToClassSet [fun classes]
   (constantly (into #{} (map fun classes))))
 
 (defn- checkInnerClass [class fun]
@@ -134,7 +134,7 @@
   (case (:innerType axiom)
     :disjClasses (disjToImp (classesPermutations (into [] (:classes axiom))))
     :=Classes (equivToImp (classesPermutations (into [] (:classes axiom))))
-    :disjOr (throw+ {:type ::notNormalizable :axiom axiom})
+    :disjOr (throw+ {:type ::notNormalizableYet :axiom axiom})
     (throw+ {:type ::incompatibleClassAxiom :axiom axiom})))
 
 (defn getClassAxiomNNF [axiom]
