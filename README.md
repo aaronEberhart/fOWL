@@ -4,7 +4,7 @@ FIXME: description
 Functions Currently available in -main:
 |Function Name|args|Description|
 |:---:|:-:|:--------:|
-|*File I/O*|||
+|_File I/O_|||
 |makeOWLFile|filename ontology||
 ||filename prefixes ontologyIRI versionIRI imports annotations axioms||
 |readFunctionalFile|file||
