@@ -4,13 +4,13 @@ FIXME: description
 Functions Currently available in -main:
 |Function Name|args|Description|
 |:---:|:---:|:---:|
-
+||||
 |makeOWLFile|filename ontology||
 ||filename prefixes ontologyIRI versionIRI imports annotations axioms||
 |readFunctionalFile|file||
 |toString|map||
 |toDLString|map||
-
+||||
 |emptyOntology|nil||
 |getAxioms|ontology||
 |getAxiomsNoAnnotations|ontology||
@@ -35,7 +35,7 @@ Functions Currently available in -main:
 |dropPrefix|ontology prefix||
 |dropImport|ontology import||
 |dropAnnotation|ontology annotation||
-
+||||
 |prefix|prefixName longIRI|| 
 |prefixes|prefixes|| 
 |ontology|nil|emptyOntology|
@@ -50,12 +50,42 @@ Functions Currently available in -main:
 |axioms|axioms|| 
 |ontologyFile|ontology||
 ||prefixes ontology||
-
+||||
 |negate|class|| 
 |getClassNNF|class|| 
 |toClassImplications|classaxiom|| 
 |getNNF|axiom|| 
-
+||||
+|-class|iri||
+||iri namespace prefix||
+|-and|class1 class2||
+||class1 class2 classes||
+|-or|class1 class2||
+||class1 class2 classes||
+|-not|c||
+|nominal|individual||
+||individual individuals||
+|existential|r c||
+|universal|r c||
+|partialRole|r i||
+|Self|iri||
+||iri namespace prefix||
+|>=role|nat r||
+||nat r c||
+|<=role|nat r||
+||nat r c||
+|=role|nat r||
+||nat r c||
+|dataExistential|dataRoles dataRange||
+|dataUniversal|dataRoles dataRange||
+|>=dataRole|nat dr||
+||nat dr dataRange||
+|<=dataRole|nat dr||
+||nat dr dataRange||
+|=dataRole|nat dr||
+||nat dr dataRange||
+|partialDataRole|dr literal||
+||||
 |declaration|args||
 |classImplication|args||
 |=Classes|args||
@@ -88,6 +118,7 @@ Functions Currently available in -main:
 |annotationImplication|args||
 |annotationDomain|args||
 |annotationRange|args||
+||||
 |=individuals|args||
 |!=individuals|args||
 |classFact|args||
@@ -95,6 +126,7 @@ Functions Currently available in -main:
 |notRoleFact|args||
 |dataRoleFact|args||
 |notDataRoleFact|args||
+||||
 |annotationRole|iri||
 ||iri namespace prefix||
 |annotationValue|value||
@@ -104,6 +136,7 @@ Functions Currently available in -main:
 |axiomAnnotations|annotations||
 |annotationDataType|iri||
 ||iri namespace prefix||
+||||
 |IRI|iri||
 ||iri namespace prefix||
 |className|iri||
@@ -138,36 +171,7 @@ Functions Currently available in -main:
 ||iri namespace prefix||
 |dataRole|iri||
 ||iri namespace prefix||
-|-class|iri||
-||iri namespace prefix||
-|-and|class1 class2||
-||class1 class2 classes||
-|-or|class1 class2||
-||class1 class2 classes||
-|-not|c||
-|nominal|individual||
-||individual individuals||
-|existential|r c||
-|universal|r c||
-|partialRole|r i||
-|Self|iri||
-||iri namespace prefix||
-|>=role|nat r||
-||nat r c||
-|<=role|nat r||
-||nat r c||
-|=role|nat r||
-||nat r c||
-|dataExistential|dataRoles dataRange||
-|dataUniversal|dataRoles dataRange||
-|>=dataRole|nat dr||
-||nat dr dataRange||
-|<=dataRole|nat dr||
-||nat dr dataRange||
-|=dataRole|nat dr||
-||nat dr dataRange||
-|partialDataRole|dr literal||
-
+||||
 |dlSafeRule|args||
 |body|atoms||
 |head|atoms|| 
@@ -180,7 +184,8 @@ Functions Currently available in -main:
 |dataRoleAtom|dataRole iarg darg|| 
 |builtInAtom|iri dargs|| 
 |=individualsAtom|iarg1 iarg2|| 
-|!=individualsAtom|iarg1 iarg2|| 
+|!=individualsAtom|iarg1 iarg2||
+
 ## Examples
 ...
 ## License
