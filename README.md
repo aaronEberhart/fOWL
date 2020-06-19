@@ -15,30 +15,30 @@ Functions Currently available in -main:
 **Ontology Access**
 |Function Name|args|Description|
 |:-|:-:|:-|
-|emptyOntology|nil||
-|getAxioms|ontology||
-|getAxiomsNoAnnotations|ontology||
-|getClassAxioms|ontology||
-|getClassAxiomsNoAnnotations|ontology||
-|getRoleAxioms|ontology||
-|getRoleAxiomsNoAnnotations|ontology||
-|getDataRoleAxioms|ontology||
-|getDataRoleAxiomsNoAnnotations|ontology||
-|getFacts|ontology||
-|getFactsNoAnnotations|ontology||
-|getPrefixes|ontology||
-|getImports|ontology||
-|getAnnotations|ontology||
-|getOntologyIRI|ontology||
-|getVersionIRI|ontology||
-|addAxiom|ontology axiom||
-|addPrefix|ontology prefix||
-|addImport|ontology import||
-|addAnnotation|ontology annotation||
-|dropAxiom|ontology axiom||
-|dropPrefix|ontology prefix||
-|dropImport|ontology import||
-|dropAnnotation|ontology annotation||
+|emptyOntology|nil|Returns an empty ontology|
+|getAxioms|ontology|Returns the axioms from an ontology in a lazy sequence|
+|getAxiomsNoAnnotations|ontology|Returns the axioms from an ontology without annotations in a lazy sequence|
+|getClassAxioms|ontology|Returns the class axioms from an ontology in a lazy sequence|
+|getClassAxiomsNoAnnotations|ontology|Returns the class axioms from an ontology without annotations in a lazy sequence|
+|getRoleAxioms|ontology|Returns the role axioms from an ontology in a lazy sequence|
+|getRoleAxiomsNoAnnotations|ontology|Returns the role axioms from an ontology without annotations in a lazy sequence|
+|getDataRoleAxioms|ontology|Returns the data role axioms from an ontology in a lazy sequence|
+|getDataRoleAxiomsNoAnnotations|ontology|Returns the data role axioms from an ontology without annotations in a lazy sequence|
+|getFacts|ontology|Returns the facts from an ontology in a lazy sequence|
+|getFactsNoAnnotations|ontology|Returns the facts from an ontology without annotations in a lazy sequence|
+|getPrefixes|ontology|Returns the prefixes from an ontology in a lazy sequence|
+|getImports|ontology|Returns the imports from an ontology in a lazy sequence|
+|getAnnotations|ontology|Returns the annotations from an ontology in a lazy sequence|
+|getOntologyIRI|ontology|Returns the ontology IRI from an ontology|
+|getVersionIRI|ontology|Returns the version IRI from an ontology|
+|addAxiom|ontology axiom|Adds an axiom to an ontology|
+|addPrefix|ontology prefix|Adds a prefix to an ontology|
+|addImport|ontology import|Adds an import to an ontology|
+|addAnnotation|ontology annotation|Adds an annotation to an ontology|
+|dropAxiom|ontology axiom|Drops an axiom from an ontology|
+|dropPrefix|ontology prefix|Drops a prefix from an ontology|
+|dropImport|ontology import|Drops an import from an ontology|
+|dropAnnotation|ontology annotation|Drops an annotation from an ontology|
 
 **Ontology Creation**
 |Function Name|args|Description|
