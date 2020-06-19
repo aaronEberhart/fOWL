@@ -4,13 +4,13 @@ FIXME: description
 Functions Currently available in -main:
 |Function Name|args|Description|
 |:---:|:-:|:--------:|
-|_File I/O_|||
+|**File I/O**|||
 |makeOWLFile|filename ontology||
 ||filename prefixes ontologyIRI versionIRI imports annotations axioms||
 |readFunctionalFile|file||
 |toString|map||
 |toDLString|map||
-|Ontology Access|||
+|**Ontology Access**|||
 |emptyOntology|nil||
 |getAxioms|ontology||
 |getAxiomsNoAnnotations|ontology||
