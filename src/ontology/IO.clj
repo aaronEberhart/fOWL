@@ -339,12 +339,10 @@
  ([iri namespace prefix](co/IRI iri namespace prefix)))
 
 (defn className
- "Class := IRI"
  ([iri](co/className iri))
  ([iri namespace prefix](co/className iri namespace prefix)))
 
 (defn roleName
- "ObjectProperty := IRI"
  ([iri](co/roleName iri))
  ([iri namespace prefix](co/roleName iri namespace prefix)))
 
