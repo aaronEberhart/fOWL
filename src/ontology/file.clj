@@ -31,7 +31,7 @@
     (if (or (= nil directImports)(= (:type directImports) :imports))
       (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
         (if (or (= nil axioms)(= (:type axioms) :axioms))
-          {:ontologyIRI nil :versionIRI nil :axioms (if axioms (:axioms axioms) nil) :imports (if directImports (:imports directImports) nil) :annotations (if ontologyAnnotations (:annotations ontologyAnnotations) nil) :type :ontology}
+          {:ontologyIRI nil :versionIRI nil :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
           (throw+ {:type ::notaxioms :axioms axioms}))
         (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
       (throw+ {:type ::directImports :directImports directImports})))
@@ -40,7 +40,7 @@
       (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
         (if (or (= nil axioms)(= (:type axioms) :axioms))
           (if (= (:type ontologyIRI) :ontologyIRI)
-            {:ontologyIRI ontologyIRI :versionIRI nil :axioms (if axioms (:axioms axioms) nil) :imports (if directImports (:imports directImports) nil) :annotations (if ontologyAnnotations (:annotations ontologyAnnotations) nil) :type :ontology}
+            {:ontologyIRI ontologyIRI :versionIRI nil :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
             (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
           (throw+ {:type ::notaxioms :axioms axioms}))
         (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
@@ -51,17 +51,12 @@
         (if (or (= nil axioms)(= (:type axioms) :axioms))
           (if (= (:type ontologyIRI) :ontologyIRI)
             (if (= (:type versionIRI) :versionIRI)
-              {:ontologyIRI ontologyIRI :versionIRI versionIRI :axioms (if axioms (:axioms axioms) nil) :imports (if directImports (:imports directImports) nil) :annotations (if ontologyAnnotations (:annotations ontologyAnnotations) nil) :type :ontology}
+              {:ontologyIRI ontologyIRI :versionIRI versionIRI :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
               (throw+ {:type ::notversionIRI :versionIRI versionIRI}))
             (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
           (throw+ {:type ::notaxioms :axioms axioms}))
         (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
       (throw+ {:type ::directImports :directImports directImports}))))
-
-(defn ontology
- ([directImports ontologyAnnotations axioms](-ontology directImports ontologyAnnotations axioms))
- ([ontologyIRI directImports ontologyAnnotations axioms](-ontology ontologyIRI directImports ontologyAnnotations axioms))
- ([ontologyIRI versionIRI directImports ontologyAnnotations axioms](-ontology ontologyIRI versionIRI directImports ontologyAnnotations axioms)))
 
 (defn ontologyIRI [iri]
  "ontologyIRI := IRI"
@@ -79,7 +74,7 @@
  "directlyImportsDocuments := { 'Import' '(' IRI ')' }"
  (if (every? (fn [x] (= (:type x) :import)) imports)
    {:imports imports :type :imports :innerType :imports}
-   (throw+ {:type ::notImoprts :imports imports})))
+   (throw+ {:type ::notImports :imports imports})))
 
 (defn directImport [iri]
  "'Import' '(' IRI ')'"
@@ -101,4 +96,9 @@
 
 (defn ontologyFile
   ([ontology](-ontologyFile ontology))
-  ([prefixes ontology](-ontologyFile prefixes ontology)))
+  ([pref ontology](-ontologyFile (prefixes pref) ontology)))
+
+(defn ontology
+ ([imports annotations axiom](-ontology (directImports imports) (ontologyAnnotations annotations) (axioms axiom)))
+ ([onto imports annotations axiom](-ontology (ontologyIRI onto) (directImports imports) (ontologyAnnotations annotations) (axioms axiom)))
+ ([onto vers imports annotations axiom](-ontology (ontologyIRI onto) (versionIRI vers) (directImports imports) (ontologyAnnotations annotations) (axioms axiom))))

@@ -34,7 +34,10 @@
   list))
 
 (def emptyOntology
- (onf/ontologyFile (onf/prefixes #{}) (onf/ontology (onf/directImports #{}) (onf/ontologyAnnotations #{}) (onf/axioms #{}))))
+ (onf/ontology #{} #{} #{}))
+
+(def emptyOntologyFile
+ (onf/ontologyFile #{} emptyOntology))
 
 (defn getAxioms [ontology]
  (msc/lazer (:axioms ontology)))
@@ -553,7 +556,7 @@
 (defn toDLString [thing]
  (case (:innerType thing)
 
-  ;undefined
+  ;not an OWL map
   nil (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toDLString (% thing))(% thing)) "nil")) (keys thing))) "}")
 
   ;atoms
@@ -673,7 +676,7 @@
 (defn toString [thing]
  (case (:innerType thing)
 
-  ;undefined
+  ;Not an OWL map
   nil (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toString (% thing))(% thing)) "nil")) (keys thing))) "}")
 
   ;atoms
@@ -875,27 +878,28 @@
   "BuiltInAtom" builtInAtom
   "SameIndividualAtom" =individualsAtom
   "DifferentIndividualsAtom" !=individualsAtom
-  "DescriptionGraphRule" dgRule
-  ))
+  "DescriptionGraphRule" dgRule))
 
 (defn makeOWLFile
  ([filename ontology]
   (makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology)))
  ([filename prefixes ontologyIRI versionIRI imports annotations axioms]
   (with-open [wrt (io/writer filename)]
-    (do (doseq [prefix prefixes] (.write wrt (str (toString prefix) "\n")))
-     (.write wrt "\n\nOntology(")
-     (.write wrt (if ontologyIRI (str (toString ontologyIRI) "\n" (if versionIRI (str (toString versionIRI) "\n")))"\n"))
-     (doseq [im imports] (.write wrt (str (toString im) "\n")))
-     (if imports (.write wrt "\n"))
-     (doseq [ann annotations] (.write wrt (str (toString ann) "\n")))
-     (if annotations (.write wrt "\n"))
-     (doseq [axiom axioms](.write wrt (str (toString axiom) "\n")))
-     (.write wrt ")")))))
+   (do 
+    (doseq [prefix prefixes] (.write wrt (str (toString prefix) "\n")))
+    (if (not (empty? prefixes)) (.write wrt "\n\n"))
+    (.write wrt "Ontology(")
+    (.write wrt (if ontologyIRI (str (toString ontologyIRI) "\n" (if versionIRI (str (toString versionIRI) "\n")))"\n"))
+    (doseq [im imports] (.write wrt (str (toString im) "\n")))
+    (if (not (empty? imports)) (.write wrt "\n"))
+    (doseq [ann annotations] (.write wrt (str (toString ann) "\n")))
+    (if (not (empty? annotations)) (.write wrt "\n"))
+    (doseq [axiom axioms](.write wrt (str (toString axiom) "\n")))
+    (.write wrt ")")))))
 
 (defn- parsePrefixLine [state prefixes _ _ _ _]
  (loop [state state
-     prefixes prefixes]
+        prefixes prefixes]
  (if-some [blankMatch (re-matches blankPat state)]
   [state prefixes]
  (if-some [commMatch (re-matches commPat state)]
@@ -903,7 +907,7 @@
  (if-some [ontMatch (re-matches ontPat state)]
   [state prefixes]
  (if-some [prefMatch (re-matches prefixPat state)]
-   (recur (get prefMatch 3) (conj! prefixes (apply onf/prefix [(get prefMatch 1)(get prefMatch 2)])))
+   (recur (get prefMatch 3) (conj! prefixes (apply prefix [(get prefMatch 1)(get prefMatch 2)])))
  [state prefixes]))))))
 
 (defn- parseOntologyIRILine [state ontologyIRI _ _ _ _]
@@ -916,7 +920,7 @@
  (if-some [ontMatch (re-matches ontPat state)]
   (recur (get ontMatch 2) ontologyIRI)
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
-  [(get fullIRIMatch 2) (conj! ontologyIRI (onf/ontologyIRI (co/IRI (get fullIRIMatch 1))))]
+  [(get fullIRIMatch 2) (conj! ontologyIRI (co/IRI (get fullIRIMatch 1)))]
  (if-some [commMatch (re-matches commPat state)]
   [(get commMatch 2) ontologyIRI]
  (if-some [importMatch (re-matches importPat state)]
@@ -934,7 +938,7 @@
  (if-some [blankMatch (re-matches blankPat state)]
   [state versionIRI]
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
-  [(get fullIRIMatch 2) (conj! versionIRI (onf/versionIRI (co/IRI (get fullIRIMatch 1))))]
+  [(get fullIRIMatch 2) (conj! versionIRI (co/IRI (get fullIRIMatch 1)))]
  (if-some [commMatch (re-matches commPat state)]
   [(get commMatch 2) versionIRI]
  (if-some [importMatch (re-matches importPat state)]
@@ -943,6 +947,9 @@
   [state versionIRI]
  (if-some [axMatch (re-matches axiomPat state)]
   [state versionIRI])))))))))
+
+(defn- firstFromVec [[x y]]
+ [(first x) y])
 
 (defn- parseImportLine [state imports _ _ _ _]
  (loop [state state
@@ -956,16 +963,16 @@
  (if-some [annMatch (re-matches annotationPat state)]
   [state imports]
  (if-some [importMatch (re-matches importPat state)]
-  (recur (get importMatch 2) (conj! imports (onf/directImport (co/IRI (get importMatch 1)))))
+  (recur (get importMatch 2) (conj! imports (directImport (co/IRI (get importMatch 1)))))
  (if-some [axMatch (re-matches axiomPat state)]
   [state imports]))))))))
 
 (defn- parseAnnotationLine [state annotations annFun exps expFuns prefixes]
  (loop [state state
-     annotations annotations
-     annFun annFun
-     exps exps
-     expFuns expFuns]
+        annotations annotations
+        annFun annFun
+        exps exps
+        expFuns expFuns]
  (if-some [doneMatch (re-matches closeParenPat state)]
   (cond
    (nil? annFun)
@@ -1057,15 +1064,14 @@
 
 (defn readFunctionalFile [file]
  (with-open [rdr (io/reader file)]
-  (let [ontologyFile (line-seq rdr)
-   [prefixes ontologyFile] (parseLines ontologyFile parsePrefixLine #(some? (re-matches ontPat (get % 1))) nil)
-   [ontologyIRI ontologyFile] (parseLines ontologyFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
-   [versionIRI ontologyFile] (parseLines ontologyFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
-   [imports ontologyFile] (parseLines ontologyFile parseImportLine #(or (some? (re-matches annotationPat (get % 1)))(or (some? (re-matches axiomPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
-   [annotations ontologyFile] (parseLines ontologyFile parseAnnotationLine #(or (re-find axiomPat (get % 1))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2))))) prefixes)
-   [axioms lastParen] (parseLines ontologyFile parseAxiomLine #(and (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))) prefixes)]
+  (let [ontFile (line-seq rdr)
+   [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches ontPat (get % 1))) nil)
+   [ontologyIRI ontFile] (firstFromVec (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
+   [versionIRI ontFile] (firstFromVec (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
+   [imports ontFile] (parseLines ontFile parseImportLine #(or (some? (re-matches annotationPat (get % 1)))(or (some? (re-matches axiomPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
+   [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (re-find axiomPat (get % 1))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2))))) prefixes)
+   [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))) prefixes)]
    (cond
-    (and (some? (first ontologyIRI))(some? (first versionIRI)))(onf/ontologyFile (onf/prefixes prefixes) (onf/ontology (first ontologyIRI)(first versionIRI) (onf/directImports imports) (onf/ontologyAnnotations annotations) (onf/axioms axioms)))
-    (some? (first ontologyIRI))(onf/ontologyFile (onf/prefixes prefixes) (onf/ontology (first ontologyIRI) (onf/directImports imports) (onf/ontologyAnnotations annotations) (onf/axioms axioms)))
-    :else (onf/ontologyFile (onf/prefixes prefixes) (onf/ontology (onf/directImports imports) (onf/ontologyAnnotations annotations) (onf/axioms axioms))))
-   )))
+    (and (some? ontologyIRI)(some? versionIRI))(ontologyFile prefixes (ontology ontologyIRI versionIRI imports annotations axioms))
+    (some? ontologyIRI)(ontologyFile prefixes (ontology ontologyIRI imports annotations axioms))
+    :else (ontologyFile prefixes (ontology imports annotations axioms))))))
