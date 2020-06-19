@@ -151,7 +151,8 @@ Functions Currently available in -main:
 |notRoleFact|args||
 |dataRoleFact|args||
 |notDataRoleFact|args||
-|Annotations|||
+
+**Annotations**
 |annotationRole|iri||
 ||iri namespace prefix||
 |annotationValue|value||
