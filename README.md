@@ -140,6 +140,7 @@ Functions Currently available in -main:
 |annotationImplication|args||
 |annotationDomain|args||
 |annotationRange|args||
+
 **Facts**
 |Function Name|args|Description|
 |:-|:-:|:-|
