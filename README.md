@@ -2,15 +2,19 @@
 FIXME: description
 ## Usage
 Functions Currently available in -main:
+
+**File I/O**
 |Function Name|args|Description|
 |:-:|:-:|:--------:|
-|**File I/O**|||
 |makeOWLFile|filename ontology||
 ||filename prefixes ontologyIRI versionIRI imports annotations axioms||
 |readFunctionalFile|file||
 |toString|map||
 |toDLString|map||
-|**Ontology Access**|||
+
+**Ontology Access**
+|Function Name|args|Description|
+|:-:|:-:|:--------:|
 |emptyOntology|nil||
 |getAxioms|ontology||
 |getAxiomsNoAnnotations|ontology||
@@ -35,7 +39,10 @@ Functions Currently available in -main:
 |dropPrefix|ontology prefix||
 |dropImport|ontology import||
 |dropAnnotation|ontology annotation||
-|Ontology Creation|||
+
+**Ontology Creation**
+|Function Name|args|Description|
+|:-:|:-:|:--------:|
 |prefix|prefixName longIRI|| 
 |prefixes|prefixes|| 
 |ontology|nil|emptyOntology|
@@ -50,13 +57,25 @@ Functions Currently available in -main:
 |axioms|axioms|| 
 |ontologyFile|ontology||
 ||prefixes ontology||
-|Expressions|||
+
+**Normalization**
+|Function Name|args|Description|
+|:-:|:-:|:--------:|
 |negate|class|| 
 |getClassNNF|class|| 
 |toClassImplications|classaxiom|| 
 |getNNF|axiom|| 
-||||
+
+**Expressions**
+|Function Name|args|Description|
+|:-:|:-:|:--------:|
 |-class|iri||
+||iri namespace prefix||
+|role|iri||
+||iri namespace prefix||
+|inverseRole|iri||
+||iri namespace prefix||
+|dataRole|iri||
 ||iri namespace prefix||
 |-and|class1 class2||
 ||class1 class2 classes||
@@ -85,7 +104,10 @@ Functions Currently available in -main:
 |=dataRole|nat dr||
 ||nat dr dataRange||
 |partialDataRole|dr literal||
-|Axioms|||
+
+**Axioms**
+|Function Name|args|Description|
+|:-:|:-:|:--------:|
 |declaration|args||
 |classImplication|args||
 |=Classes|args||
@@ -118,7 +140,9 @@ Functions Currently available in -main:
 |annotationImplication|args||
 |annotationDomain|args||
 |annotationRange|args||
-|Facts|||
+**Facts**
+|Function Name|args|Description|
+|:-:|:-:|:--------:|
 |=individuals|args||
 |!=individuals|args||
 |classFact|args||
@@ -136,7 +160,10 @@ Functions Currently available in -main:
 |axiomAnnotations|annotations||
 |annotationDataType|iri||
 ||iri namespace prefix||
-|Components|||
+
+**Components**
+|Function Name|args|Description|
+|:-:|:-:|:--------:|
 |IRI|iri||
 ||iri namespace prefix||
 |className|iri||
@@ -165,13 +192,10 @@ Functions Currently available in -main:
 ||literal literals||
 |datatypeRestriction|args||
 |entity|thing||
-|role|iri||
-||iri namespace prefix||
-|inverseRole|iri||
-||iri namespace prefix||
-|dataRole|iri||
-||iri namespace prefix||
-|SWRL Stuff|||
+
+**SWRL Stuff**
+|Function Name|args|Description|
+|:-:|:-:|:--------:|
 |dlSafeRule|args||
 |body|atoms||
 |head|atoms|| 
