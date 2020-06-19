@@ -4,13 +4,13 @@ FIXME: description
 Functions Currently available in -main:
 |Function Name|args|Description|
 |:---:|:---:|:---:|
-||||
+|File I/O|||
 |makeOWLFile|filename ontology||
 ||filename prefixes ontologyIRI versionIRI imports annotations axioms||
 |readFunctionalFile|file||
 |toString|map||
 |toDLString|map||
-||||
+|Ontology Access|||
 |emptyOntology|nil||
 |getAxioms|ontology||
 |getAxiomsNoAnnotations|ontology||
@@ -35,7 +35,7 @@ Functions Currently available in -main:
 |dropPrefix|ontology prefix||
 |dropImport|ontology import||
 |dropAnnotation|ontology annotation||
-||||
+|Ontology Creation|||
 |prefix|prefixName longIRI|| 
 |prefixes|prefixes|| 
 |ontology|nil|emptyOntology|
@@ -50,7 +50,7 @@ Functions Currently available in -main:
 |axioms|axioms|| 
 |ontologyFile|ontology||
 ||prefixes ontology||
-||||
+|Expressions|||
 |negate|class|| 
 |getClassNNF|class|| 
 |toClassImplications|classaxiom|| 
@@ -85,7 +85,7 @@ Functions Currently available in -main:
 |=dataRole|nat dr||
 ||nat dr dataRange||
 |partialDataRole|dr literal||
-||||
+|Axioms|||
 |declaration|args||
 |classImplication|args||
 |=Classes|args||
@@ -118,7 +118,7 @@ Functions Currently available in -main:
 |annotationImplication|args||
 |annotationDomain|args||
 |annotationRange|args||
-||||
+|Facts|||
 |=individuals|args||
 |!=individuals|args||
 |classFact|args||
@@ -126,7 +126,7 @@ Functions Currently available in -main:
 |notRoleFact|args||
 |dataRoleFact|args||
 |notDataRoleFact|args||
-||||
+|Annotations|||
 |annotationRole|iri||
 ||iri namespace prefix||
 |annotationValue|value||
@@ -136,7 +136,7 @@ Functions Currently available in -main:
 |axiomAnnotations|annotations||
 |annotationDataType|iri||
 ||iri namespace prefix||
-||||
+|Components|||
 |IRI|iri||
 ||iri namespace prefix||
 |className|iri||
@@ -171,7 +171,7 @@ Functions Currently available in -main:
 ||iri namespace prefix||
 |dataRole|iri||
 ||iri namespace prefix||
-||||
+|SWRL Stuff|||
 |dlSafeRule|args||
 |body|atoms||
 |head|atoms|| 
