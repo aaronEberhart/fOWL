@@ -5,7 +5,7 @@ Functions Currently available in -main:
 
 **File I/O**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |makeOWLFile|filename ontology||
 ||filename prefixes ontologyIRI versionIRI imports annotations axioms||
 |readFunctionalFile|file||
@@ -14,7 +14,7 @@ Functions Currently available in -main:
 
 **Ontology Access**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |emptyOntology|nil||
 |getAxioms|ontology||
 |getAxiomsNoAnnotations|ontology||
@@ -42,7 +42,7 @@ Functions Currently available in -main:
 
 **Ontology Creation**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |prefix|prefixName longIRI|| 
 |prefixes|prefixes|| 
 |ontology|nil|emptyOntology|
@@ -60,7 +60,7 @@ Functions Currently available in -main:
 
 **Normalization**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |negate|class|| 
 |getClassNNF|class|| 
 |toClassImplications|classaxiom|| 
@@ -68,7 +68,7 @@ Functions Currently available in -main:
 
 **Expressions**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |-class|iri||
 ||iri namespace prefix||
 |role|iri||
@@ -107,7 +107,7 @@ Functions Currently available in -main:
 
 **Axioms**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |declaration|args||
 |classImplication|args||
 |=Classes|args||
@@ -142,7 +142,7 @@ Functions Currently available in -main:
 |annotationRange|args||
 **Facts**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |=individuals|args||
 |!=individuals|args||
 |classFact|args||
@@ -163,7 +163,7 @@ Functions Currently available in -main:
 
 **Components**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |IRI|iri||
 ||iri namespace prefix||
 |className|iri||
@@ -195,7 +195,7 @@ Functions Currently available in -main:
 
 **SWRL Stuff**
 |Function Name|args|Description|
-|:-:|:-:|:--------:|
+|:-|:-:|:-|
 |dlSafeRule|args||
 |body|atoms||
 |head|atoms|| 
