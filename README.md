@@ -23,20 +23,20 @@ ontology.IO/makeOWLFile
 
 ;do some things sequentially without side-effects
 main=> (doseq [x [(classImplication (existential "r" "a") "b")
-	    (classImplication (-or "b" "c") (-not (-or "d" "e")))
-	    (roleImplication (roleChain "r" (inverseRole "s")) "t")
-	    (roleFact (inverseRole "s") "i" "j")
-	    (classFact "a" "i")
-	    (dataRoleFact "D" "i" (stringLiteral "l"))
-	    (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g")))))
-	    (getNNF (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g"))))))
-	    (let [ont emptyOntology
-		  ont (setOntologyIRI ont "<http://www.test.stuff>")
-		  ont (addPrefix ont (prefix ":" "<http://www.test.stuff>"))
-		  ont (addAxioms ont #{(classImplication ":a" ":b")(classImplication ":b" ":c")(classImplication ":d" ":a")})
-		  _ (makeOWLFile "test.owl" ont)]
-	    "Ontology Saved")]]
-        (println x))
+	          (classImplication (-or "b" "c") (-not (-or "d" "e")))
+	          (roleImplication (roleChain "r" (inverseRole "s")) "t")
+	          (roleFact (inverseRole "s") "i" "j")
+	          (classFact "a" "i")
+	          (dataRoleFact "D" "i" (stringLiteral "l"))
+	          (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g")))))
+	          (getNNF (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g"))))))
+	          (let [ont emptyOntology
+		        ont (setOntologyIRI ont "<http://www.test.stuff>")
+		        ont (addPrefix ont (prefix ":" "<http://www.test.stuff>"))
+		        ont (addAxioms ont #{(classImplication ":a" ":b")(classImplication ":b" ":c")(classImplication ":d" ":a")})
+		        _ (makeOWLFile "test.owl" ont)]
+	         "Ontology Saved")]]
+       (println x))
 
 ;output
 SubClassOf(ObjectSomeValuesFrom(r a) b)
