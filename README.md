@@ -12,10 +12,11 @@ in the terminal. It is also easy to use in the REPL by running lein repl. A list
 ## Examples
 
 ;show the documentation for a function
+
+
 (doc makeOWLFile)
 
 ;output
--------------------------
 ontology.IO/makeOWLFile
 ([filename ontology])
   Writes an owl file of the ontology in functional syntax with the supplied file name
