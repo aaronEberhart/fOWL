@@ -5,11 +5,12 @@
 (def factTypes
    #{:=individuals :!=individuals :classFact :roleFact :notRoleFact :dataRoleFact :notDataRoleFact})
 
-(defn- -fact [fact]
+(defn- -fact
   "Assertion := SameIndividual | DifferentIndividuals | ClassAssertion | ObjectPropertyAssertion | NegativeObjectPropertyAssertion | DataPropertyAssertion | NegativeDataPropertyAssertion"
-      (if (contains? factTypes (:type fact))
-        (assoc fact :type :axiom :outerType :fact)
-        (throw+ {:type ::notAssertion :fact fact})))
+  [fact]
+  (if (contains? factTypes (:type fact))
+    (assoc fact :type :axiom :outerType :fact)
+    (throw+ {:type ::notAssertion :fact fact})))
 
 (defn- -=individuals
   "SameIndividual := 'SameIndividual' '(' axiomAnnotations Individual Individual { Individual } ')'"
@@ -80,22 +81,25 @@
   ([annotations class individual]
     (-fact (-classFact (ann/axiomAnnotations annotations) (co/className class) (co/individual individual)))))
 
-(defn- -fromIndividual [individual]
+(defn- -fromIndividual 
   "sourceIndividual := Individual"
+  [individual]
   (if (= (:type individual) :individual)
-    individual;(assoc individual :type :fromIndividual)
+    individual
     (throw+ {:type ::notIndividual :individual individual})))
 
-(defn- -toIndividual [individual]
+(defn- -toIndividual 
   "targetIndividual := Individual"
+  [individual]
   (if (= (:type individual) :individual)
-    individual;(assoc individual :type :toIndividual)
+    individual
     (throw+ {:type ::notIndividual :individual individual})))
 
-(defn- -toLiteral [literal]
+(defn- -toLiteral 
   "targetValue := Literal"
+  [literal]
   (if (= (:type literal) :literal)
-    literal;;(assoc literal :type :toLiteral)
+    literal
     (throw+ {:type ::notLiteral :literal literal})))
 
 (defn- -roleFact
@@ -113,9 +117,9 @@
 
 (defn roleFact
   ([role fromIndividual toIndividual]
-    (-fact (-roleFact (ex/role role) (-fromIndividual (co/individual fromIndividual)) (-toIndividual (co/individual toIndividual)))))
+    (-fact (-roleFact (ex/role role) (co/individual fromIndividual) (co/individual toIndividual))))
   ([annotations role fromIndividual toIndividual]
-    (-fact (-roleFact (ann/axiomAnnotations annotations) (ex/role role) (-fromIndividual (co/individual fromIndividual)) (-toIndividual (co/individual toIndividual))))))
+    (-fact (-roleFact (ann/axiomAnnotations annotations) (ex/role role) (co/individual fromIndividual) (co/individual toIndividual)))))
 
 (defn- -notRoleFact
   "NegativeObjectPropertyAssertion := 'NegativeObjectPropertyAssertion' '(' axiomAnnotations ObjectPropertyExpression sourceIndividual targetIndividual ')'"
@@ -132,9 +136,9 @@
 
 (defn notRoleFact
   ([role fromIndividual toIndividual]
-    (-fact (-notRoleFact (ex/role role) (-fromIndividual (co/individual fromIndividual)) (-toIndividual (co/individual toIndividual)))))
+    (-fact (-notRoleFact (ex/role role) (co/individual fromIndividual) (co/individual toIndividual))))
   ([annotations role fromIndividual toIndividual]
-    (-fact (-notRoleFact (ann/axiomAnnotations annotations) (ex/role role) (-fromIndividual (co/individual fromIndividual)) (-toIndividual (co/individual toIndividual))))))
+    (-fact (-notRoleFact (ann/axiomAnnotations annotations) (ex/role role) (co/individual fromIndividual) (co/individual toIndividual)))))
 
 (defn- -dataRoleFact
   "DataPropertyAssertion := 'DataPropertyAssertion' '(' axiomAnnotations DataPropertyExpression sourceIndividual targetValue ')'"
@@ -151,9 +155,9 @@
 
 (defn dataRoleFact
   ([dataRole fromIndividual toLiteral]
-    (-fact (-dataRoleFact (ex/dataRole dataRole) (-fromIndividual (co/individual fromIndividual)) (-toLiteral toLiteral))))
+    (-fact (-dataRoleFact (ex/dataRole dataRole) (co/individual fromIndividual) toLiteral)))
   ([annotations dataRole fromIndividual toLiteral]
-    (-fact (-dataRoleFact (ann/axiomAnnotations annotations) (ex/dataRole dataRole) (-fromIndividual (co/individual fromIndividual)) (-toLiteral toLiteral)))))
+    (-fact (-dataRoleFact (ann/axiomAnnotations annotations) (ex/dataRole dataRole) (co/individual fromIndividual) toLiteral))))
 
 (defn- -notDataRoleFact
   "NegativeDataPropertyAssertion := 'NegativeDataPropertyAssertion' '(' axiomAnnotations DataPropertyExpression sourceIndividual targetValue ')'"
@@ -170,6 +174,6 @@
 
 (defn notDataRoleFact
   ([dataRole fromIndividual toLiteral]
-    (-fact (-notDataRoleFact (ex/dataRole dataRole) (-fromIndividual (co/individual fromIndividual)) (-toLiteral toLiteral))))
+    (-fact (-notDataRoleFact  (ex/dataRole dataRole) (co/individual fromIndividual) toLiteral)))
   ([annotations dataRole fromIndividual toLiteral]
-    (-fact (-notDataRoleFact (ann/axiomAnnotations annotations) (ex/dataRole dataRole) (-fromIndividual (co/individual fromIndividual)) (-toLiteral toLiteral)))))
+    (-fact (-notDataRoleFact (ann/axiomAnnotations annotations) (ex/dataRole dataRole) (co/individual fromIndividual) toLiteral))))

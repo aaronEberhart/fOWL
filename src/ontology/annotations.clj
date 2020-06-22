@@ -19,18 +19,20 @@
      {:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}))
      (throw+ {:type ::notStringIRI :iri iri})))
 
-(defn annotationValue [value]
+(defn annotationValue 
  "AnnotationValue := AnonymousIndividual | IRI | Literal"
-    (if (= (:type value) :literal)
-      (assoc value :type :annotationValue)
-      (if (= (:innerType value) :anonymousIndividual)
-        (assoc value :type :annotationValue)
-        (if (:iri value)
-          (assoc value :innerType :annotationValue :type :annotationValue)
-          (throw+ {:type ::notAnnotationValue :value value})))))
+ [value]
+ (if (= (:type value) :literal)
+   (assoc value :type :annotationValue)
+   (if (= (:innerType value) :anonymousIndividual)
+     (assoc value :type :annotationValue)
+     (if (:iri value)
+       (assoc value :innerType :annotationValue :type :annotationValue)
+       (throw+ {:type ::notAnnotationValue :value value})))))
 
-(defn- -metaAnnotations [annotations]
+(defn- -metaAnnotations 
   "annotationAnnotations := { Annotation }"
+  [annotations]
   (if (every? (fn [x] (= (:type x) :annotation)) annotations)
     {:annotations annotations :type :metaAnnotations :innerType :metaAnnotations}
     (throw+ {:type ::notAnnotations :annotations annotations})))
@@ -57,16 +59,18 @@
   ([annotations role value]
     (-annotation (metaAnnotations annotations) (annotationRole role) (annotationValue value))))
 
-(defn annotationSubject [subject]
+(defn annotationSubject
     "AnnotationSubject := IRI | AnonymousIndividual"
+    [subject]
     (if (:iri subject)
       (assoc subject :innerType :annotationSubject :type :annotationSubject)
       (if (= (:innerType subject) :anonymousIndividual)
         (assoc subject :type :annotationSubject)
         (throw+ {:type ::notAnnotationSubject :subject subject}))))
 
-(defn- -axiomAnnotations [annotations]
+(defn- -axiomAnnotations
   "axiomAnnotations := { Annotation }"
+  [annotations]
   (if (every? (fn [x] (= (:type x) :annotation)) annotations)
     {:annotations annotations :type :axiomAnnotations :innerType :axiomAnnotations}
     (throw+ {:type ::notAnnotations :annotations annotations})))

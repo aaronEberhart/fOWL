@@ -13,20 +13,23 @@
 (def annotationAxiomTypes
   #{:annotationFact :annotationImplication :annotationDomain :annotationRange})
 
-(defn- -axiom [axiom]
+(defn- -axiom 
   "Axiom := Declaration | ClassAxiom | ObjectPropertyAxiom | DataPropertyAxiom | DatatypeDefinition | HasKey | Assertion | AnnotationAxiom"
+  [axiom]
   (if (contains? axiomTypes (:outerType axiom))
     (assoc axiom :type :axiom)
     (throw+ {:type ::notAxiom :axiom axiom})))
 
-(defn- -rule [r]
+(defn- -rule 
   "Rule ::= DLSafeRule | DGRule"
+  [r]
   (if (or (= (:type r) :dgRule)(= (:type r) :dlSafeRule))
     (assoc r :outerType :rule)
     (throw+ {:type ::notRule :rule r})))
 
-(defn- -dgRule []
+(defn- -dgRule
   "DGRule ::= DescriptionGraphRule ‘(’ {Annotation} ‘Body’ ‘(’ {DGAtom} ‘)’ ‘Head’ ‘(’ {DGAtom} ‘)’ ‘)'"
+  []
   ;TODO
   )
 
@@ -35,21 +38,21 @@
   ([annotations body head](-axiom (-rule (-dgRule body head)))))
 
 (defn- -dlSafeRule
-  "DLSafeRule ::= DLSafeRule ‘(’ {Annotation} ‘Body’ ‘(’ {Atom} ‘)’ ‘Head’ ‘(’ {Atom} ‘)’ ‘)’"
-  ([body head]
-    (if (= (:type body) :body)
-      (if (= (:type head) :head)
-        {:body (:atoms body) :head (:atoms head) :type :dlSafeRule :innerType :dlSafeRule :outerType :dlSafeRule}
-        (throw+ {:type ::notHead :head head}))
-      (throw+ {:type ::notBody :body body})))
-  ([annotations body head]
-    (if (= (:type body) :body)
-      (if (= (:type head) :head)
-        (if (= (:type annotations) :axiomAnnotations)
-          {:annotations (:annotations annotations) :body (:atoms body) :head (:atoms head) :type :dlSafeRule :innerType :dlSafeRule :outerType :dlSafeRule}
-          (throw+ {:type ::notAnnotations :annotations annotations}))
-        (throw+ {:type ::notHead :head head}))
-      (throw+ {:type ::notBody :body body}))))
+ "DLSafeRule ::= DLSafeRule ‘(’ {Annotation} ‘Body’ ‘(’ {Atom} ‘)’ ‘Head’ ‘(’ {Atom} ‘)’ ‘)’"
+ ([body head]
+   (if (= (:type body) :body)
+     (if (= (:type head) :head)
+       {:body (:atoms body) :head (:atoms head) :type :dlSafeRule :innerType :dlSafeRule :outerType :dlSafeRule}
+       (throw+ {:type ::notHead :head head}))
+     (throw+ {:type ::notBody :body body})))
+ ([annotations body head]
+   (if (= (:type body) :body)
+     (if (= (:type head) :head)
+       (if (= (:type annotations) :axiomAnnotations)
+         {:annotations (:annotations annotations) :body (:atoms body) :head (:atoms head) :type :dlSafeRule :innerType :dlSafeRule :outerType :dlSafeRule}
+         (throw+ {:type ::notAnnotations :annotations annotations}))
+       (throw+ {:type ::notHead :head head}))
+     (throw+ {:type ::notBody :body body}))))
 
 (defn dlSafeRule
   ([body head]
@@ -57,8 +60,9 @@
   ([annotations body head]
     (-axiom (-rule (-dlSafeRule (ann/axiomAnnotations annotations) body head)))))
 
-(defn dgAxiom []
+(defn dgAxiom 
   "DGAxiom ::= ‘DescriptionGraph’ ‘(’ {Annotation} DGName DGNodes DGEdges MainClasses ‘)’"
+  []
   ;TODO
   )
 
@@ -81,36 +85,39 @@
   ([annotations name]
     (-axiom (-declaration annotations name))))
 
-(defn- -classAxiom [classAxiom]
+(defn- -classAxiom 
   "ClassAxiom := SubClassOf | EquivalentClasses | DisjointClasses | DisjointUnion"
+  [classAxiom]
   (if (contains? classAxiomTypes (:type classAxiom))
     (assoc classAxiom :outerType :classAxiom)
     (throw+ {:type ::notClassAxiom :classAxiom classAxiom})))
 
-(defn- -antecedentClass [class]
+(defn- -antecedentClass 
   "subClassExpression := ClassExpression"
+  [class]
   (if (= (:type class) :class)
     class;(assoc class :type :antecedentClass)
     (throw+ {:type ::notClass :class class})))
 
-(defn- -consequentClass [class]
+(defn- -consequentClass 
   "superClassExpression := ClassExpression"
+  [class]
   (if (= (:type class) :class)
     class;(assoc class :type :consequentClass)
     (throw+ {:type ::notClass :class class})))
 
 (defn- -classImplication
-  "SubClassOf := 'SubClassOf' '(' axiomAnnotations subClassExpression superClassExpression ')'"
-  ([antecedent consequent]
-    (if (and(= (:type antecedent) :class)(= (:type consequent) :class))
-      {:antecedentClass antecedent :consequentClass consequent :type :classImplication :innerType :classImplication :outerType :classImplication}
-      (throw+ {:type ::notAntecedentConsequentClasses :antecedentClass antecedent :consequentClass consequent})))
-  ([annotations antecedent consequent]
-    (if (and(= (:type antecedent) :class)(= (:type consequent) :class))
-      (if (= (:type annotations) :axiomAnnotations)
-        {:antecedentClass antecedent :consequentClass consequent :annotations (:annotations annotations) :type :classImplication :innerType :classImplication :outerType :classImplication}
-        (throw+ {:type ::notAnnotations :annotations annotations}))
-      (throw+ {:type ::notAntecedentConsequentClasses :antecedentClass antecedent :consequentClass consequent}))))
+ "SubClassOf := 'SubClassOf' '(' axiomAnnotations subClassExpression superClassExpression ')'"
+ ([antecedent consequent]
+ (if (and(= (:type antecedent) :class)(= (:type consequent) :class))
+  {:antecedentClass antecedent :consequentClass consequent :type :classImplication :innerType :classImplication :outerType :classImplication}
+  (throw+ {:type ::notAntecedentConsequentClasses :antecedentClass antecedent :consequentClass consequent})))
+ ([annotations antecedent consequent]
+ (if (and(= (:type antecedent) :class)(= (:type consequent) :class))
+  (if (= (:type annotations) :axiomAnnotations)
+   {:antecedentClass antecedent :consequentClass consequent :annotations (:annotations annotations) :type :classImplication :innerType :classImplication :outerType :classImplication}
+   (throw+ {:type ::notAnnotations :annotations annotations}))
+  (throw+ {:type ::notAntecedentConsequentClasses :antecedentClass antecedent :consequentClass consequent}))))
 
 (defn classImplication
   ([antecedent consequent]
@@ -181,8 +188,9 @@
         (throw+ {:type ::notClasses :classes classes}))
       (throw+ {:type ::notEnoughClasses :classes classes}))))
 
-(defn- -disjClassesNoAnn [classes]
+(defn- -disjClassesNoAnn
  "disjointClassExpressions := ClassExpression ClassExpression { ClassExpression }"
+ [classes]
   (if (< 1 (count classes))
     (if (every? (fn [x] (= (:type x) :class)) classes)
       {:classes classes :type :disjClassesNoAnn :innerType :disjOr}
@@ -195,20 +203,23 @@
   ([annotations class classes]
     (-axiom (-classAxiom (-disjOr (ann/axiomAnnotations annotations) (ex/class class) (-disjClassesNoAnn (into #{} (map ex/class classes))))))))
 
-(defn- -roleAxiom [roleAxiom]
+(defn- -roleAxiom 
  "ObjectPropertyAxiom := SubObjectPropertyOf | EquivalentObjectProperties | DisjointObjectProperties | InverseObjectProperties | ObjectPropertyDomain | ObjectPropertyRange | FunctionalObjectProperty | InverseFunctionalObjectProperty | ReflexiveObjectProperty | IrreflexiveObjectProperty | SymmetricObjectProperty | AsymmetricObjectProperty | TransitiveObjectProperty"
-  (if (contains? roleAxiomTypes (:type roleAxiom))
-    (assoc roleAxiom :outerType :roleAxiom)
-    (throw+ {:type ::notRoleAxiom :roleAxiom roleAxiom})))
+ [roleAxiom]
+ (if (contains? roleAxiomTypes (:type roleAxiom))
+   (assoc roleAxiom :outerType :roleAxiom)
+   (throw+ {:type ::notRoleAxiom :roleAxiom roleAxiom})))
 
-(defn- -antecedentRole [role]
+(defn- -antecedentRole
   "subObjectPropertyExpression := ObjectPropertyExpression | propertyExpressionChain"
+  [role]
   (if (or (= (:type role) :role)(= (:type role) :roleChain))
-    role;(assoc role :type :antecedentRole)
+    role
     (throw+ {:type ::notRole :role role})))
 
-(defn- -roleChain [roles]
+(defn- -roleChain 
   "propertyExpressionChain := 'ObjectPropertyChain' '(' ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+  [roles]
   (if (< 1 (count roles))
     (if (every? (fn [x] (= (:type x) :role)) roles)
       {:roles roles :type :roleChain :innerType :roleChain}
@@ -221,10 +232,11 @@
   ([role1 role2]
     (-roleChain [(ex/role role1) (ex/role role2)])))
 
-(defn- -consequentRole [role]
+(defn- -consequentRole
   "superObjectPropertyExpression := ObjectPropertyExpression"
+  [role]
   (if (= (:type role) :role)
-    role;(assoc role :type :consequentRole)
+    role
     (throw+ {:type ::notRole :role role})))
 
 (defn- -roleImplication
@@ -482,32 +494,35 @@
   ([annotations role]
     (-axiom (-roleAxiom (-transitiveRole (ann/axiomAnnotations annotations) (ex/role role))))))
 
-(defn- -dataRoleAxiom [dataRoleAxiom]
+(defn- -dataRoleAxiom
  "DataPropertyAxiom := SubDataPropertyOf | EquivalentDataProperties | DisjointDataProperties | DataPropertyDomain | DataPropertyRange | FunctionalDataProperty"
-  (if (contains? dataRoleAxiomTypes (:type dataRoleAxiom))
-    (assoc dataRoleAxiom :outerType :dataRoleAxiom)
-    (throw+ {:type ::notDataRoleAxiom :dataRoleAxiom dataRoleAxiom})))
+ [dataRoleAxiom]
+ (if (contains? dataRoleAxiomTypes (:type dataRoleAxiom))
+   (assoc dataRoleAxiom :outerType :dataRoleAxiom)
+   (throw+ {:type ::notDataRoleAxiom :dataRoleAxiom dataRoleAxiom})))
 
-(defn- -antecedentDataRole [dataRole]
+(defn- -antecedentDataRole
   "subDataPropertyExpression := DataPropertyExpression"
+  [dataRole]
   (if (= (:type dataRole) :dataRole)
-    (assoc dataRole :type :antecedentDataRole)
+    dataRole
     (throw+ {:type ::notDataRole :dataRole dataRole})))
 
-(defn- -consequentDataRole [dataRole]
+(defn- -consequentDataRole 
   "superDataPropertyExpression := DataPropertyExpression"
+  [dataRole]
   (if (= (:type dataRole) :dataRole)
-    (assoc dataRole :type :consequentDataRole)
+    dataRole
     (throw+ {:type ::notDataRole :dataRole dataRole})))
 
 (defn- -dataRoleImplication
  "SubDataPropertyOf := 'SubDataPropertyOf' '(' axiomAnnotations subDataPropertyExpression superDataPropertyExpression ')'"
   ([antecedent consequent]
-    (if (and(= (:type antecedent) :antecedentDataRole)(= (:type consequent) :consequentDataRole))
+    (if (and(= (:type antecedent) :dataRole)(= (:type consequent) :dataRole))
       {:antecedentDataRole antecedent :consequentDataRole consequent :type :dataRoleImplication :innerType :dataRoleImplication :outerType :dataRoleImplication}
       (throw+ {:type ::notAntecedentConsequentDataRoles :antecedentDataRole antecedent :consequentDataRole consequent})))
   ([annotations antecedent consequent]
-    (if (and(= (:type antecedent) :antecedentDataRole)(= (:type consequent) :consequentDataRole))
+    (if (and(= (:type antecedent) :dataRole)(= (:type consequent) :dataRole))
       (if (= (:type annotations) :axiomAnnotations)
         {:annotations (:annotations annotations) :antecedentDataRole antecedent :consequentDataRole consequent :type :dataRoleImplication :innerType :dataRoleImplication :outerType :dataRoleImplication}
         (throw+ {:type ::notAnnotations :annotations annotations}))
@@ -515,9 +530,9 @@
 
 (defn dataRoleImplication
   ([antecedent consequent]
-    (-axiom (-dataRoleAxiom (-dataRoleImplication (-antecedentDataRole (ex/dataRole antecedent)) (-consequentDataRole (ex/dataRole consequent))))))
+    (-axiom (-dataRoleAxiom (-dataRoleImplication (ex/dataRole antecedent) (ex/dataRole consequent)))))
   ([annotations antecedent consequent]
-    (-axiom (-dataRoleAxiom (-dataRoleImplication (ann/axiomAnnotations annotations)  (-antecedentDataRole (ex/dataRole antecedent)) (-consequentDataRole (ex/dataRole consequent)))))))
+    (-axiom (-dataRoleAxiom (-dataRoleImplication (ann/axiomAnnotations annotations)  (ex/dataRole antecedent) (ex/dataRole consequent))))))
 
 (defn- -=DataRoles
  "EquivalentDataProperties := 'EquivalentDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
@@ -666,8 +681,9 @@
   ([annotations datatype datarange]
     (-axiom (-dataTypeDefinition (ann/axiomAnnotations annotations) (co/dataType datatype) (co/dataRange datarange)))))
 
-(defn- -annotationAxiom [annotationAxiom]
+(defn- -annotationAxiom
   "AnnotationAxiom := AnnotationAssertion | SubAnnotationPropertyOf | AnnotationPropertyDomain | AnnotationPropertyRange"
+  [annotationAxiom]
   (if (contains? annotationAxiomTypes (:type annotationAxiom))
     (assoc annotationAxiom :outerType :annotationAxiom)
     (throw+ {:type ::notannotationAxiom :annotationAxiom annotationAxiom})))
@@ -691,16 +707,18 @@
   ([annotations annotationRole annotationSubject annotationValue]
     (-axiom (-annotationAxiom (-annotationFact (ann/axiomAnnotations annotations) (ann/annotationRole annotationRole) (ann/annotationSubject annotationSubject) (ann/annotationValue annotationValue))))))
 
-(defn- -fromAnnotation [annotationRole]
+(defn- -fromAnnotation
   "subAnnotationProperty := AnnotationProperty"
+  [annotationRole]
   (if (= (:type annotationRole) :annotationRole)
-    (assoc annotationRole :type :fromAnnotation)
+    annotationRole
     (throw+ {:type ::notAnnotationRole :annotationRole annotationRole})))
 
-(defn- -toAnnotation [annotationRole]
+(defn- -toAnnotation
   "superAnnotationProperty := AnnotationProperty"
+  [annotationRole]
   (if (= (:type annotationRole) :annotationRole)
-    (assoc annotationRole :type :toAnnotation)
+    annotationRole
     (throw+ {:type ::notAnnotationRole :annotationRole annotationRole})))
 
 (defn- -annotationImplication

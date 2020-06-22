@@ -31,8 +31,9 @@
 (def atomics
   #{:className :>=dataRole :<=dataRole :dataExistential :dataUniversal :Self :nominal :partialRole :partialDataRole})
 
-(defn negate [c]
+(defn negate
   "same as not, but doesn't make double negations"
+  [c]
   (case (:innerType c)
     :not (:class c)
     :className
@@ -86,7 +87,9 @@
                  (update (if (> (:nat class) 0) class (update class :nat zero)) :innerType <=role)))
   (throw+ {:type ::notNormalizable :class class})))
 
-(defn getClassNNF [class]
+(defn getClassNNF 
+ "Gets the NNF for a class"
+ [class]
   (case (:innerType class)
   :className class
   :Self class
@@ -130,19 +133,26 @@
   ([class classes]classes)
   ([class class1 class2]class))
 
-(defn toClassImplications [axiom]
-  (case (:innerType axiom)
-    :disjClasses (disjToImp (classesPermutations (into [] (:classes axiom))))
-    :=Classes (equivToImp (classesPermutations (into [] (:classes axiom))))
-    :disjOr (throw+ {:type ::notNormalizableYet :axiom axiom})
-    (throw+ {:type ::incompatibleClassAxiom :axiom axiom})))
+(defn toClassImplications 
+ "Converts an axiom to an equivalent axiom or set of axioms that are class implications"
+ [axiom]
+ (case (:innerType axiom)
+  :classImplication axiom
+  :disjClasses (disjToImp (classesPermutations (into [] (:classes axiom))))
+  :=Classes (equivToImp (classesPermutations (into [] (:classes axiom))))
+  :disjOr (throw+ {:type ::notNormalizableYet :axiom axiom})
+  (throw+ {:type ::incompatibleClassAxiom :axiom axiom})))
 
-(defn getClassAxiomNNF [axiom]
+(defn getClassAxiomNNF 
+ "Gets the NNF of a class axiom"
+ [axiom]
  (if (= (:innerType axiom) :classImplication)
   (update (update axiom :consequentClass getClassNNF) :antecedentClass getClassNNF)
   (map getClassAxiomNNF (toClassImplications axiom))))
 
-(defn getNNF [axiom]
+(defn getNNF 
+ "Gets the NNF of any axiom. (any axiom besides a class axiom currently returns itself)"
+ [axiom]
  ((case (:outerType axiom)
    :classAxiom getClassAxiomNNF
    :roleAxiom identity
@@ -183,7 +193,9 @@
     (ex/or (getClassDSNF (negate (:antecedentClass axiom))) (getClassDSNF (:consequentClass axiom)))
     (map getClassAxiomDSNF (toClassImplications axiom))))
 
-(defn getDSNF [axiom]
+(defn getDSNF 
+ "Gets the Disjunctive Syntactic Normal Form for an axiom"
+ [axiom]
   ((case (:outerType axiom)
    :classAxiom getClassAxiomDSNF
    :roleAxiom identity
@@ -222,7 +234,9 @@
    (negate (ex/and (getClassCSNF (:antecedentClass axiom)) (getClassCSNF (negate (:consequentClass axiom)))))
    (map getClassAxiomCSNF (toClassImplications axiom))))
 
-(defn getCSNF [axiom]
+(defn getCSNF 
+ "Gets the Conjunctive Syntactic Normal Form for an axiom"
+ [axiom]
   ((case (:outerType axiom)
    :classAxiom getClassAxiomCSNF
    :roleAxiom identity

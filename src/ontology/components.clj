@@ -11,21 +11,6 @@
   "http://www.w3.org/2000/01/rdfschema#")
 (def owlNS
  "http://www.w3.org/2002/07/owl#")
-(def dataRangeTypes
- #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
-(def nameTypes
- #{:className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
-(def reservedIRIs
- #{"owl:backwardCompatibleWith" "owl:deprecated" "owl:incompatibleWith" "owl:priorVersion" "owl:rational"
-  "owl:real" "owl:versionInfo" "rdf:langRange" "rdf:PlainLiteral" "rdf:XMLLiteral" "rdfs:comment" "rdfs:isDefinedBy"
-  "rdfs:label" "rdfs:seeAlso" "xsd:anyURI" "xsd:base64Binary" "xsd:boolean" "xsd:byte" "xsd:dateTime" "xsd:dateTimeStamp" "xsd:decimal" "xsd:double" "xsd:float"
-  "xsd:hexBinary" "xsd:int" "xsd:integer" "xsd:language" "xsd:length" "xsd:long" "xsd:maxExclusive" "xsd:maxInclusive" "xsd:maxLength" "xsd:minExclusive" "xsd:minInclusive"
-  "xsd:minLength" "xsd:Name" "xsd:NCName" "xsd:negativeInteger" "xsd:NMTOKEN" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger" "xsd:normalizedString" "xsd:pattern"
-  "xsd:positiveInteger" "xsd:short" "xsd:string" "xsd:token" "xsd:unsignedByte" "xsd:unsignedInt" "xsd:unsignedLong" "xsd:unsignedShort"})
-(def dataTypeMaps
- #{"rdfs:Literal" "owl:rational" "owl:real" "xsd:double" "xsd:float" "xsd:decimal" "xsd:integer" "xsd:long" "xsd:int" "xsd:short" "xsd:byte" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger"
- "xsd:positiveInteger" "xsd:negativeInteger" "xsd:unsignedLong" "xsd:unsignedInt" "xsd:unsignedShort" "xsd:unsignedByte" "rdf:PlainLiteral" "xsd:string" "xsd:NCName" "xsd:Name"
- "xsd:NMTOKEN" "xsd:token" "xsd:language" "xsd:normalizedString" "xsd:boolean" "xsd:base64Binary" "xsd:hexBinary" "xsd:anyURI" "xsd:dateTime" "xsd:dateTimeStamp" "rdf:XMLLiteral"})
 
 (def Top
  {:namespace owlNS :short "Thing" :prefix "owl:" :iri (str "<" owlNS "Thing" ">") :type :class :innerType :top})
@@ -41,37 +26,44 @@
  {:namespace owlNS :short "topDataProperty" :prefix "owl:" :iri (str "<" owlNS "topDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 (def BotData
  {:namespace owlNS :short "bottomDataProperty" :prefix "owl:" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
+(def dataRangeTypes
+ #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
+(def nameTypes
+ #{:className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
+
+(def reservedIRIs
+ #{"owl:backwardCompatibleWith" "owl:deprecated" "owl:incompatibleWith" "owl:priorVersion" "owl:rational"
+  "owl:real" "owl:versionInfo" "rdf:langRange" "rdf:PlainLiteral" "rdf:XMLLiteral" "rdfs:comment" "rdfs:isDefinedBy"
+  "rdfs:label" "rdfs:seeAlso" "xsd:anyURI" "xsd:base64Binary" "xsd:boolean" "xsd:byte" "xsd:dateTime" "xsd:dateTimeStamp" "xsd:decimal" "xsd:double" "xsd:float"
+  "xsd:hexBinary" "xsd:int" "xsd:integer" "xsd:language" "xsd:length" "xsd:long" "xsd:maxExclusive" "xsd:maxInclusive" "xsd:maxLength" "xsd:minExclusive" "xsd:minInclusive"
+  "xsd:minLength" "xsd:Name" "xsd:NCName" "xsd:negativeInteger" "xsd:NMTOKEN" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger" "xsd:normalizedString" "xsd:pattern"
+  "xsd:positiveInteger" "xsd:short" "xsd:string" "xsd:token" "xsd:unsignedByte" "xsd:unsignedInt" "xsd:unsignedLong" "xsd:unsignedShort"})
+(def dataTypeMaps
+ #{"rdfs:Literal" "owl:rational" "owl:real" "xsd:double" "xsd:float" "xsd:decimal" "xsd:integer" "xsd:long" "xsd:int" "xsd:short" "xsd:byte" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger"
+ "xsd:positiveInteger" "xsd:negativeInteger" "xsd:unsignedLong" "xsd:unsignedInt" "xsd:unsignedShort" "xsd:unsignedByte" "rdf:PlainLiteral" "xsd:string" "xsd:NCName" "xsd:Name"
+ "xsd:NMTOKEN" "xsd:token" "xsd:language" "xsd:normalizedString" "xsd:boolean" "xsd:base64Binary" "xsd:hexBinary" "xsd:anyURI" "xsd:dateTime" "xsd:dateTimeStamp" "rdf:XMLLiteral"})
 
 (defn- isReservedIRI? [iri]
  (contains? reservedIRIs iri))
 
-(defn namespace= [iri1 iri2]
- (= (:namespace iri1)(:namespace iri2)))
-
-(defn type= [a b]
- (= (:type a)(:type b)))
-
-(defn innerType= [a b]
- (= (:innerType a)(:innerType b)))
-
 (defn XSDDatatype
- "Type unknown for this function"
+ "IRI := String"
  ([iri]
   (if (not (string? iri))
    (throw+ {:type ::notStringIRI :iri iri})
-   {:knownDataType (contains? dataTypeMaps iri) :namespace "" :short iri :prefix "" :iri iri}))
+   {:knownDataType (contains? dataTypeMaps iri) :namespace nil :short iri :prefix nil :iri iri}))
  ([iri namespace prefix]
   (if (not (and (and (string? iri)(string? namespace))(string? prefix)))
    (throw+ {:type ::notStringIRI :iri iri})
    {:knownDataType (contains? dataTypeMaps (str prefix iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri ">")})))
 (defn- OWLReservedIRI
- "Type unknown for this function"
+ "IRI := String"
  ([iri]
   (if (not (string? iri))
    (throw+ {:type ::notStringIRI :iri iri})
    (if (not (isReservedIRI? iri))
     (throw+ {:type ::reservedIRI :iri iri})
-    {:namespace "" :short iri :prefix "" :iri (str "<" iri ">")})))
+    {:namespace nil :short iri :prefix nil :iri iri})))
  ([iri prefix namespace prefix]
   (if (or (or (not (string? iri))(not (string? namespace)))(not (string? prefix)))
    (throw+ {:type ::notStringIRI :iri iri})
@@ -80,13 +72,13 @@
      (throw+ {:type ::reservedIRI :iri check})
      {:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")})))))
 (defn- RDFReservedIRI
- "Type unknown for this function"
+ "IRI := String"
  ([iri]
   (if (not (string? iri))
    (throw+ {:type ::notStringIRI :iri iri})
    (if (not (isReservedIRI? iri))
     (throw+ {:type ::reservedIRI :iri iri})
-    {:namespace "" :short iri :prefix "" :iri (str "<" iri ">")})))
+    {:namespace nil :short iri :prefix nil :iri iri})))
  ([iri namespace prefix]
   (if (or (or (not (string? iri))(not (string? namespace)))(not (string? prefix)))
    (throw+ {:type ::notStringIRI :iri iri})
@@ -95,7 +87,7 @@
      (throw+ {:type ::reservedIRI :iri check})
      {:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")})))))
 (defn- RDFSReservedIRI
- "Type unknown for this function"
+ "IRI := String"
  ([iri]
   (if (not (string? iri))
    (throw+ {:type ::notStringIRI :iri iri})
@@ -114,7 +106,7 @@
  "IRI := String"
  ([iri]
   (if (string? iri)
-   {:reserved (isReservedIRI? iri) :namespace nil :short iri :prefix nil :iri (str "<" iri ">")}
+   {:reserved (isReservedIRI? iri) :namespace nil :short iri :prefix nil :iri iri}
    (if (:iri iri)
     iri
     (throw+ {:type ::notIRI :iri iri}))))
@@ -145,8 +137,9 @@
  ([iri namespace prefix]
   (assoc (IRI iri namespace prefix) :type :roleName :innerType :roleName)))
 
-(defn- -inverseRoleName [role]
+(defn- -inverseRoleName 
  "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
+ [role]
  (if (= (:type role) :roleName)
   (assoc role :innerType :inverseRoleName)
   (throw+ {:type ::notRole :roleName role})))
@@ -178,8 +171,9 @@
  ([iri namespace prefix]
   (assoc (IRI iri namespace prefix) :type :anonymousIndividual :innerType :anonymousIndividual)))
 
-(defn- -individual [anyIndividual]
+(defn- -individual 
  "Individual := AnonymousIndividual | NamedIndividual"
+ [anyIndividual]
  (if (or (= (:type anyIndividual) :anonymousIndividual)(= (:type anyIndividual) :namedIndividual))
   (assoc anyIndividual :type :individual)
   (throw+ {:type ::notIndividual :individual anyIndividual})))
@@ -203,29 +197,45 @@
    (assoc (XSDDatatype iri namespace prefix) :arity 1 :type :dataType :innerType :dataType)
    (throw+ {:type ::notdataType :iri iri :namespace namespace}))))
 
-(defn- -literal [literal]
+(defn dataType
+ ([iri]
+  (if (string? iri)
+   (-dataType (IRI iri))
+   (if (contains? iri :type)
+    (if (= (:innerType iri) :dataType)
+     iri
+     (throw+ {:type ::notDataType :dataType iri}))
+    (-dataType iri))))
+ ([iri namespace prefix]
+  (-dataType (XSDDatatype iri namespace prefix))))
+
+(defn- -literal 
  "Literal := typedLiteral | stringLiteralNoLanguage | stringLiteralWithLanguage"
+ [literal]
  (if (or (or (= (:type literal) :typedLiteral)(= (:type literal) :stringLiteralNoLanguage))(= (:type literal) :stringLiteralWithLanguage))
   (assoc literal :arity 1 :type :literal)
   (throw+ {:type ::notLiteral :literal literal})))
 
-(defn- -typedLiteral [lexicalForm datatype]
+(defn- -typedLiteral 
  "typedLiteral := lexicalForm '^^' Datatype"
+ [lexicalForm datatype]
  (if (and (= (:type lexicalForm) :lexicalForm)(= (:type datatype) :dataType))
   (assoc datatype :value (str (:value lexicalForm) \^ \^  (:prefix datatype)(:short datatype)) :type :typedLiteral :innerType :typedLiteral)
   (throw+ {:type ::notTypedLiteral :lexicalForm lexicalForm :dataType datatype})))
 
-(defn- -lexicalForm [stri]
+(defn- -lexicalForm 
  "lexicalForm := quotedString"
+ [stri]
  (if (string? stri)
   {:value  stri :type :lexicalForm :innerType :lexicalForm}
   (throw+ {:type ::notString :string stri})))
 
 (defn typedLiteral [lexicalForm datatype]
- (-literal (-typedLiteral (-lexicalForm lexicalForm) (-dataType datatype))))
+ (-literal (-typedLiteral (-lexicalForm lexicalForm) (dataType datatype))))
 
-(defn- -stringLiteralNoLanguage [string]
+(defn- -stringLiteralNoLanguage 
  "stringLiteralNoLanguage := quotedString"
+ [string]
  (if (string? string)
   {:value (str string) :type :stringLiteralNoLanguage :innerType :stringLiteralNoLanguage}
   (throw+ {:type ::notStringLiteral :string string})))
@@ -233,8 +243,9 @@
 (defn stringLiteralNoLanguage [string]
  (-literal (-stringLiteralNoLanguage string)))
 
-(defn- -stringLiteralWithLanguage [string lang]
+(defn- -stringLiteralWithLanguage 
  "stringLiteralWithLanguage := quotedString languageTag"
+ [string lang]
  (if (and (string? string) (string? lang))
   {:value (str string \@ lang) :type :stringLiteralWithLanguage :innerType :stringLiteralWithLanguage}
   (throw+ {:type ::notStringLiteralWithLang :string string :lang lang})))
@@ -242,26 +253,30 @@
 (defn stringLiteralWithLanguage [string lang]
  (-literal (-stringLiteralWithLanguage string lang)))
 
-(defn- -dataOneOf [literals]
+(defn- -dataOneOf 
  "DataOneOf := 'DataOneOf' '(' Literal { Literal } ')'"
+ [literals]
  (if (or (and (set? literals) (every? (fn [x] (= (:type x) :literal)) literals))(= (:type literals) :literal))
   {:literals literals :arity 1 :type :dataOneOf :innerType :dataOneOf}
   (throw+ {:type ::notLiterals :literals literals})))
 
-(defn- -constrainingFacet [iri]
+(defn- -constrainingFacet 
  "constrainingFacet := IRI"
+ [iri]
  (if (:iri iri)
   (assoc iri :type :constrainingFacet)
   (throw+ {:type ::notFacet :facet iri})))
 
-(defn- -restrictionValue [literal]
+(defn- -restrictionValue 
  "restrictionValue := Literal"
+ [literal]
  (if (= (:type literal) :literal)
   (assoc literal :type :restrictionValue)
   (throw+ {:type ::notLiteral :literal literal})))
 
-(defn- -restrictedValue [facet restriction]
+(defn- -restrictedValue 
  "RestrictedFacet := constrainingFacet restrictionValue"
+ [facet restriction]
  (if (and (= (:type restriction) :restrictionValue)(= (:type facet) :constrainingFacet))
   (assoc facet :value (:value restriction) :type :restrictedValue :innerType :restrictedValue)
   (throw+ {:type ::notRestrictedValue :facet facet :restriction restriction})))
@@ -269,47 +284,40 @@
 (defn restrictedValue [facet restriction]
  (-restrictedValue (-constrainingFacet facet) (-restrictionValue restriction)))
 
-(defn- -datatypeRestriction [datatype restrictedvalues]
+(defn- -datatypeRestriction 
  "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"
+ [datatype restrictedvalues]
  (if (and (and (and (> (count restrictedvalues) 0) (every? (fn [x] (= (:type x) :restrictedValue)) restrictedvalues))(= (:innerType datatype) :dataType))(every? (fn [x] (= (:arity x) (:arity (first restrictedvalues)))) restrictedvalues))
   (assoc datatype :restrictedValues restrictedvalues :type :datatypeRestriction  :innerType :datatypeRestriction)
   (throw+ {:type ::notDatatypeRestriction :datatype datatype :restrictedvalues restrictedvalues})))
 
-(defn- -dataAnd [dataranges]
+(defn- -dataAnd 
  "DataIntersectionOf := 'DataIntersectionOf' '(' DataRange DataRange { DataRange } ')'"
+ [dataranges]
  (if (and (every? (fn [x] (= (:type x) :dataRange)) dataranges)(every? (fn [x] (= (:arity x) (:arity (first dataranges)))) dataranges))
   {:dataRanges dataranges :arity (:arity (first dataranges)) :type :dataAnd :innerType :dataAnd}
   (throw+ {:type ::notDataAnd :dataRanges dataranges})))
 
-(defn- -dataOr [dataranges]
+(defn- -dataOr 
  "DataUnionOf := 'DataUnionOf' '(' DataRange DataRange { DataRange } ')'"
+ [dataranges]
  (if (and (every? (fn [x] (= (:type x) :dataRange)) dataranges)(every? (fn [x] (= (:arity x) (:arity (first dataranges)))) dataranges))
   {:dataRanges dataranges :arity (:arity (first dataranges)) :type :dataOr :innerType :dataOr}
   (throw+ {:type ::notDataOr :dataRanges dataranges})))
 
-(defn- -dataNot [datarange]
+(defn- -dataNot 
  "DataComplementOf := 'DataComplementOf' '(' DataRange ')'"
+ [datarange]
  (if (= (:type datarange) :dataRange)
   {:dataRange datarange :arity (:arity datarange) :type :dataNot :innerType :dataNot}
   (throw+ {:type ::notDataNot :datarange datarange})))
 
-(defn- -dataRange [datarange]
+(defn- -dataRange 
  "DataRange := Datatype | DataIntersectionOf | DataUnionOf | DataComplementOf | DataOneOf | DatatypeRestriction"
+ [datarange]
  (if (contains? dataRangeTypes (:type datarange))
   (assoc datarange :type :dataRange)
   (throw+ {:type ::notDataRange :dataRange datarange})))
-
-(defn dataType
- ([iri]
-  (if (string? iri)
-   (-dataType (IRI iri))
-   (if (contains? iri :type)
-    (if (and (= (:innerType iri) :dataType)(= (:type iri) :dataRange))
-     iri
-     (throw+ {:type ::notDataType :dataType iri}))
-    (-dataType iri))))
- ([iri namespace prefix]
-  (-dataType (XSDDatatype iri namespace prefix))))
 
 (defn dataRange [dr]
  (if (contains? dr :type)
@@ -341,8 +349,9 @@
  [datatype restrictedvalues]
   (-dataRange (-datatypeRestriction (dataType datatype) (into #{} (map restrictedValue (filter #(nil? (:type %)) restrictedvalues) (filter #(= (:type %) :literal) restrictedvalues))))))
 
-(defn entity [thing]
+(defn entity 
  "Entity := 'Class' '(' Class ')' | 'Datatype' '(' Datatype ')' | 'ObjectProperty' '(' ObjectProperty ')' | 'DataProperty' '(' DataProperty ')' | 'AnnotationProperty' '(' AnnotationProperty ')' | 'NamedIndividual' '(' NamedIndividual ')'"
+ [thing]
  (if (contains? nameTypes (:innerType thing))
   (assoc thing :type :name)
   (throw+ {:type ::notName :name thing})))

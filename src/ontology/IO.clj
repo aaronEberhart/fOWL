@@ -7,6 +7,7 @@
  (:use [slingshot.slingshot :only [throw+]]))
 
 (def extractParams
+ "Separates annotations from other inputs for functions with variable arguments"
  (comp
   (fn [l]
    (if (empty? (get l 0))
@@ -16,6 +17,7 @@
   list))
 
 (def extractParamList
+ "Separates annotations from other inputs for functions with variable arguments"
  (comp
   (fn [l]
    (if (empty? (get l 0))
@@ -25,6 +27,7 @@
   list))
 
 (def extractFirstParamFromList
+ "Separates annotations from other inputs for functions with variable arguments"
  (comp
   (fn [l]
    (if (empty? (get l 0))
@@ -34,455 +37,749 @@
   list))
 
 (def emptyOntology
+ "Returns an empty ontology"
  (onf/ontology #{} #{} #{}))
 
 (def emptyOntologyFile
+ "Returns an empty ontology file"
  (onf/ontologyFile #{} emptyOntology))
 
-(defn getAxioms [ontology]
+(defn prefix 
+ "prefixDeclaration := 'Prefix' '(' prefixName '=' fullIRI ')'"
+ [prefixName longIRI] 
+ (onf/prefix prefixName longIRI))
+
+(defn prefixes 
+ "prefixes := { prefixDeclaration }"[prefixes] 
+ (onf/prefixes prefixes))
+
+(defn ontology
+ "Ontology := 'Ontology' '(' [ ontologyIRI [ versionIRI ] ] directlyImportsDocuments ontologyAnnotations axioms ')'"
+ ([] emptyOntology)
+ ([imports annotations axioms](onf/ontology imports annotations axioms))
+ ([ontologyIRI imports annotations axioms](onf/ontology ontologyIRI imports annotations axioms))
+ ([ontologyIRI versionIRI imports annotations axioms](onf/ontology ontologyIRI versionIRI imports annotations axioms)))
+
+(defn ontologyIRI 
+ "ontologyIRI := IRI"
+ [iri] 
+ (onf/ontologyIRI iri))
+
+(defn versionIRI 
+ "versionIRI := IRI"
+ [iri] 
+ (onf/versionIRI iri))
+
+(defn directImports 
+ "directlyImportsDocuments := { 'Import' '(' IRI ')' }"
+ [imports] 
+ (onf/directImports imports))
+
+(defn directImport 
+ "'Import' '(' IRI ')'"
+ [iri] 
+ (onf/directImport iri))
+
+(defn ontologyAnnotations 
+ "ontologyAnnotations := { Annotation }"
+ [annotations] 
+ (onf/ontologyAnnotations annotations))
+
+(defn axioms 
+ "axioms := { Axiom }"
+ [axioms] 
+ (onf/axioms axioms))
+
+(defn ontologyFile
+ "ontologyDocument := { prefixDeclaration } Ontology"
+ ([ontology](onf/ontologyFile ontology))
+ ([prefixes ontology](onf/ontologyFile prefixes ontology)))
+
+(defn getAxioms 
+ "Returns the axioms from an ontology in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology)))
 
-(defn getAxiomsNoAnnotations [ontology]
+(defn getAxiomsNoAnnotations 
+ "Returns the axioms from an ontology without annotations in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(not (= (:outerType %) :annotationAxiom)) #(dissoc % :annotations)))
 
-(defn getClassAxioms [ontology]
+(defn getClassAxioms 
+ "Returns the class axioms from an ontology in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(= (:outerType %) :classAxiom)))
 
-(defn getClassAxiomsNoAnnotations [ontology]
+(defn getClassAxiomsNoAnnotations 
+ "Returns the class axioms from an ontology without annotations in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(= (:outerType %) :classAxiom) #(dissoc % :annotations)))
 
-(defn getRoleAxioms [ontology]
+(defn getRoleAxioms 
+ "Returns the role axioms from an ontology in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(= (:outerType %) :roleAxiom)))
 
-(defn getRoleAxiomsNoAnnotations [ontology]
+(defn getRoleAxiomsNoAnnotations 
+ "Returns the role axioms from an ontology without annotations in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(= (:outerType %) :roleAxiom) #(dissoc % :annotations)))
 
-(defn getDataRoleAxioms [ontology]
+(defn getDataRoleAxioms 
+ "Returns the data role axioms from an ontology in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(= (:outerType %) :dataRoleAxiom)))
 
-(defn getDataRoleAxiomsNoAnnotations [ontology]
+(defn getDataRoleAxiomsNoAnnotations 
+ "Returns the data role axioms from an ontology without annotations in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(= (:outerType %) :dataRoleAxiom) #(dissoc % :annotations)))
 
-(defn getFacts [ontology]
+(defn getFacts 
+ "Returns the facts from an ontology in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(= (:outerType %) :fact)))
 
-(defn getFactsNoAnnotations [ontology]
+(defn getFactsNoAnnotations 
+ "Returns the facts from an ontology without annotations in a lazy sequence"
+ [ontology]
  (msc/lazer (:axioms ontology) #(= (:outerType %) :fact) #(dissoc % :annotations)))
 
-(defn getPrefixes [ontology]
+(defn getPrefixes 
+ "Returns the prefixes from an ontology in a lazy sequence"
+ [ontology]
  (msc/lazer (:prefixes ontology)))
 
-(defn getImports [ontology]
+(defn getImports 
+ "Returns the imports from an ontology in a lazy sequence"
+ [ontology]
  (msc/lazer (:imports ontology)))
 
-(defn getAnnotations [ontology]
+(defn getAnnotations 
+ "Returns the annotations from an ontology in a lazy sequence"
+ [ontology]
  (msc/lazer (:annotations ontology)))
 
-(defn getOntologyIRI [ontology]
+(defn getOntologyIRI 
+ "Returns the ontology IRI from an ontology"
+ [ontology]
  (:ontologyIRI ontology))
 
-(defn getVersionIRI [ontology]
+(defn getVersionIRI 
+ "Returns the version IRI from an ontology"
+ [ontology]
  (:versionIRI ontology))
 
 (defn- updateOntology [ontology object fun key]
  (update ontology key (fun (key ontology) object)))
 
-(defn addAxiom [ontology axiom]
+(defn addAxiom 
+ "Adds an axiom to an ontology"
+ [ontology axiom]
  (updateOntology ontology axiom (comp constantly conj) :axioms))
 
-(defn addPrefix [ontology prefix]
+(defn addAxioms
+ "Adds a set of axioms to an ontology"
+ [ontology axioms]
+ (updateOntology ontology axioms (comp constantly (partial apply conj)) :axioms))
+
+(defn addPrefix 
+ "Adds a prefix to an ontology"
+ [ontology prefix]
  (updateOntology ontology prefix (comp constantly conj) :prefixes))
 
-(defn addImport [ontology import]
+(defn addPrefixes
+ "Adds a set of prefixes to an ontology"
+ [ontology prefixes]
+ (updateOntology ontology prefixes (comp constantly (partial apply conj)) :prefixes))
+
+(defn addImport 
+ "Adds an import to an ontology"
+ [ontology import]
  (updateOntology ontology import (comp constantly conj) :imports))
 
-(defn addAnnotation [ontology annotation]
+(defn addImports
+ "Adds a set of imports to an ontology"
+ [ontology imports]
+ (updateOntology ontology imports (comp constantly (partial apply conj)) :imports))
+
+(defn addAnnotation 
+ "Adds an annotation to an ontology"
+ [ontology annotation]
  (updateOntology ontology annotation (comp constantly conj) :annotations))
 
-(defn dropAxiom [ontology axiom]
+(defn addAnnotations
+ "Adds a set of annotations to an ontology"
+ [ontology annotations]
+ (updateOntology ontology annotations (comp constantly (partial apply conj)) :annotations))
+
+(defn setOntologyIRI 
+ "Sets the Ontology IRI of he ontology to the input IRI"
+ [ontology iri]
+ (update ontology :ontologyIRI (constantly (ontologyIRI iri))))
+
+(defn setVersionIRI
+ "Sets the Version IRI of the ontology to the input IRI"
+ [ontology iri]
+ (update ontology :versionIRI (constantly (versionIRI iri))))
+
+(defn dropAxiom 
+ "Drops the axiom from the ontology"
+ [ontology axiom]
  (updateOntology ontology axiom (comp constantly disj) :axioms))
 
-(defn dropPrefix [ontology prefix]
+(defn dropAxioms 
+ "Drops all axioms in the set from the ontology"
+ [ontology axioms]
+ (updateOntology ontology axioms (comp constantly (partial apply disj)) :axioms))
+
+(defn dropPrefix 
+ "Drops the prefix from the ontology"
+ [ontology prefix]
  (updateOntology ontology prefix (comp constantly disj) :prefixes))
 
-(defn dropImport [ontology import]
+(defn dropPrefixes 
+ "Drops all prefixes in the set from the ontology"
+ [ontology prefixes]
+ (updateOntology ontology prefixes (comp constantly (partial apply disj)) :prefixes))
+
+(defn dropImport 
+ "Drops the import from the ontology"
+ [ontology import]
  (updateOntology ontology import (comp constantly disj) :imports))
 
-(defn dropAnnotation [ontology annotation]
+(defn dropImports 
+ "Drops all imports in the set from the ontology"
+ [ontology imports]
+ (updateOntology ontology imports (comp constantly (partial apply disj)) :imports))
+
+(defn dropAnnotation 
+ "Drops the annotation from the ontology"
+ [ontology annotation]
  (updateOntology ontology annotation (comp constantly disj) :annotations))
 
-(defn negate [class] 
+(defn dropAnnotations 
+ "Drops all annotations in the set from the ontology"
+ [ontology annotations]
+ (updateOntology ontology annotations (comp constantly (partial apply disj)) :annotations))
+
+(defn negate 
+ "same as not, but doesn't make double negations"
+ [class] 
  (nml/negate class))
 
-(defn getClassNNF [class] 
+(defn getClassNNF 
+ "Gets the NNF for a class"
+ [class] 
  (nml/getClassNNF class))
 
-(defn toClassImplications [classaxiom] 
+(defn toClassImplications 
+ "Converts an axiom to an equivalent axiom or set of axioms that are class implications"
+ [classaxiom] 
  (nml/toClassImplications classaxiom))
 
-(defn getNNF [axiom] 
+(defn getNNF 
+ "Gets the NNF of any axiom. Any non-class axiom is returned, since NNF is undefined."
+ [axiom] 
  (nml/getNNF axiom))
 
-(defn body [& atoms]
+(defn body 
+ "The body of a SWRL rule."
+ [& atoms]
  (swrl/body atoms))
 
-(defn head [& atoms] 
+(defn head 
+ "The head of a SWRL Rule"
+ [& atoms] 
  (swrl/head atoms))
 
-(defn iArg [arg] 
- (swrl/iArg arg))
-
-(defn dArg [arg] 
- (swrl/dArg arg))
-
-(defn variable [iri] 
+(defn variable 
+ "An IRI that represents a SWRL variable"
+ [iri] 
  (swrl/variable iri))
 
-(defn classAtom [class iarg] 
+(defn classAtom 
+ "ClassAtom := ‘ClassAtom’ ‘(’ ClassExpression IArg ‘)’"
+ [class iarg] 
  (swrl/classAtom class iarg))
 
-(defn dataRangeAtom [dataRange darg] 
+(defn dataRangeAtom 
+ "DataRangeAtom := ‘DataRangeAtom’ ‘(’ DataRange DArg ‘)’"
+ [dataRange darg] 
  (swrl/dataRangeAtom dataRange darg))
 
-(defn roleAtom [role iarg1 iarg2] 
+(defn roleAtom 
+ "ObjectPropertyAtom := ‘ObjectPropertyAtom’ ‘(’ ObjectPropertyExpression IArg IArg ‘)’"
+ [role iarg1 iarg2] 
  (swrl/roleAtom role iarg1 iarg2))
 
-(defn dataRoleAtom [dataRole iarg darg] 
+(defn dataRoleAtom 
+ "DataPropertyAtom := ‘DataPropertyAtom’ ‘(’ DataProperty IArg DArg ‘)’"
+ [dataRole iarg darg] 
  (swrl/dataRoleAtom dataRole iarg darg))
 
-(defn builtInAtom [iri dargs] 
- (swrl/builtInAtom iri dArg dargs))
+(defn builtInAtom 
+ "BuiltInAtom := ‘BuiltInAtom’ ‘(’ IRI DArg { DArg } ‘)’"
+ [iri dargs] 
+ (swrl/builtInAtom iri dargs))
 
-(defn =individualsAtom [iarg1 iarg2] 
+(defn =individualsAtom 
+ "SameIndividualAtom := ‘SameIndividualAtom’ ‘(’ IArg IArg ‘)’"
+ [iarg1 iarg2] 
  (swrl/=individualsAtom iarg1 iarg2))
 
-(defn !=individualsAtom [iarg1 iarg2] 
+(defn !=individualsAtom 
+ "DifferentIndividualsAtom := ‘DifferentIndividualsAtom’ ‘(’ IArg IArg ‘)’"
+ [iarg1 iarg2] 
  (swrl/!=individualsAtom iarg1 iarg2))
 
-(defn prefix [prefixName longIRI] 
- (onf/prefix prefixName longIRI))
-
-(defn prefixes [prefixes] 
- (onf/prefixes prefixes))
-
-(defn ontology
- ([] emptyOntology)
- ([directImports ontologyAnnotations axioms](onf/ontology directImports ontologyAnnotations axioms))
- ([ontologyIRI directImports ontologyAnnotations axioms](onf/ontology ontologyIRI directImports ontologyAnnotations axioms))
- ([ontologyIRI versionIRI directImports ontologyAnnotations axioms](onf/ontology ontologyIRI versionIRI directImports ontologyAnnotations axioms)))
-
-(defn ontologyIRI [iri] 
- (onf/ontologyIRI iri))
-
-(defn versionIRI [iri] 
- (onf/versionIRI iri))
-
-(defn directImports [imports] 
- (onf/directImports imports))
-
-(defn directImport [iri] 
- (onf/directImport iri))
-
-(defn ontologyAnnotations [annotations] 
- (onf/ontologyAnnotations annotations))
-
-(defn axioms [axioms] 
- (onf/axioms axioms))
-
-(defn ontologyFile
- ([ontology](onf/ontologyFile ontology))
- ([prefixes ontology](onf/ontologyFile prefixes ontology)))
-
-(defn declaration [& args]
+(defn declaration 
+ "Declaration := 'Declaration' '(' [ axiomAnnotations ] Entity ')'"
+ [& args]
  (apply ax/declaration (apply extractParams args)))
 
-(defn dlSafeRule [& args]
+(defn dlSafeRule 
+ "DLSafeRule ::= DLSafeRule ‘(’ { axiomAnnotation } ‘Body’ ‘(’ {Atom} ‘)’ ‘Head’ ‘(’ {Atom} ‘)’ ‘)’"
+ [& args]
   (apply ax/dlSafeRule (apply extractParams args)))
 
-(defn dgRule [& args]
-  (apply ax/dgRule (apply extractParams args)))
-
-(defn classImplication [& args]
+(defn classImplication 
+ "SubClassOf := 'SubClassOf' '(' [ axiomAnnotations ] subClassExpression superClassExpression ')'"
+ [& args]
  (apply ax/classImplication (apply extractParams args)))
 
-(defn =Classes [& args]
+(defn =Classes 
+ "EquivalentClasses := 'EquivalentClasses' '(' [ axiomAnnotations ] ClassExpression ClassExpression { ClassExpression } ')'"
+ [& args]
  (apply ax/=Classes (apply extractParamList args)))
 
-(defn disjClasses [& args]
+(defn disjClasses 
+ "DisjointClasses := 'DisjointClasses' '(' [ axiomAnnotations ] ClassExpression ClassExpression { ClassExpression } ')'"
+ [& args]
  (apply ax/disjClasses (apply extractParamList args)))
 
-(defn disjOr [& args]
+(defn disjOr 
+ "DisjointUnion := 'DisjointUnion' '(' [ axiomAnnotations ] Class disjointClassExpressions ')'"
+ [& args]
  (apply ax/disjOr (apply extractFirstParamFromList args)))
 
-(defn roleChain 
+(defn roleChain
+ "propertyExpressionChain := 'ObjectPropertyChain' '(' ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
  ([role1 role2](ax/roleChain role1 role2))
  ([role1 role2 & roles](ax/roleChain role1 role2 roles)))
 
-(defn roleImplication [& args]
+(defn roleImplication 
+ "SubObjectPropertyOf := 'SubObjectPropertyOf' '(' [ axiomAnnotations ] subObjectPropertyExpression superObjectPropertyExpression ')'"
+ [& args]
  (apply ax/roleImplication (apply extractParams args)))
 
-(defn =Roles [& args]
+(defn =Roles 
+ "EquivalentObjectProperties := 'EquivalentObjectProperties' '(' [ axiomAnnotations ] ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ [& args]
  (apply ax/=Roles (apply extractParamList args)))
 
-(defn disjRoles [& args]
+(defn disjRoles 
+ "DisjointObjectProperties := 'DisjointObjectProperties' '(' [ axiomAnnotations ] ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ [& args]
  (apply ax/disjRoles (apply extractParamList args)))
 
-(defn roleDomain [& args]
+(defn roleDomain 
+ "ObjectPropertyDomain := 'ObjectPropertyDomain' '(' [ axiomAnnotations ] ObjectPropertyExpression ClassExpression ')'"
+ [& args]
  (apply ax/roleDomain (apply extractParams args)))
 
-(defn roleRange [& args]
+(defn roleRange 
+ "ObjectPropertyRange := 'ObjectPropertyRange' '(' [ axiomAnnotations ] ObjectPropertyExpression ClassExpression ')'"
+ [& args]
  (apply ax/roleRange (apply extractParams args)))
 
-(defn inverseRoles [& args]
+(defn inverseRoles 
+ "InverseObjectProperties := 'InverseObjectProperties' '(' [ axiomAnnotations ] ObjectPropertyExpression ObjectPropertyExpression ')'"
+ [& args]
  (apply ax/inverseRoles (apply extractParams args)))
 
-(defn functionalRole [& args]
+(defn functionalRole 
+ "FunctionalObjectProperty := 'FunctionalObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ [& args]
  (apply ax/functionalRole (apply extractParams args)))
 
-(defn functionalInverseRole [& args]
+(defn functionalInverseRole 
+ "InverseFunctionalObjectProperty := 'InverseFunctionalObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ [& args]
  (apply ax/functionalInverseRole (apply extractParams args)))
 
-(defn reflexiveRole [& args]
+(defn reflexiveRole 
+ "ReflexiveObjectProperty := 'ReflexiveObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ [& args]
  (apply ax/reflexiveRole (apply extractParams args)))
 
-(defn irreflexiveRole [& args]
+(defn irreflexiveRole 
+ "IrreflexiveObjectProperty := 'IrreflexiveObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ [& args]
  (apply ax/irreflexiveRole (apply extractParams args)))
 
-(defn symmetricRole [& args]
+(defn symmetricRole 
+ "SymmetricObjectProperty := 'SymmetricObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ [& args]
  (apply ax/symmetricRole (apply extractParams args)))
 
-(defn asymmetricRole [& args]
+(defn asymmetricRole 
+ "AsymmetricObjectProperty := 'AsymmetricObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ [& args]
  (apply ax/asymmetricRole (apply extractParams args)))
 
-(defn transitiveRole [& args]
+(defn transitiveRole 
+ "TransitiveObjectProperty := 'TransitiveObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ [& args]
  (apply ax/transitiveRole (apply extractParams args)))
 
-(defn dataRoleImplication [& args]
+(defn dataRoleImplication 
+ "SubDataPropertyOf := 'SubDataPropertyOf' '(' [ axiomAnnotations ] subDataPropertyExpression superDataPropertyExpression ')'"
+ [& args]
  (apply ax/dataRoleImplication (apply extractParams args)))
 
-(defn =DataRoles [& args]
+(defn =DataRoles 
+ "EquivalentDataProperties := 'EquivalentDataProperties' '(' [ axiomAnnotations ] DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
+ [& args]
  (apply ax/=DataRoles (apply extractParamList args)))
 
-(defn disjDataRoles [& args]
+(defn disjDataRoles 
+ "DisjointDataProperties := 'DisjointDataProperties' '(' [ axiomAnnotations ] DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
+ [& args]
  (apply ax/disjDataRoles (apply extractParamList args)))
 
-(defn dataRoleDomain [& args]
+(defn dataRoleDomain 
+ "DataPropertyDomain := 'DataPropertyDomain' '(' [ axiomAnnotations ] DataPropertyExpression ClassExpression ')'"
+ [& args]
  (apply ax/dataRoleDomain (apply extractParams args)))
 
-(defn dataRoleRange [& args]
+(defn dataRoleRange 
+ "DataPropertyRange := 'DataPropertyRange' '(' [ axiomAnnotations ] DataPropertyExpression DataRange ')'"
+ [& args]
  (apply ax/dataRoleRange (apply extractParams args)))
 
-(defn functionalDataRole [& args]
+(defn functionalDataRole 
+ "FunctionalDataProperty := 'FunctionalDataProperty' '(' [ axiomAnnotations ] DataPropertyExpression ')'"
+ [& args]
  (apply ax/functionalDataRole (apply extractParams args)))
 
-(defn hasKey [& args]
+(defn hasKey 
+ "HasKey := 'HasKey' '(' [ axiomAnnotations ] ClassExpression '(' { ObjectPropertyExpression } ')' '(' { DataPropertyExpression } ')' ')'"
+ [& args]
  (apply ax/hasKey (apply extractParams args)))
 
-(defn dataTypeDefinition [& args]
+(defn dataTypeDefinition 
+ "DatatypeDefinition := 'DatatypeDefinition' '(' [ axiomAnnotations ] Datatype DataRange ')'"
+ [& args]
  (apply ax/dataTypeDefinition (apply extractParams args)))
 
-(defn annotationFact [& args]
+(defn annotationFact 
+ "AnnotationAssertion := 'AnnotationAssertion' '(' [ axiomAnnotations ] AnnotationProperty AnnotationSubject AnnotationValue ')'"
+ [& args]
  (apply ax/annotationFact (apply extractParams args)))
 
-(defn annotationImplication [& args]
+(defn annotationImplication 
+ "SubAnnotationPropertyOf := 'SubAnnotationPropertyOf' '(' [ axiomAnnotations ] subAnnotationProperty superAnnotationProperty ')'"
+ [& args]
  (apply ax/annotationImplication (apply extractParams args)))
 
-(defn annotationDomain [& args]
+(defn annotationDomain 
+ "AnnotationPropertyDomain := 'AnnotationPropertyDomain' '(' [ axiomAnnotations ] AnnotationProperty IRI ')'"
+ [& args]
  (apply ax/annotationDomain (apply extractParams args)))
 
-(defn annotationRange [& args]
+(defn annotationRange 
+ "AnnotationPropertyRange := 'AnnotationPropertyRange' '(' [ axiomAnnotations ] AnnotationProperty IRI ')'"
+ [& args]
  (apply ax/annotationRange (apply extractParams args)))
 
-(defn =individuals [& args]
+(defn =individuals 
+ "SameIndividual := 'SameIndividual' '(' [ axiomAnnotations ] Individual Individual { Individual } ')'"
+ [& args]
  (apply fs/=individuals (apply extractParamList args)))
 
-(defn !=individuals [& args]
+(defn !=individuals 
+ "DifferentIndividuals := 'DifferentIndividuals' '(' [ axiomAnnotations ] Individual Individual { Individual } ')'"
+ [& args]
  (apply fs/!=individuals (apply extractParamList args)))
 
-(defn classFact [& args]
+(defn classFact 
+ "ClassAssertion := 'ClassAssertion' '(' [ axiomAnnotations ] ClassExpression Individual ')'"
+ [& args]
  (apply fs/classFact (apply extractParams args)))
 
-(defn roleFact [& args]
+(defn roleFact 
+ "ObjectPropertyAssertion := 'ObjectPropertyAssertion' '(' [ axiomAnnotations ] ObjectPropertyExpression sourceIndividual targetIndividual ')'"
+ [& args]
  (apply fs/roleFact (apply extractParams args)))
 
-(defn notRoleFact [& args]
+(defn notRoleFact 
+ "NegativeObjectPropertyAssertion := 'NegativeObjectPropertyAssertion' '(' [ axiomAnnotations ] ObjectPropertyExpression sourceIndividual targetIndividual ')'"
+ [& args]
  (apply fs/notRoleFact (apply extractParams args)))
 
-(defn dataRoleFact [& args]
+(defn dataRoleFact 
+ "DataPropertyAssertion := 'DataPropertyAssertion' '(' [ axiomAnnotations ] DataPropertyExpression sourceIndividual targetValue ')'"
+ [& args]
  (apply fs/dataRoleFact (apply extractParams args)))
 
-(defn notDataRoleFact [& args]
+(defn notDataRoleFact 
+ "NegativeDataPropertyAssertion := 'NegativeDataPropertyAssertion' '(' [ axiomAnnotations ] DataPropertyExpression sourceIndividual targetValue ')'"
+ [& args]
  (apply fs/notDataRoleFact (apply extractParams args)))
 
 (defn annotationRole
+ "AnnotationProperty := IRI"
  ([iri](ann/annotationRole iri))
  ([iri namespace prefix](ann/annotationRole iri namespace prefix)))
 
-(defn annotationValue [value]
+(defn annotationValue 
+ "AnnotationValue := AnonymousIndividual | IRI | Literal"
+ [value]
  (ann/annotationValue value))
 
-(defn metaAnnotations [annotations]
+(defn metaAnnotations
+ "annotationAnnotations := { Annotation }"
+ [annotations]
  (ann/metaAnnotations annotations))
 
-(defn annotation [& args]
+(defn annotation 
+ "Annotation := 'Annotation' '(' annotationAnnotations AnnotationProperty AnnotationValue ')'"
+ [& args]
  (apply ann/annotation (apply extractParams args)))
 
-(defn annotationSubject [subject]
+(defn annotationSubject 
+ "AnnotationSubject := IRI | AnonymousIndividual"
+ [subject]
  (ann/annotationSubject subject))
 
-(defn axiomAnnotations [annotations]
-  (ann/axiomAnnotations annotations))
+(defn axiomAnnotations 
+ "axiomAnnotations := { Annotation }"
+ [annotations]
+ (ann/axiomAnnotations annotations))
 
 (defn annotationDataType
+ "Datatype := IRI"
  ([iri] (ann/annotationDataType iri))
  ([iri namespace prefix](ann/annotationDataType iri namespace prefix)))
 
+(def Top
+ "owl:Thing"
+ co/Top)
+(def Bot
+ "owl:Nothing"
+ co/Bot)
+(def RDFSLiteral
+ "rdfs:Literal"
+ co/RDFSLiteral)
+(def TopRole
+ "owl:topObjectProperty"
+ co/TopRole)
+(def BotRole
+ "owl:bottomObjectProperty"
+ co/BotRole)
+(def TopData
+ "owl:topDataProperty"
+ co/TopData)
+(def BotData
+ "owl:bottomDataProperty"
+ co/BotData)
+
 (defn IRI
+ "IRI := String"
  ([iri](co/IRI iri))
  ([iri namespace prefix](co/IRI iri namespace prefix)))
 
 (defn className
+ "Class := IRI"
  ([iri](co/className iri))
  ([iri namespace prefix](co/className iri namespace prefix)))
 
 (defn roleName
+ "ObjectProperty := IRI"
  ([iri](co/roleName iri))
  ([iri namespace prefix](co/roleName iri namespace prefix)))
 
 (defn inverseRoleName
+ "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
  ([iri](co/inverseRoleName iri))
  ([iri namespace prefix](co/inverseRoleName iri namespace prefix)))
 
 (defn dataRoleName
+ "DataProperty := IRI"
  ([iri](co/dataRoleName iri))
  ([iri namespace prefix](co/dataRoleName iri namespace prefix)))
 
 (defn individual
+ "Individual := IRI | nodeID"
  ([iri](co/individual iri))
  ([iri namespace prefix](co/individual iri namespace prefix)))
 
-(defn typedLiteral [lexicalForm datatype]
+(defn typedLiteral 
+ "typedLiteral := lexicalForm '^^' Datatype"
+ [lexicalForm datatype]
  (co/typedLiteral lexicalForm datatype))
 
-(defn stringLiteralNoLanguage [string]
- (co/stringLiteralNoLanguage string))
+(defn stringLiteral
+ "stringLiteral := quotedString | quotedString languageTag"
+ ([string](co/stringLiteralNoLanguage string))
+ ([string lang](co/stringLiteralWithLanguage string lang)))
 
-(defn stringLiteralWithLanguage [string lang]
- (co/stringLiteralWithLanguage string lang))
-
-(defn restrictedValue [facet restriction]
+(defn restrictedValue 
+ "RestrictedFacet := constrainingFacet restrictionValue"
+ [facet restriction]
  (co/restrictedValue facet restriction))
 
 (defn dataType
+ "Datatype := IRI"
  ([iri]
   (co/dataType iri))
  ([iri namespace prefix]
   (co/dataType iri namespace prefix)))
 
-(defn dataRange [dr]
- (co/dataRange dr))
+(defn dataRange 
+ "DataRange := Datatype | DataIntersectionOf | DataUnionOf | DataComplementOf | DataOneOf | DatatypeRestriction"
+ [dataRange]
+ (co/dataRange dataRange))
 
 (defn dataAnd 
+ "DataIntersectionOf := 'DataIntersectionOf' '(' DataRange DataRange { DataRange } ')'"
  ([datarange1 datarange2]
   (co/dataAnd datarange1 datarange2))
  ([datarange1 datarange2 & dataranges]
   (co/dataAnd datarange1 datarange2 dataranges)))
 
 (defn dataOr 
+ "DataUnionOf := 'DataUnionOf' '(' DataRange DataRange { DataRange } ')'"
  ([datarange1 datarange2]
   (co/dataOr datarange1 datarange2))
  ([datarange1 datarange2 & dataranges]
   (co/dataOr datarange1 datarange2 dataranges)))
 
-(defn dataNot [datarange]
+(defn dataNot 
+ "DataComplementOf := 'DataComplementOf' '(' DataRange ')'"
+ [datarange]
  (co/dataNot datarange))
 
 (defn dataOneOf
+ "DataOneOf := 'DataOneOf' '(' Literal { Literal } ')'"
  ([literal](co/dataOneOf literal))
  ([literal & literals](co/dataOneOf literal literals)))
 
-(defn datatypeRestriction [& args]
+(defn datatypeRestriction 
+ "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"
+ [& args]
  (apply co/datatypeRestriction (apply extractFirstParamFromList args)))
 
-(defn entity [thing]
+(defn entity 
+ "Entity := 'Class' '(' Class ')' | 'Datatype' '(' Datatype ')' | 'ObjectProperty' '(' ObjectProperty ')' | 'DataProperty' '(' DataProperty ')' | 'AnnotationProperty' '(' AnnotationProperty ')' | 'NamedIndividual' '(' NamedIndividual ')'"
+ [thing]
  (co/entity thing))
 
 (defn role
-  ([iri](ex/role iri))
-  ([iri namespace prefix](ex/role iri namespace prefix)))
+ "ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
+ ([iri](ex/role iri))
+ ([iri namespace prefix](ex/role iri namespace prefix)))
 
 (defn inverseRole
-  ([iri](ex/inverseRole iri))
-  ([iri namespace prefix](ex/inverseRole iri namespace prefix)))
+ "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
+ ([iri](ex/inverseRole iri))
+ ([iri namespace prefix](ex/inverseRole iri namespace prefix)))
 
 (defn dataRole
-  ([iri](ex/dataRole iri))
-  ([iri namespace prefix](ex/dataRole iri namespace prefix)))
+ "DataPropertyExpression := DataProperty"
+ ([iri](ex/dataRole iri))
+ ([iri namespace prefix](ex/dataRole iri namespace prefix)))
 
 (defn -class
-  ([iri](ex/class iri))
-  ([iri namespace prefix](ex/class iri namespace prefix)))
+ "ClassExpression := Class | ObjectIntersectionOf | ObjectUnionOf | ObjectComplementOf | ObjectOneOf | ObjectSomeValuesFrom | ObjectAllValuesFrom | ObjectHasValue | ObjectHasSelf | ObjectMinCardinality | ObjectMaxCardinality | ObjectExactCardinality | DataSomeValuesFrom | DataAllValuesFrom | DataHasValue | DataMinCardinality | DataMaxCardinality | DataExactCardinality"
+ ([iri](ex/class iri))
+ ([iri namespace prefix](ex/class iri namespace prefix)))
 
 (defn -and
-  ([class1 class2](ex/and class1 class2))
-  ([class1 class2 & classes](ex/and class1 class2 classes)))
+ "ObjectIntersectionOf := 'ObjectIntersectionOf' '(' ClassExpression ClassExpression { ClassExpression } ')'"
+ ([class1 class2](ex/and class1 class2))
+ ([class1 class2 & classes](ex/and class1 class2 classes)))
 
 (defn -or
-  ([class1 class2](ex/or class1 class2))
-  ([class1 class2 & classes](ex/or class1 class2 classes)))
+ "ObjectUnionOf := 'ObjectUnionOf' '(' ClassExpression ClassExpression { ClassExpression } ')'"
+ ([class1 class2](ex/or class1 class2))
+ ([class1 class2 & classes](ex/or class1 class2 classes)))
 
-(defn -not [c]
-  (ex/not c))
+(defn -not 
+ "ObjectComplementOf := 'ObjectComplementOf' '(' ClassExpression ')'"
+ [class]
+ (ex/not class))
 
 (defn nominal
-  ([individual](ex/nominal individual))
-  ([individual & individuals](ex/nominal individual individuals)))
+ "ObjectOneOf := 'ObjectOneOf' '(' Individual { Individual }')'"
+ ([individual](ex/nominal individual))
+ ([individual & individuals](ex/nominal individual individuals)))
 
-(defn existential [r c]
-  (ex/existential r c))
+(defn existential 
+ "ObjectSomeValuesFrom := 'ObjectSomeValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
+ [role class]
+ (ex/existential role class))
 
-(defn universal [r c]
-  (ex/universal r c))
+(defn universal 
+ "ObjectAllValuesFrom := 'ObjectAllValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
+ [role class]
+ (ex/universal role class))
 
-(defn partialRole [r i]
-  (ex/partialRole r i))
+(defn partialRole 
+ "ObjectHasValue := 'ObjectHasValue' '(' ObjectPropertyExpression Individual ')'"
+ [role individual]
+ (ex/partialRole role individual))
 
 (defn Self
-  ([iri](ex/Self iri))
-  ([iri namespace prefix](ex/Self iri namespace prefix)))
+ "ObjectHasSelf := 'ObjectHasSelf' '(' ObjectPropertyExpression ')'"
+ ([iri](ex/Self iri))
+ ([iri namespace prefix](ex/Self iri namespace prefix)))
 
 (defn >=role
-  ([nat r](ex/>=role nat r))
-  ([nat r c](ex/>=role nat r c)))
+ "ObjectMinCardinality := 'ObjectMinCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
+ ([naturalNumber role](ex/>=role naturalNumber role))
+ ([naturalNumber role class](ex/>=role naturalNumber role class)))
 
 (defn <=role
-  ([nat r](ex/<=role nat r))
-  ([nat r c](ex/<=role nat r c)))
+ "ObjectMaxCardinality := 'ObjectMaxCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
+ ([naturalNumber role](ex/<=role naturalNumber role))
+ ([naturalNumber role class](ex/<=role naturalNumber role class)))
 
 (defn =role
-  ([nat r](ex/=role nat r))
-  ([nat r c](ex/=role nat r c)))
+ "ObjectExactCardinality := 'ObjectExactCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
+ ([naturalNumber r](ex/=role naturalNumber r))
+ ([naturalNumber r c](ex/=role naturalNumber r c)))
 
-(defn dataExistential [dataRoles dataRange]
-  (ex/dataExistential dataRoles dataRange))
+(defn dataExistential
+ "DataSomeValuesFrom := 'DataSomeValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
+ [dataRoles dataRange]
+ (ex/dataExistential dataRoles dataRange))
 
-(defn dataUniversal [dataRoles dataRange]
-  (ex/dataUniversal dataRoles dataRange))
+(defn dataUniversal 
+ "DataAllValuesFrom := 'DataAllValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
+ [dataRoles dataRange]
+ (ex/dataUniversal dataRoles dataRange))
 
 (defn >=dataRole
-  ([nat dr](ex/>=dataRole nat dr))
-  ([nat dr dataRange](ex/>=dataRole nat dr dataRange)))
+ "DataMinCardinality := 'DataMinCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
+ ([naturalNumber dataRole](ex/>=dataRole naturalNumber dataRole))
+ ([naturalNumber dataRole dataRange](ex/>=dataRole naturalNumber dataRole dataRange)))
 
 (defn <=dataRole
-  ([nat dr](ex/<=dataRole nat dr))
-  ([nat dr dataRange](ex/<=dataRole nat dr dataRange)))
+ "DataMaxCardinality := 'DataMaxCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
+ ([naturalNumber dataRole](ex/<=dataRole naturalNumber dataRole))
+ ([naturalNumber dataRole dataRange](ex/<=dataRole naturalNumber dataRole dataRange)))
 
 (defn =dataRole
-  ([nat dr](ex/=dataRole nat dr))
-  ([nat dr dataRange](ex/=dataRole nat dr dataRange)))
+ "DataExactCardinality := 'DataExactCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
+ ([naturalNumber dataRole](ex/=dataRole naturalNumber dataRole))
+ ([naturalNumber dataRole dataRange](ex/=dataRole naturalNumber dataRole dataRange)))
 
-(defn partialDataRole [dr literal]
-  (ex/partialDataRole dr literal))
+(defn partialDataRole 
+ "DataHasValue := 'DataHasValue' '(' DataPropertyExpression Literal ')'"
+ [dataRole literal]
+ (ex/partialDataRole dataRole literal))
 
 (def iriStopPat
  #"^(?:Annotation|Import|Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DatatypeDefinition|DGRule|DLSafeRule)[\s\S]*")
@@ -491,9 +788,9 @@
 (def axiomPat
  #"(Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DatatypeDefinition|DGRule|DLSafeRule)\s*\(\s*([\s\S]*)")
 (def fullIRIPat
- #"^[<]([^>]+)[>]\s*([\s\S]*)")
+ #"^([<][^>]+[>])\s*([\s\S]*)")
 (def prefIRIPat
- #"^([^\<\(\)\"\\\s]*:[^\>\(\)\"\\\s]+)\s*([\s\S]*)")
+ #"^([^\<\(\)\"\\\s]*\:[^\>\(\)\"\\\s]+)\s*([\s\S]*)")
 (def literalTypedPat
  #"^(\"[\s\S]*?(?<!\\)\")\^\^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))\s*([\s\S]*)")
 (def literalQuotedPat
@@ -509,13 +806,13 @@
 (def expressionPat
  #"(ObjectInverseOf|Class|Datatype|ObjectProperty|DataProperty|AnnotationProperty|NamedIndividual|ObjectPropertyChain|ObjectIntersectionOf|ObjectUnionOf|ObjectComplementOf|ObjectOneOf|ObjectSomeValuesFrom|ObjectAllValuesFrom|ObjectHasValue|ObjectHasSelf|ObjectMinCardinality|ObjectMaxCardinality|ObjectExactCardinality|DataSomeValuesFrom|DataAllValuesFrom|DataHasValue|DataMinCardinality|DataMaxCardinality|DataExactCardinality|DataIntersectionOf|DataUnionOf|DataComplementOf|DataOneOf|DatatypeRestriction|Variable|Body|Head|ClassAtom|DataRangeAtom|ObjectPropertyAtom|DataPropertyAtom|BuiltInAtom|SameIndividualAtom|DifferentIndividualsAtom)\s*\(\s*([\s\S]*)")
 (def prefixPat
- #"^(?:Prefix)\s*\(\s*([^\)\:]*\:)=\s*<([^>]+)>\s*\)\s*([\s\S]*)")
+ #"^(?:Prefix)\s*\(\s*([^\)\:]*\:)=\s*([<][^>]+[>])\s*\)\s*([\s\S]*)")
 (def annotationPat
  #"^(Annotation)\s*\(\s*([\s\S]*)")
 (def ontPat
  #"^(Ontology)\s*\(\s*([\s\S]*)")
 (def importPat
- #"^Import\s*\(\s*[<]([^>]+)[>]\s*\)\s*([\s\S]*)")
+ #"^Import\s*\(\s*([<][^>]+[>])\s*\)\s*([\s\S]*)")
 
 (defn- swapPrefixes [iri]
  (if (:prefix iri)
@@ -539,7 +836,7 @@
     rep (str/join (map (fn [x] (if (= key (:prefix x)) (:iri x) rep)) prefixes))]
     (if rep [val rep key][name])))
 
-;think old code?
+;think need to update this fun?
 (defn- parseIRI [name prefixes]
  (apply co/IRI (smushPrefix name prefixes)))
 
@@ -553,7 +850,9 @@
   :namedIndividual "NamedIndividual("
   "Undefined("))
 
-(defn toDLString [thing]
+(defn toDLString 
+ "Returns a DL syntax string representation of the map object used to store the OWL object, or the default representation if there is no OWL type contained in the map."
+ [thing]
  (case (:innerType thing)
 
   ;not an OWL map
@@ -671,9 +970,11 @@
   :builtInAtom (str "BuiltInAtom(" (toDLString (:iri thing)) " " (str/join " " (map (fn [x] (toDLString x)) (:dargs thing))) ")")
   :=individualsAtom (str "SameIndividualAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
-  :variable (str "Variable(" (:iri thing) ")")))
+  :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")))
 
-(defn toString [thing]
+(defn toString 
+ "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is __*not*__ the same as java toString."
+ [thing]
  (case (:innerType thing)
 
   ;Not an OWL map
@@ -703,7 +1004,7 @@
   :ontology (str "Ontology(" (toString (:ontologyIRI thing)) (toString (:versionIRI thing)) "\n" (str/join "\n" (map (fn [x] (toString x)) (:imports thing))) "\n" (str/join "\n" (map (fn [x] (toString x )) (:annotations thing))) "\n" (str/join "\n" (map (fn [x] (toString x )) (:axioms thing))) ")")
   :ontologyIRI (:iri thing)
   :versionIRI (:iri thing)
-  :prefix (str "Prefix(" (:prefix thing) "=<" (:iri thing) ">)")
+  :prefix (str "Prefix(" (:prefix thing) "=" (:iri thing) ")")
   :prefixes (str (str/join "\n" (map toString (:prefixes thing))))
   :import (str "Import(" (:iri thing) ")")
   :declaration (str "Declaration(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toString (:name thing) ) "))")
@@ -790,7 +1091,7 @@
   :builtInAtom (str "BuiltInAtom(" (toString (:iri thing)) " " (str/join " " (map (fn [x] (toString x)) (:dargs thing))) ")")
   :=individualsAtom (str "SameIndividualAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
-  :variable (str "Variable(" (:iri thing) ")")
+  :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
 
 (defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toString x)))
@@ -877,25 +1178,26 @@
   "DataPropertyAtom" dataRoleAtom
   "BuiltInAtom" builtInAtom
   "SameIndividualAtom" =individualsAtom
-  "DifferentIndividualsAtom" !=individualsAtom
-  "DescriptionGraphRule" dgRule))
+  "DifferentIndividualsAtom" !=individualsAtom))
 
+(defn- -makeOWLFile
+ [filename prefixes ontologyIRI versionIRI imports annotations axioms]
+ (with-open [wrt (io/writer filename)]
+  (do 
+   (doseq [prefix prefixes] (.write wrt (str (toString prefix) "\n")))
+   (if (not (empty? prefixes)) (.write wrt "\n\n"))
+   (.write wrt "Ontology(")
+   (.write wrt (if ontologyIRI (str (toString ontologyIRI) "\n" (if versionIRI (str (toString versionIRI) "\n")))"\n"))
+   (doseq [im imports] (.write wrt (str (toString im) "\n")))
+   (if (not (empty? imports)) (.write wrt "\n"))
+   (doseq [ann annotations] (.write wrt (str (toString ann) "\n")))
+   (if (not (empty? annotations)) (.write wrt "\n"))
+   (doseq [axiom axioms](.write wrt (str (toString axiom) "\n")))
+   (.write wrt ")"))))
 (defn makeOWLFile
- ([filename ontology]
-  (makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology)))
- ([filename prefixes ontologyIRI versionIRI imports annotations axioms]
-  (with-open [wrt (io/writer filename)]
-   (do 
-    (doseq [prefix prefixes] (.write wrt (str (toString prefix) "\n")))
-    (if (not (empty? prefixes)) (.write wrt "\n\n"))
-    (.write wrt "Ontology(")
-    (.write wrt (if ontologyIRI (str (toString ontologyIRI) "\n" (if versionIRI (str (toString versionIRI) "\n")))"\n"))
-    (doseq [im imports] (.write wrt (str (toString im) "\n")))
-    (if (not (empty? imports)) (.write wrt "\n"))
-    (doseq [ann annotations] (.write wrt (str (toString ann) "\n")))
-    (if (not (empty? annotations)) (.write wrt "\n"))
-    (doseq [axiom axioms](.write wrt (str (toString axiom) "\n")))
-    (.write wrt ")")))))
+ "Writes an owl file of the ontology in functional syntax with the supplied file name"
+ [filename ontology]
+ (-makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology)))
 
 (defn- parsePrefixLine [state prefixes _ _ _ _]
  (loop [state state
@@ -920,7 +1222,7 @@
  (if-some [ontMatch (re-matches ontPat state)]
   (recur (get ontMatch 2) ontologyIRI)
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
-  [(get fullIRIMatch 2) (conj! ontologyIRI (co/IRI (get fullIRIMatch 1)))]
+  [(get fullIRIMatch 2) (conj! ontologyIRI (get fullIRIMatch 1))]
  (if-some [commMatch (re-matches commPat state)]
   [(get commMatch 2) ontologyIRI]
  (if-some [importMatch (re-matches importPat state)]
@@ -938,7 +1240,7 @@
  (if-some [blankMatch (re-matches blankPat state)]
   [state versionIRI]
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
-  [(get fullIRIMatch 2) (conj! versionIRI (co/IRI (get fullIRIMatch 1)))]
+  [(get fullIRIMatch 2) (conj! versionIRI (get fullIRIMatch 1))]
  (if-some [commMatch (re-matches commPat state)]
   [(get commMatch 2) versionIRI]
  (if-some [importMatch (re-matches importPat state)]
@@ -990,15 +1292,15 @@
  (if-some [blankMatch (re-matches blankPat state)]
   [state annotations annFun exps expFuns]
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
-  (recur (get fullIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (co/IRI (get fullIRIMatch 1)))) expFuns)
+  (recur (get fullIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (IRI (get fullIRIMatch 1)))) expFuns)
  (if-some [prefIRIMatch (re-matches prefIRIPat state)]
   (recur (get prefIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (parseIRI (get prefIRIMatch 1) prefixes))) expFuns)
  (if-some [literalTypedMatch (re-matches literalTypedPat state)]
-  (recur (get literalTypedMatch 4) annotations annFun (conj (rest exps) (conj (first exps) (co/typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (co/dataType (get literalTypedMatch 2)) (apply co/dataType (smushPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
+  (recur (get literalTypedMatch 4) annotations annFun (conj (rest exps) (conj (first exps) (typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (dataType (get literalTypedMatch 2)) (apply dataType (smushPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
  (if-some [literalLangMatch (re-matches literalLangPat state)]
-  (recur (get literalLangMatch 3) annotations annFun (conj (rest exps) (conj (first exps) (co/stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
+  (recur (get literalLangMatch 3) annotations annFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
  (if-some [literalQuotedMatch (re-matches literalQuotedPat state)]
-  (recur (get literalQuotedMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (co/stringLiteralNoLanguage (get literalQuotedMatch 1)))) expFuns)
+  (recur (get literalQuotedMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalQuotedMatch 1)))) expFuns)
  (if-some [annMatch (re-matches annotationPat state)]
   (if (nil? annFun)
    (recur (get annMatch 2) annotations annotation exps expFuns)
@@ -1032,15 +1334,15 @@
  (if-some [numMatch (re-matches numPat state)]
     (recur (get numMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (read-string (get numMatch 1)))) expFuns)
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
-   (recur (get fullIRIMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (co/IRI (get fullIRIMatch 1)))) expFuns)
+   (recur (get fullIRIMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (IRI (get fullIRIMatch 1)))) expFuns)
  (if-some [prefIRIMatch (re-matches prefIRIPat state)]
    (recur (get prefIRIMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (parseIRI (get prefIRIMatch 1) prefixes))) expFuns)
  (if-some [literalTypedMatch (re-matches literalTypedPat state)]
-   (recur (get literalTypedMatch 4) axioms axFun (conj (rest exps) (conj (first exps) (co/typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (co/dataType (get literalTypedMatch 2)) (apply co/dataType (smushPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
+   (recur (get literalTypedMatch 4) axioms axFun (conj (rest exps) (conj (first exps) (typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (dataType (get literalTypedMatch 2)) (apply dataType (smushPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
  (if-some [literalLangMatch (re-matches literalLangPat state)]
-   (recur (get literalLangMatch 3) axioms axFun (conj (rest exps) (conj (first exps) (co/stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
+   (recur (get literalLangMatch 3) axioms axFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
  (if-some [literalQuotedMatch (re-matches literalQuotedPat state)]
-   (recur (get literalQuotedMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (co/stringLiteralNoLanguage (get literalQuotedMatch 1)))) expFuns)
+   (recur (get literalQuotedMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalQuotedMatch 1)))) expFuns)
  (if-some [annMatch (re-matches annotationPat state)]
   (recur (get annMatch 2) axioms axFun (conj exps []) (conj expFuns annotation))
  (if-some [axMatch (re-matches axiomPat state)]
@@ -1062,9 +1364,11 @@
     [(persistent! objects) (lazy-seq (cons state (if (some? lines)(rest lines))))]
     (recur (str state (first (rest lines))) (rest lines) objects function expressions functionList))))))
 
-(defn readFunctionalFile [file]
- (with-open [rdr (io/reader file)]
-  (let [ontFile (line-seq rdr)
+(defn readFunctionalFile 
+ "Reads an OWL file written in functional syntax"
+ [file]
+ (with-open [rdataRole (io/reader file)]
+  (let [ontFile (line-seq rdataRole)
    [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches ontPat (get % 1))) nil)
    [ontologyIRI ontFile] (firstFromVec (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
    [versionIRI ontFile] (firstFromVec (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))

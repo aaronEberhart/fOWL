@@ -1,95 +1,107 @@
 (ns ontology.file
+  (:require [ontology.components :as co])
   (:use [slingshot.slingshot :only [throw+]]))
 
 (defn- -ontologyFile
  "ontologyDocument := { prefixDeclaration } Ontology"
-  ([ontology]
-    (if (= (:type ontology) :ontology)
-      ontology
-      (throw+ {:type ::notOntology :ontology ontology})))
-  ([prefixes ontology]
-   (if (= (:type prefixes) :prefixes)
-      (if (= (:type ontology) :ontology)
-        (assoc ontology :prefixes (:prefixes prefixes))
-        (throw+ {:type ::notOntology :ontology ontology}))
-      (throw+ {:type ::notPrefixes :prefixes prefixes}))))
+ ([ontology]
+   (if (= (:type ontology) :ontology)
+     ontology
+     (throw+ {:type ::notOntology :ontology ontology})))
+ ([prefixes ontology]
+  (if (= (:type prefixes) :prefixes)
+     (if (= (:type ontology) :ontology)
+       (assoc ontology :prefixes (:prefixes prefixes))
+       (throw+ {:type ::notOntology :ontology ontology}))
+     (throw+ {:type ::notPrefixes :prefixes prefixes}))))
 
-(defn prefix [prefixName longIRI]
+(defn prefix
  "prefixDeclaration := 'Prefix' '(' prefixName '=' fullIRI ')'"
+ [prefixName longIRI]
  (if (and (string? prefixName)(string? longIRI))
   {:prefix prefixName :iri longIRI :type :prefix :innerType :prefix}
   (throw+ {:type ::notIRIs :prefixName prefixName :longIRI longIRI})))
 
 (defn prefixes [prefixes]
-  (if (every? (fn [x] (= (:type x) :prefix)) prefixes)
-    {:prefixes prefixes :type :prefixes :innerType :prefixes}
-    (throw+ {:type ::notPrefixes :prefixes prefixes})))
+ (if (every? (fn [x] (= (:type x) :prefix)) prefixes)
+   {:prefixes prefixes :type :prefixes :innerType :prefixes}
+   (throw+ {:type ::notPrefixes :prefixes prefixes})))
 
 (defn- -ontology
  "Ontology := 'Ontology' '(' [ ontologyIRI [ versionIRI ] ] directlyImportsDocuments ontologyAnnotations axioms ')'"
-  ([directImports ontologyAnnotations axioms]
-    (if (or (= nil directImports)(= (:type directImports) :imports))
-      (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
-        (if (or (= nil axioms)(= (:type axioms) :axioms))
-          {:ontologyIRI nil :versionIRI nil :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
-          (throw+ {:type ::notaxioms :axioms axioms}))
-        (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
-      (throw+ {:type ::directImports :directImports directImports})))
-  ([ontologyIRI directImports ontologyAnnotations axioms]
-    (if (or (= nil directImports)(= (:type directImports) :imports))
-      (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
-        (if (or (= nil axioms)(= (:type axioms) :axioms))
-          (if (= (:type ontologyIRI) :ontologyIRI)
-            {:ontologyIRI ontologyIRI :versionIRI nil :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
-            (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
-          (throw+ {:type ::notaxioms :axioms axioms}))
-        (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
-      (throw+ {:type ::directImports :directImports directImports})))
-  ([ontologyIRI versionIRI directImports ontologyAnnotations axioms]
-    (if (or (= nil directImports)(= (:type directImports) :imports))
-      (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
-        (if (or (= nil axioms)(= (:type axioms) :axioms))
-          (if (= (:type ontologyIRI) :ontologyIRI)
-            (if (= (:type versionIRI) :versionIRI)
-              {:ontologyIRI ontologyIRI :versionIRI versionIRI :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
-              (throw+ {:type ::notversionIRI :versionIRI versionIRI}))
-            (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
-          (throw+ {:type ::notaxioms :axioms axioms}))
-        (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
-      (throw+ {:type ::directImports :directImports directImports}))))
+ ([directImports ontologyAnnotations axioms]
+  (if (or (= nil directImports)(= (:type directImports) :imports))
+    (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
+      (if (or (= nil axioms)(= (:type axioms) :axioms))
+        {:ontologyIRI nil :versionIRI nil :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
+        (throw+ {:type ::notaxioms :axioms axioms}))
+      (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
+    (throw+ {:type ::directImports :directImports directImports})))
+ ([ontologyIRI directImports ontologyAnnotations axioms]
+  (if (or (= nil directImports)(= (:type directImports) :imports))
+    (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
+      (if (or (= nil axioms)(= (:type axioms) :axioms))
+        (if (= (:type ontologyIRI) :ontologyIRI)
+          {:ontologyIRI ontologyIRI :versionIRI nil :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
+          (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
+        (throw+ {:type ::notaxioms :axioms axioms}))
+      (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
+    (throw+ {:type ::directImports :directImports directImports})))
+ ([ontologyIRI versionIRI directImports ontologyAnnotations axioms]
+  (if (or (= nil directImports)(= (:type directImports) :imports))
+    (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
+      (if (or (= nil axioms)(= (:type axioms) :axioms))
+        (if (= (:type ontologyIRI) :ontologyIRI)
+          (if (= (:type versionIRI) :versionIRI)
+            {:ontologyIRI ontologyIRI :versionIRI versionIRI :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
+            (throw+ {:type ::notversionIRI :versionIRI versionIRI}))
+          (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
+        (throw+ {:type ::notaxioms :axioms axioms}))
+      (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
+    (throw+ {:type ::directImports :directImports directImports}))))
 
-(defn ontologyIRI [iri]
+(defn ontologyIRI
  "ontologyIRI := IRI"
+ [iri]
+ (if (string? iri)
+  (assoc (co/IRI iri) :type :ontologyIRI :innerType :ontologyIRI)
   (if (:iri iri)
     (assoc iri :type :ontologyIRI :innerType :ontologyIRI)
-    (throw+ {:type ::notIRI :IRI iri})))
+    (throw+ {:type ::notIRI :IRI iri}))))
 
-(defn versionIRI [iri]
+(defn versionIRI
  "versionIRI := IRI"
+ [iri]
+ (if (string? iri)
+  (assoc (co/IRI iri) :type :versionIRI :innerType :versionIRI)
   (if (:iri iri)
     (assoc iri :type :versionIRI :innerType :versionIRI)
-    (throw+ {:type ::notIRI :IRI iri})))
+    (throw+ {:type ::notIRI :IRI iri}))))
 
-(defn directImports [imports]
+(defn directImports
  "directlyImportsDocuments := { 'Import' '(' IRI ')' }"
+ [imports]
  (if (every? (fn [x] (= (:type x) :import)) imports)
    {:imports imports :type :imports :innerType :imports}
    (throw+ {:type ::notImports :imports imports})))
 
-(defn directImport [iri]
+(defn directImport 
  "'Import' '(' IRI ')'"
-  (if (:iri iri)
-	  (assoc iri :type :import :innerType :import)
-   (throw+ {:type ::notIRI :IRIs iri})))
+ [iri]
+ (if (:iri iri)
+  (assoc iri :type :import :innerType :import)
+  (throw+ {:type ::notIRI :IRIs iri})))
 
-(defn ontologyAnnotations [annotations]
+(defn ontologyAnnotations 
  "ontologyAnnotations := { Annotation }"
+ [annotations]
  (if (every? (fn [x] (= (:type x) :annotation)) annotations)
    {:annotations annotations :type :annotations}
    (throw+ {:type ::notAnnotations :annotations annotations})))
 
-(defn axioms [axioms]
+(defn axioms
  "axioms := { Axiom }"
+ [axioms]
  (if (every? (fn [x] (= (:type x) :axiom)) axioms)
     {:axioms axioms :type :axioms}
     (throw+ {:type ::notAxioms :Axioms axioms})))
