@@ -12,17 +12,17 @@ in the terminal. It is also easy to use in the REPL by running lein repl. A list
 ## Examples
 ```
 ;show the documentation for a function
-(doc makeOWLFile)
+main=>(doc makeOWLFile)
 
 ;output
 -------------------------
 ontology.IO/makeOWLFile
 ([filename ontology])
   Writes an owl file of the ontology in functional syntax with the supplied file name
-
+  
 
 ;do some things sequentially without side-effects
-(doseq [x [(classImplication (existential "r" "a") "b")
+main=> (doseq [x [(classImplication (existential "r" "a") "b")
 	    (classImplication (-or "b" "c") (-not (-or "d" "e")))
 	    (roleImplication (roleChain "r" (inverseRole "s")) "t")
 	    (roleFact (inverseRole "s") "i" "j")
@@ -35,8 +35,8 @@ ontology.IO/makeOWLFile
 		  ont (addPrefix ont (prefix ":" "<http://www.test.stuff>"))
 		  ont (addAxioms ont #{(classImplication ":a" ":b")(classImplication ":b" ":c")(classImplication ":d" ":a")})
 		  _ (makeOWLFile "test.owl" ont)]
-	    "done")]]
-(println x))
+	    "Ontology Saved")]]
+        (println x))
 
 ;output
 SubClassOf(ObjectSomeValuesFrom(r a) b)
@@ -47,7 +47,7 @@ ClassAssertion(a i)
 DataPropertyAssertion(D i l)
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(e d) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(d) ObjectComplementOf(e)) ObjectIntersectionOf(g f)))
-done
+Ontology Saved
 ```
 
 ## License
