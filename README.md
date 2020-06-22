@@ -12,7 +12,7 @@ in the terminal. It is also easy to use in the REPL by running lein repl. A list
 ## Examples
 ```
 ;show the documentation for a function
-main=>(doc makeOWLFile)
+main=> (doc makeOWLFile)
 
 ;output
 -------------------------
