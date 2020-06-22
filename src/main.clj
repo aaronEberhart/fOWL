@@ -5,6 +5,7 @@
 
 
 (defn -main [& args]
+ "Example Usage"
  (doseq [x 
         [(classImplication (existential "R" "a") "b")
          (classImplication (-or "b" "c") 
