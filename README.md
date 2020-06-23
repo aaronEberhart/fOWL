@@ -48,7 +48,7 @@ ClassAssertion(a i)
 DataPropertyAssertion(d i l)
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(e d) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(d) ObjectComplementOf(e)) ObjectIntersectionOf(g f)))
-2
+4
 Ontology Saved
 ```
 
