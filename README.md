@@ -21,7 +21,7 @@ ontology.IO/makeOWLFile
   Writes an owl file of the ontology in functional syntax with the supplied file name
   
 
-;do some things sequentially without side-effects
+;do some things sequentially
 main=> (doseq [x [(classImplication (existential "r" "a") "b")
 	          (classImplication (-or "b" "c") (-not (-or "d" "e")))
 	          (roleImplication (roleChain "r" (inverseRole "s")) "t")

@@ -263,6 +263,53 @@
  [ontology annotations]
  (updateOntology ontology annotations (comp constantly (partial apply disj)) :annotations))
 
+(defn- -getStuffByKeyInMap
+ ([getThis? stuff]
+  (cond  
+   (map? stuff) (reduce (partial -getStuffByKeyInMap getThis?) #{} stuff)
+   (seq? stuff) (reduce (fn [things thing] (reduce (partial -getStuffByKeyInMap getThis?) things thing)) #{} stuff)
+   :else stuff))
+ ([getThis? stuff [k v]]
+  (cond 
+   (getThis? v)
+    (conj stuff v)
+   (set? v)
+    (for [m v s (reduce (partial -getStuffByKeyInMap getThis?) stuff m)] s)
+   (map? v) 
+    (apply conj stuff (reduce (partial -getStuffByKeyInMap getThis?) stuff v))
+   :else 
+    stuff)))
+
+(defn getClassNamesInObject
+ "Gets a set of all the class names used in this object"
+ [object]
+ (-getStuffByKeyInMap #(= (:innerType %) :className) object))
+
+(defn getRoleNamesInAxiom
+ "Gets a set of all the role names used in this object"
+ [object]
+ (-getStuffByKeyInMap #(= (:innerType %) :roleName) object))
+
+(defn getDataRoleNamesInObject
+ "Gets a set of all the data role names used in this object"
+ [object]
+ (-getStuffByKeyInMap #(= (:innerType %) :dataRoleName) object))
+
+(defn getClassesInObject
+ "Gets a set of all the classes used in this object"
+ [object]
+ (-getStuffByKeyInMap #(= (:type %) :class) object))
+
+(defn getRolesInObject
+ "Gets a set of all the roles used in this object"
+ [object]
+ (-getStuffByKeyInMap #(or (= (:type %) :role)(= (:type %) :inverseRole)) object))
+
+(defn getRoleChainsInObject
+ "Gets a set of all the roles chains used in this object"
+ [object]
+ (-getStuffByKeyInMap #(= (:type %) :roleChain) object))
+
 (defn negate 
  "same as not, but doesn't make double negations"
  [class] 
@@ -827,18 +874,17 @@
   "bottomObjectProperty" "∅"
   (:short iri)))
 
-;TODO fix this => bad
-(defn- smushPrefix [name prefixes]
- (let [splits (str/split name #":")
-    key (str (get splits 0) ":")
-    val (get splits 1)
-    rep nil
-    rep (str/join (map (fn [x] (if (= key (:prefix x)) (:iri x) rep)) prefixes))]
-    (if rep [val rep key][name])))
+(defn- assignPrefix [name prefixes]
+ (let [splits (re-matches #"([^\:]*?:)([\s\S]+)" name)
+       key (get splits 1)
+       val (get splits 2)
+       pref (:iri (first (drop-while (fn [x] (not (= key (:prefix x)))) prefixes)))
+       fullIRI (if pref (subs pref 1 (- (count pref) 1)))]
+ (if fullIRI [val fullIRI key][name])))
 
 ;think need to update this fun?
 (defn- parseIRI [name prefixes]
- (apply co/IRI (smushPrefix name prefixes)))
+ (apply co/IRI (assignPrefix name prefixes)))
 
 (defn- getDeclType [type]
  (case type
@@ -1296,7 +1342,7 @@
  (if-some [prefIRIMatch (re-matches prefIRIPat state)]
   (recur (get prefIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (parseIRI (get prefIRIMatch 1) prefixes))) expFuns)
  (if-some [literalTypedMatch (re-matches literalTypedPat state)]
-  (recur (get literalTypedMatch 4) annotations annFun (conj (rest exps) (conj (first exps) (typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (dataType (get literalTypedMatch 2)) (apply dataType (smushPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
+  (recur (get literalTypedMatch 4) annotations annFun (conj (rest exps) (conj (first exps) (typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (dataType (get literalTypedMatch 2)) (apply dataType (assignPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
  (if-some [literalLangMatch (re-matches literalLangPat state)]
   (recur (get literalLangMatch 3) annotations annFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
  (if-some [literalQuotedMatch (re-matches literalQuotedPat state)]
@@ -1338,7 +1384,7 @@
  (if-some [prefIRIMatch (re-matches prefIRIPat state)]
    (recur (get prefIRIMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (parseIRI (get prefIRIMatch 1) prefixes))) expFuns)
  (if-some [literalTypedMatch (re-matches literalTypedPat state)]
-   (recur (get literalTypedMatch 4) axioms axFun (conj (rest exps) (conj (first exps) (typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (dataType (get literalTypedMatch 2)) (apply dataType (smushPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
+   (recur (get literalTypedMatch 4) axioms axFun (conj (rest exps) (conj (first exps) (typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (dataType (get literalTypedMatch 2)) (apply dataType (assignPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
  (if-some [literalLangMatch (re-matches literalLangPat state)]
    (recur (get literalLangMatch 3) axioms axFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
  (if-some [literalQuotedMatch (re-matches literalQuotedPat state)]
