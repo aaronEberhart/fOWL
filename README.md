@@ -34,6 +34,7 @@ main=> (doseq [x [(classImplication (existential "r" "a") "b")
 		        ont (setOntologyIRI ont "<http://www.test.stuff>")
 		        ont (addPrefix ont (prefix ":" "<http://www.test.stuff>"))
 		        ont (addAxioms ont #{(classImplication ":a" ":b")(classImplication ":b" ":c")(classImplication ":d" ":a")})
+		        _ (prn (getClassNamesInObject ont))
 		        _ (makeOWLFile "test.owl" ont)]
 	         "Ontology Saved")]]
        (println x))
@@ -47,6 +48,7 @@ ClassAssertion(a i)
 DataPropertyAssertion(d i l)
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(e d) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(d) ObjectComplementOf(e)) ObjectIntersectionOf(g f)))
+2
 Ontology Saved
 ```
 

@@ -285,7 +285,7 @@
  [object]
  (-getStuffByKeyInMap #(= (:innerType %) :className) object))
 
-(defn getRoleNamesInAxiom
+(defn getRoleNamesInObject
  "Gets a set of all the role names used in this object"
  [object]
  (-getStuffByKeyInMap #(= (:innerType %) :roleName) object))

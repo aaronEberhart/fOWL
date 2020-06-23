@@ -8,10 +8,5 @@
 
 
 (defn -main [& args]
- (let [ax (getAxiomsNoAnnotations (readFunctionalFile (io/file "OWL/fs/enslavedv2.owlfs.owl")))
-       _ (prn (getRoleNamesInAxiom (first ax)) (first ax) (count ax))
-       _ (prn (getClassesInObject ax) (count ax))
-       _ (prn (count ax) (getRolesInObject ax))
-      ]
-  )
+ 
  )
