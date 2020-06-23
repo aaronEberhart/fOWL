@@ -265,34 +265,23 @@
 
 (defn- -getStuffByKeyInMap
  ([getThis? stuff]
-
   (cond
-   (set? stuff) (reduce (fn [things thing] (reduce (partial -getStuffByKeyInMap getThis?) things thing)) #{} stuff)
    (map? stuff) (reduce (partial -getStuffByKeyInMap getThis?) #{} stuff)
-   (seq? stuff) (reduce (fn [things thing] (reduce (partial -getStuffByKeyInMap getThis?) things thing)) #{} stuff)
+   (coll? stuff) (reduce (fn [things thing] (reduce (partial -getStuffByKeyInMap getThis?) things thing)) #{} stuff)
    :else stuff))
  ([getThis? acc [k v]]
-  (prn acc)
-  (if (getThis? v)
-   (conj acc v)
-   acc)))
-  ;(prn k v)
- ; (cond 
-  ; (getThis? v)
-   ; (conj acc v)
-   ;(set? v)
-   ;(do (prn (-getStuffByKeyInMap getThis? v))
-   ; (apply conj acc (msc/lazer v (constantly true) #(-getStuffByKeyInMap getThis? #{} %)))
-   ; )
-   ;(map? v) 
-   ; (apply conj acc (reduce (partial -getStuffByKeyInMap getThis?) acc v))
-   ;;:else 
-   ; acc)))
+  (cond 
+   (getThis? v)
+    (conj acc v)
+   (coll? v)
+    (apply conj acc (-getStuffByKeyInMap getThis? v))
+   :else
+    acc)))
 
 (defn getClassNamesInObject
  "Gets a set of all the class names used in this object"
  [object]
- (-getStuffByKeyInMap #(= (:type %) :className) object))
+ (-getStuffByKeyInMap #(= (:innerType %) :className) object))
 
 (defn getRoleNamesInObject
  "Gets a set of all the role names used in this object"

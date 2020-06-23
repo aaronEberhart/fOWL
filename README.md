@@ -36,7 +36,7 @@ main=> (doseq [x [(classImplication (existential "r" "a") "b")
 		        ont (addAxioms ont #{(classImplication ":a" ":b")(classImplication ":b" ":c")(classImplication ":d" ":a")})
 		        _ (prn (getClassNamesInObject ont))
 		        _ (makeOWLFile "test.owl" ont)]
-	         "Ontology Saved")]]
+	         (str "Ontology Saved Containing " (count (getClassNamesInObject ont)) " Class Names")]]
        (println x))
 
 ;output
@@ -48,8 +48,7 @@ ClassAssertion(a i)
 DataPropertyAssertion(d i l)
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(e d) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(d) ObjectComplementOf(e)) ObjectIntersectionOf(g f)))
-4
-Ontology Saved
+Ontology Saved Containing 4 Class Names
 ```
 
 ## License
