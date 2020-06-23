@@ -334,32 +334,32 @@
  (swrl/!=individualsAtom iarg1 iarg2))
 
 (defn declaration 
- "Declaration := 'Declaration' '(' [ axiomAnnotations ] Entity ')'"
+ "Declaration := 'Declaration' '(' { axiomAnnotations } Entity ')'"
  [& args]
  (apply ax/declaration (apply extractParams args)))
 
 (defn dlSafeRule 
- "DLSafeRule ::= DLSafeRule ‘(’ { axiomAnnotation } ‘Body’ ‘(’ {Atom} ‘)’ ‘Head’ ‘(’ {Atom} ‘)’ ‘)’"
+ "DLSafeRule ::= DLSafeRule ‘(’ { axiomAnnotations } ‘Body’ ‘(’ {Atom} ‘)’ ‘Head’ ‘(’ {Atom} ‘)’ ‘)’"
  [& args]
   (apply ax/dlSafeRule (apply extractParams args)))
 
 (defn classImplication 
- "SubClassOf := 'SubClassOf' '(' [ axiomAnnotations ] subClassExpression superClassExpression ')'"
+ "SubClassOf := 'SubClassOf' '(' { axiomAnnotations } subClassExpression superClassExpression ')'"
  [& args]
  (apply ax/classImplication (apply extractParams args)))
 
 (defn =Classes 
- "EquivalentClasses := 'EquivalentClasses' '(' [ axiomAnnotations ] ClassExpression ClassExpression { ClassExpression } ')'"
+ "EquivalentClasses := 'EquivalentClasses' '(' { axiomAnnotations } ClassExpression ClassExpression { ClassExpression } ')'"
  [& args]
  (apply ax/=Classes (apply extractParamList args)))
 
 (defn disjClasses 
- "DisjointClasses := 'DisjointClasses' '(' [ axiomAnnotations ] ClassExpression ClassExpression { ClassExpression } ')'"
+ "DisjointClasses := 'DisjointClasses' '(' { axiomAnnotations } ClassExpression ClassExpression { ClassExpression } ')'"
  [& args]
  (apply ax/disjClasses (apply extractParamList args)))
 
 (defn disjOr 
- "DisjointUnion := 'DisjointUnion' '(' [ axiomAnnotations ] Class disjointClassExpressions ')'"
+ "DisjointUnion := 'DisjointUnion' '(' { axiomAnnotations } Class disjointClassExpressions ')'"
  [& args]
  (apply ax/disjOr (apply extractFirstParamFromList args)))
 
@@ -369,162 +369,162 @@
  ([role1 role2 & roles](ax/roleChain role1 role2 roles)))
 
 (defn roleImplication 
- "SubObjectPropertyOf := 'SubObjectPropertyOf' '(' [ axiomAnnotations ] subObjectPropertyExpression superObjectPropertyExpression ')'"
+ "SubObjectPropertyOf := 'SubObjectPropertyOf' '(' { axiomAnnotations } subObjectPropertyExpression superObjectPropertyExpression ')'"
  [& args]
  (apply ax/roleImplication (apply extractParams args)))
 
 (defn =Roles 
- "EquivalentObjectProperties := 'EquivalentObjectProperties' '(' [ axiomAnnotations ] ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ "EquivalentObjectProperties := 'EquivalentObjectProperties' '(' { axiomAnnotations } ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
  [& args]
  (apply ax/=Roles (apply extractParamList args)))
 
 (defn disjRoles 
- "DisjointObjectProperties := 'DisjointObjectProperties' '(' [ axiomAnnotations ] ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ "DisjointObjectProperties := 'DisjointObjectProperties' '(' { axiomAnnotations } ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
  [& args]
  (apply ax/disjRoles (apply extractParamList args)))
 
 (defn roleDomain 
- "ObjectPropertyDomain := 'ObjectPropertyDomain' '(' [ axiomAnnotations ] ObjectPropertyExpression ClassExpression ')'"
+ "ObjectPropertyDomain := 'ObjectPropertyDomain' '(' { axiomAnnotations } ObjectPropertyExpression ClassExpression ')'"
  [& args]
  (apply ax/roleDomain (apply extractParams args)))
 
 (defn roleRange 
- "ObjectPropertyRange := 'ObjectPropertyRange' '(' [ axiomAnnotations ] ObjectPropertyExpression ClassExpression ')'"
+ "ObjectPropertyRange := 'ObjectPropertyRange' '(' { axiomAnnotations } ObjectPropertyExpression ClassExpression ')'"
  [& args]
  (apply ax/roleRange (apply extractParams args)))
 
 (defn inverseRoles 
- "InverseObjectProperties := 'InverseObjectProperties' '(' [ axiomAnnotations ] ObjectPropertyExpression ObjectPropertyExpression ')'"
+ "InverseObjectProperties := 'InverseObjectProperties' '(' { axiomAnnotations } ObjectPropertyExpression ObjectPropertyExpression ')'"
  [& args]
  (apply ax/inverseRoles (apply extractParams args)))
 
 (defn functionalRole 
- "FunctionalObjectProperty := 'FunctionalObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ "FunctionalObjectProperty := 'FunctionalObjectProperty' '(' { axiomAnnotations } ObjectPropertyExpression ')'"
  [& args]
  (apply ax/functionalRole (apply extractParams args)))
 
 (defn functionalInverseRole 
- "InverseFunctionalObjectProperty := 'InverseFunctionalObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ "InverseFunctionalObjectProperty := 'InverseFunctionalObjectProperty' '(' { axiomAnnotations } ObjectPropertyExpression ')'"
  [& args]
  (apply ax/functionalInverseRole (apply extractParams args)))
 
 (defn reflexiveRole 
- "ReflexiveObjectProperty := 'ReflexiveObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ "ReflexiveObjectProperty := 'ReflexiveObjectProperty' '(' { axiomAnnotations } ObjectPropertyExpression ')'"
  [& args]
  (apply ax/reflexiveRole (apply extractParams args)))
 
 (defn irreflexiveRole 
- "IrreflexiveObjectProperty := 'IrreflexiveObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ "IrreflexiveObjectProperty := 'IrreflexiveObjectProperty' '(' { axiomAnnotations } ObjectPropertyExpression ')'"
  [& args]
  (apply ax/irreflexiveRole (apply extractParams args)))
 
 (defn symmetricRole 
- "SymmetricObjectProperty := 'SymmetricObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ "SymmetricObjectProperty := 'SymmetricObjectProperty' '(' { axiomAnnotations } ObjectPropertyExpression ')'"
  [& args]
  (apply ax/symmetricRole (apply extractParams args)))
 
 (defn asymmetricRole 
- "AsymmetricObjectProperty := 'AsymmetricObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ "AsymmetricObjectProperty := 'AsymmetricObjectProperty' '(' { axiomAnnotations } ObjectPropertyExpression ')'"
  [& args]
  (apply ax/asymmetricRole (apply extractParams args)))
 
 (defn transitiveRole 
- "TransitiveObjectProperty := 'TransitiveObjectProperty' '(' [ axiomAnnotations ] ObjectPropertyExpression ')'"
+ "TransitiveObjectProperty := 'TransitiveObjectProperty' '(' { axiomAnnotations } ObjectPropertyExpression ')'"
  [& args]
  (apply ax/transitiveRole (apply extractParams args)))
 
 (defn dataRoleImplication 
- "SubDataPropertyOf := 'SubDataPropertyOf' '(' [ axiomAnnotations ] subDataPropertyExpression superDataPropertyExpression ')'"
+ "SubDataPropertyOf := 'SubDataPropertyOf' '(' { axiomAnnotations } subDataPropertyExpression superDataPropertyExpression ')'"
  [& args]
  (apply ax/dataRoleImplication (apply extractParams args)))
 
 (defn =DataRoles 
- "EquivalentDataProperties := 'EquivalentDataProperties' '(' [ axiomAnnotations ] DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
+ "EquivalentDataProperties := 'EquivalentDataProperties' '(' { axiomAnnotations } DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
  [& args]
  (apply ax/=DataRoles (apply extractParamList args)))
 
 (defn disjDataRoles 
- "DisjointDataProperties := 'DisjointDataProperties' '(' [ axiomAnnotations ] DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
+ "DisjointDataProperties := 'DisjointDataProperties' '(' { axiomAnnotations } DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
  [& args]
  (apply ax/disjDataRoles (apply extractParamList args)))
 
 (defn dataRoleDomain 
- "DataPropertyDomain := 'DataPropertyDomain' '(' [ axiomAnnotations ] DataPropertyExpression ClassExpression ')'"
+ "DataPropertyDomain := 'DataPropertyDomain' '(' { axiomAnnotations } DataPropertyExpression ClassExpression ')'"
  [& args]
  (apply ax/dataRoleDomain (apply extractParams args)))
 
 (defn dataRoleRange 
- "DataPropertyRange := 'DataPropertyRange' '(' [ axiomAnnotations ] DataPropertyExpression DataRange ')'"
+ "DataPropertyRange := 'DataPropertyRange' '(' { axiomAnnotations } DataPropertyExpression DataRange ')'"
  [& args]
  (apply ax/dataRoleRange (apply extractParams args)))
 
 (defn functionalDataRole 
- "FunctionalDataProperty := 'FunctionalDataProperty' '(' [ axiomAnnotations ] DataPropertyExpression ')'"
+ "FunctionalDataProperty := 'FunctionalDataProperty' '(' { axiomAnnotations } DataPropertyExpression ')'"
  [& args]
  (apply ax/functionalDataRole (apply extractParams args)))
 
 (defn hasKey 
- "HasKey := 'HasKey' '(' [ axiomAnnotations ] ClassExpression '(' { ObjectPropertyExpression } ')' '(' { DataPropertyExpression } ')' ')'"
+ "HasKey := 'HasKey' '(' { axiomAnnotations } ClassExpression '(' { ObjectPropertyExpression } ')' '(' { DataPropertyExpression } ')' ')'"
  [& args]
  (apply ax/hasKey (apply extractParams args)))
 
 (defn dataTypeDefinition 
- "DatatypeDefinition := 'DatatypeDefinition' '(' [ axiomAnnotations ] Datatype DataRange ')'"
+ "DatatypeDefinition := 'DatatypeDefinition' '(' { axiomAnnotations } Datatype DataRange ')'"
  [& args]
  (apply ax/dataTypeDefinition (apply extractParams args)))
 
 (defn annotationFact 
- "AnnotationAssertion := 'AnnotationAssertion' '(' [ axiomAnnotations ] AnnotationProperty AnnotationSubject AnnotationValue ')'"
+ "AnnotationAssertion := 'AnnotationAssertion' '(' { axiomAnnotations } AnnotationProperty AnnotationSubject AnnotationValue ')'"
  [& args]
  (apply ax/annotationFact (apply extractParams args)))
 
 (defn annotationImplication 
- "SubAnnotationPropertyOf := 'SubAnnotationPropertyOf' '(' [ axiomAnnotations ] subAnnotationProperty superAnnotationProperty ')'"
+ "SubAnnotationPropertyOf := 'SubAnnotationPropertyOf' '(' { axiomAnnotations } subAnnotationProperty superAnnotationProperty ')'"
  [& args]
  (apply ax/annotationImplication (apply extractParams args)))
 
 (defn annotationDomain 
- "AnnotationPropertyDomain := 'AnnotationPropertyDomain' '(' [ axiomAnnotations ] AnnotationProperty IRI ')'"
+ "AnnotationPropertyDomain := 'AnnotationPropertyDomain' '(' { axiomAnnotations } AnnotationProperty IRI ')'"
  [& args]
  (apply ax/annotationDomain (apply extractParams args)))
 
 (defn annotationRange 
- "AnnotationPropertyRange := 'AnnotationPropertyRange' '(' [ axiomAnnotations ] AnnotationProperty IRI ')'"
+ "AnnotationPropertyRange := 'AnnotationPropertyRange' '(' { axiomAnnotations } AnnotationProperty IRI ')'"
  [& args]
  (apply ax/annotationRange (apply extractParams args)))
 
 (defn =individuals 
- "SameIndividual := 'SameIndividual' '(' [ axiomAnnotations ] Individual Individual { Individual } ')'"
+ "SameIndividual := 'SameIndividual' '(' { axiomAnnotations } Individual Individual { Individual } ')'"
  [& args]
  (apply fs/=individuals (apply extractParamList args)))
 
 (defn !=individuals 
- "DifferentIndividuals := 'DifferentIndividuals' '(' [ axiomAnnotations ] Individual Individual { Individual } ')'"
+ "DifferentIndividuals := 'DifferentIndividuals' '(' { axiomAnnotations } Individual Individual { Individual } ')'"
  [& args]
  (apply fs/!=individuals (apply extractParamList args)))
 
 (defn classFact 
- "ClassAssertion := 'ClassAssertion' '(' [ axiomAnnotations ] ClassExpression Individual ')'"
+ "ClassAssertion := 'ClassAssertion' '(' { axiomAnnotations } ClassExpression Individual ')'"
  [& args]
  (apply fs/classFact (apply extractParams args)))
 
 (defn roleFact 
- "ObjectPropertyAssertion := 'ObjectPropertyAssertion' '(' [ axiomAnnotations ] ObjectPropertyExpression sourceIndividual targetIndividual ')'"
+ "ObjectPropertyAssertion := 'ObjectPropertyAssertion' '(' { axiomAnnotations } ObjectPropertyExpression sourceIndividual targetIndividual ')'"
  [& args]
  (apply fs/roleFact (apply extractParams args)))
 
 (defn notRoleFact 
- "NegativeObjectPropertyAssertion := 'NegativeObjectPropertyAssertion' '(' [ axiomAnnotations ] ObjectPropertyExpression sourceIndividual targetIndividual ')'"
+ "NegativeObjectPropertyAssertion := 'NegativeObjectPropertyAssertion' '(' { axiomAnnotations } ObjectPropertyExpression sourceIndividual targetIndividual ')'"
  [& args]
  (apply fs/notRoleFact (apply extractParams args)))
 
 (defn dataRoleFact 
- "DataPropertyAssertion := 'DataPropertyAssertion' '(' [ axiomAnnotations ] DataPropertyExpression sourceIndividual targetValue ')'"
+ "DataPropertyAssertion := 'DataPropertyAssertion' '(' { axiomAnnotations } DataPropertyExpression sourceIndividual targetValue ')'"
  [& args]
  (apply fs/dataRoleFact (apply extractParams args)))
 
 (defn notDataRoleFact 
- "NegativeDataPropertyAssertion := 'NegativeDataPropertyAssertion' '(' [ axiomAnnotations ] DataPropertyExpression sourceIndividual targetValue ')'"
+ "NegativeDataPropertyAssertion := 'NegativeDataPropertyAssertion' '(' { axiomAnnotations } DataPropertyExpression sourceIndividual targetValue ')'"
  [& args]
  (apply fs/notDataRoleFact (apply extractParams args)))
 
