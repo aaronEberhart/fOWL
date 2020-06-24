@@ -19,5 +19,5 @@ err
 *project.sublime*
 /src/unReasoner*
 /test*
-src/main.clj
+/src/main.clj
 *.log
