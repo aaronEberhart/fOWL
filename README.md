@@ -23,20 +23,20 @@ ontology.IO/makeOWLFile
 
 ;do some things sequentially
 main=> (doseq [x [(classImplication (existential "r" "a") "b")
-	          (classImplication (-or "b" "c") (-not (-or "d" "e")))
-	          (roleImplication (roleChain "r" (inverseRole "s")) "t")
-	          (roleFact (inverseRole "s") "i" "j")
-	          (classFact "a" "i")
-	          (dataRoleFact "d" "i" (stringLiteral "l"))
-	          (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g")))))
-	          (getNNF (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g"))))))
-	          (let [ont emptyOntology
-		        ont (setOntologyIRI ont "<http://www.test.stuff>")
-		        ont (addPrefix ont (prefix ":" "<http://www.test.stuff>"))
-		        ont (addAxioms ont #{(classImplication ":a" ":b")(classImplication ":b" ":c")(classImplication ":d" ":a")})
-		        _ (prn (getClassNamesInObject ont))
-		        _ (makeOWLFile "test.owl" ont)]
-	         (str "Ontology Saved Containing " (count (getClassNamesInObject ont)) " Class Names")]]
+            (classImplication (-or "b" "c") (-not (-or "d" "e")))
+            (roleImplication (roleChain "r" (inverseRole "s")) "t")
+            (roleFact (inverseRole "s") "i" "j")
+            (classFact "a" "i")
+            (dataRoleFact "d" "i" (stringLiteral "l"))
+            (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g")))))
+            (getNNF (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g"))))))
+            (let [ont emptyOntology
+                  ont (setOntologyIRI ont "<http://www.test.stuff>")
+                  ont (addPrefix ont (prefix ":" "<http://www.test.stuff>"))
+                  ont (addAxioms ont #{(classImplication ":a" ":b")(classImplication ":b" ":c")(classImplication ":d" ":a")})
+                  names (getClassNamesInObject ont)
+                  _ (makeOWLFile "test.owl" ont)]
+                  (str "Ontology Saved Containing " (count names) " Class Names: " names))]]
        (println x))
 
 ;output
@@ -48,7 +48,7 @@ ClassAssertion(a i)
 DataPropertyAssertion(d i l)
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(e d) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(d) ObjectComplementOf(e)) ObjectIntersectionOf(g f)))
-Ontology Saved Containing 4 Class Names
+Ontology Saved Containing 4 Class Names: #{:d :c :a :b}
 ```
 
 ## License

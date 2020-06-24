@@ -1,6 +1,6 @@
 (ns ontology.IO
  (:refer-clojure :exclude [name])
- (:require [clojure.java.io :as io][clojure.string :as str][clojure.set :as set]
+ (:require [clojure.java.io :as io][clojure.string :as str][clojure.set :as set][clojure.walk :as walk]
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
            [util.msc :as msc])
@@ -35,6 +35,21 @@
     [(into #{} (get (get l 0) 0))(first (get l 1)) (rest (get l 1))]))
   (fn [l](split-with (fn [x] (or (= (:type x) :annotation)(and (set? x)(some #(= (:type %) :annotation) x)))) l))
   list))
+
+(defn- -getStuffInNestedMap
+ ([getThis? doThis stuff]
+  (cond
+   (map? stuff) (reduce (partial -getStuffInNestedMap getThis? doThis) #{} stuff)
+   (coll? stuff) (reduce (fn [things thing] (reduce (partial -getStuffInNestedMap getThis? doThis) things thing)) #{} stuff)
+   :else stuff))
+ ([getThis? doThis acc [k v]]
+  (cond 
+   (getThis? v)
+    (conj acc (doThis v))
+   (coll? v)
+    (apply conj acc (-getStuffInNestedMap getThis? doThis v))
+   :else
+    acc)))
 
 (def emptyOntology
  "Returns an empty ontology"
@@ -173,6 +188,9 @@
 (defn- updateOntology [ontology object fun key]
  (update ontology key (fun (key ontology) object)))
 
+(defn- updateOntologyComponent [ont check fun]
+ (walk/postwalk (fn [v] (if (check v) (fun v) v)) ont))
+
 (defn addAxiom 
  "Adds an axiom to an ontology"
  [ontology axiom]
@@ -184,14 +202,18 @@
  (updateOntology ontology axioms (comp constantly (partial apply conj)) :axioms))
 
 (defn addPrefix 
- "Adds a prefix to an ontology"
+ "Adds a prefix to an ontology. If any IRIs in the ontology have this prefix, they are adjusted."
  [ontology prefix]
- (updateOntology ontology prefix (comp constantly conj) :prefixes))
+ (updateOntologyComponent (updateOntology ontology prefix (comp constantly conj) :prefixes) #(= (:prefix %) (:prefix prefix)) #(update (update % :namespace (constantly (subs (:iri prefix) 1 (- (count (:iri prefix)) 1)))) :iri (constantly (str "<" (subs (:iri prefix) 1 (- (count (:iri prefix)) 1)) (:short %) ">")))))
 
 (defn addPrefixes
  "Adds a set of prefixes to an ontology"
  [ontology prefixes]
- (updateOntology ontology prefixes (comp constantly (partial apply conj)) :prefixes))
+ (loop [prefixes prefixes
+        ontology ontology]
+  (if (empty? prefixes)
+   ontology
+   (recur (addPrefix ontology (first prefixes)_ (rest prefixes)))))
 
 (defn addImport 
  "Adds an import to an ontology"
@@ -263,50 +285,35 @@
  [ontology annotations]
  (updateOntology ontology annotations (comp constantly (partial apply disj)) :annotations))
 
-(defn- -getStuffByKeyInMap
- ([getThis? stuff]
-  (cond
-   (map? stuff) (reduce (partial -getStuffByKeyInMap getThis?) #{} stuff)
-   (coll? stuff) (reduce (fn [things thing] (reduce (partial -getStuffByKeyInMap getThis?) things thing)) #{} stuff)
-   :else stuff))
- ([getThis? acc [k v]]
-  (cond 
-   (getThis? v)
-    (conj acc v)
-   (coll? v)
-    (apply conj acc (-getStuffByKeyInMap getThis? v))
-   :else
-    acc)))
-
 (defn getClassNamesInObject
  "Gets a set of all the class names used in this object"
  [object]
- (-getStuffByKeyInMap #(= (:innerType %) :className) object))
+ (-getStuffInNestedMap #(= (:innerType %) :className) identity object))
 
 (defn getRoleNamesInObject
  "Gets a set of all the role names used in this object"
  [object]
- (-getStuffByKeyInMap #(= (:innerType %) :roleName) object))
+ (-getStuffInNestedMap #(= (:innerType %) :roleName) identity object))
 
 (defn getDataRoleNamesInObject
  "Gets a set of all the data role names used in this object"
  [object]
- (-getStuffByKeyInMap #(= (:innerType %) :dataRoleName) object))
+ (-getStuffInNestedMap #(= (:innerType %) :dataRoleName) identity object))
 
 (defn getClassesInObject
  "Gets a set of all the classes used in this object"
  [object]
- (-getStuffByKeyInMap #(= (:type %) :class) object))
+ (-getStuffInNestedMap #(= (:type %) :class) identity object))
 
 (defn getRolesInObject
  "Gets a set of all the roles used in this object"
  [object]
- (-getStuffByKeyInMap #(or (= (:type %) :role)(= (:type %) :inverseRole)) object))
+ (-getStuffInNestedMap #(or (= (:type %) :role)(= (:type %) :inverseRole)) identity object))
 
 (defn getRoleChainsInObject
  "Gets a set of all the roles chains used in this object"
  [object]
- (-getStuffByKeyInMap #(= (:type %) :roleChain) object))
+ (-getStuffInNestedMap #(= (:type %) :roleChain) identity object))
 
 (defn negate 
  "same as not, but doesn't make double negations"
@@ -1138,7 +1145,7 @@
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
 
-(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toString x)))
+;(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toString x)))
 ;(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toDLString x)))
 
 (defn- getType [type]
