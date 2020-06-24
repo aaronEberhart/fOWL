@@ -20,3 +20,4 @@ err
 /src/unReasoner*
 /test*
 src/main.clj
+*.log
