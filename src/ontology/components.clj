@@ -51,7 +51,7 @@
  ([iri]
   (if (not (string? iri))
    (throw+ {:type ::notStringIRI :iri iri})
-   {:knownDataType (contains? dataTypeMaps iri) :namespace nil :short iri :prefix nil :iri iri}))
+   {:knownDataType (contains? dataTypeMaps iri) :iri iri}))
  ([iri namespace prefix]
   (if (not (and (and (string? iri)(string? namespace))(string? prefix)))
    (throw+ {:type ::notStringIRI :iri iri})
@@ -63,7 +63,7 @@
    (throw+ {:type ::notStringIRI :iri iri})
    (if (not (isReservedIRI? iri))
     (throw+ {:type ::reservedIRI :iri iri})
-    {:namespace nil :short iri :prefix nil :iri iri})))
+    {:namespace nil :short iri ::iri iri})))
  ([iri prefix namespace prefix]
   (if (or (or (not (string? iri))(not (string? namespace)))(not (string? prefix)))
    (throw+ {:type ::notStringIRI :iri iri})
@@ -78,7 +78,7 @@
    (throw+ {:type ::notStringIRI :iri iri})
    (if (not (isReservedIRI? iri))
     (throw+ {:type ::reservedIRI :iri iri})
-    {:namespace nil :short iri :prefix nil :iri iri})))
+    {:namespace nil :short iri :iri iri})))
  ([iri namespace prefix]
   (if (or (or (not (string? iri))(not (string? namespace)))(not (string? prefix)))
    (throw+ {:type ::notStringIRI :iri iri})
@@ -93,20 +93,20 @@
    (throw+ {:type ::notStringIRI :iri iri})
    (if (not (isReservedIRI? iri))
     (throw+ {:type ::reservedIRI :iri iri})
-    {:namespace "" :short iri :prefix "" :iri (str "<" iri ">")})))
+    {:reserved true :iri iri})))
  ([iri namespace prefix]
   (if (or (or (not (string? iri))(not (string? namespace)))(not (string? prefix)))
    (throw+ {:type ::notStringIRI :iri iri})
    (let [check (str namespace iri)]
     (if (not (isReservedIRI? check))
      (throw+ {:type ::reservedIRI :iri check})
-     {:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")})))))
+     {:reserved true :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")})))))
 
 (defn IRI
  "IRI := String"
  ([iri]
   (if (string? iri)
-   {:reserved (isReservedIRI? iri) :namespace nil :short iri :prefix nil :iri iri}
+   {:reserved (isReservedIRI? iri) :iri iri}
    (if (:iri iri)
     iri
     (throw+ {:type ::notIRI :iri iri}))))
@@ -220,7 +220,7 @@
  "typedLiteral := lexicalForm '^^' Datatype"
  [lexicalForm datatype]
  (if (and (= (:type lexicalForm) :lexicalForm)(= (:type datatype) :dataType))
-  (assoc datatype :value (str (:value lexicalForm) \^ \^  (:prefix datatype)(:short datatype)) :type :typedLiteral :innerType :typedLiteral)
+  (assoc datatype :value (str (:value lexicalForm) \^ \^  (:prefix datatype)":"(:short datatype)) :type :typedLiteral :innerType :typedLiteral)
   (throw+ {:type ::notTypedLiteral :lexicalForm lexicalForm :dataType datatype})))
 
 (defn- -lexicalForm 

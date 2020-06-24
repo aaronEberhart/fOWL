@@ -65,8 +65,9 @@
  (onf/prefix prefixName longIRI))
 
 (defn prefixes 
- "prefixes := { prefixDeclaration }"[prefixes] 
- (onf/prefixes prefixes))
+ "prefixes := { prefixDeclaration }"
+ [& prefixes] 
+ (onf/prefixes (into #{} prefixes)))
 
 (defn ontology
  "Ontology := 'Ontology' '(' [ ontologyIRI [ versionIRI ] ] directlyImportsDocuments ontologyAnnotations axioms ')'"
@@ -87,8 +88,8 @@
 
 (defn directImports 
  "directlyImportsDocuments := { 'Import' '(' IRI ')' }"
- [imports] 
- (onf/directImports imports))
+ [& imports] 
+ (onf/directImports (into #{} imports)))
 
 (defn directImport 
  "'Import' '(' IRI ')'"
@@ -102,13 +103,43 @@
 
 (defn axioms 
  "axioms := { Axiom }"
- [axioms] 
- (onf/axioms axioms))
+ [& axioms] 
+ (onf/axioms (into #{} axioms)))
 
 (defn ontologyFile
  "ontologyDocument := { prefixDeclaration } Ontology"
  ([ontology](onf/ontologyFile ontology))
  ([prefixes ontology](onf/ontologyFile prefixes ontology)))
+
+(defn getClassNamesInObject
+ "Gets a set of all the class names used in this object"
+ [object]
+ (-getStuffInNestedMap #(= (:innerType %) :className) identity object))
+
+(defn getRoleNamesInObject
+ "Gets a set of all the role names used in this object"
+ [object]
+ (-getStuffInNestedMap #(= (:innerType %) :roleName) identity object))
+
+(defn getDataRoleNamesInObject
+ "Gets a set of all the data role names used in this object"
+ [object]
+ (-getStuffInNestedMap #(= (:innerType %) :dataRoleName) identity object))
+
+(defn getClassesInObject
+ "Gets a set of all the classes used in this object"
+ [object]
+ (-getStuffInNestedMap #(= (:type %) :class) identity object))
+
+(defn getRolesInObject
+ "Gets a set of all the roles used in this object"
+ [object]
+ (-getStuffInNestedMap #(or (= (:type %) :role)(= (:type %) :inverseRole)) identity object))
+
+(defn getRoleChainsInObject
+ "Gets a set of all the roles chains used in this object"
+ [object]
+ (-getStuffInNestedMap #(= (:type %) :roleChain) identity object))
 
 (defn getAxioms 
  "Returns the axioms from an ontology in a lazy sequence"
@@ -185,12 +216,62 @@
  [ontology]
  (:versionIRI ontology))
 
+(defn- addStuffToOntologyWithFunction
+ [ontology stuff function]
+ (loop [stuff stuff
+        ontology ontology]
+ (if (empty? stuff)
+  ontology
+  (recur (rest stuff) (function ontology (first stuff))))))
+
 (defn- updateOntology [ontology object fun key]
  (update ontology key (fun (key ontology) object)))
 
-(defn- updateOntologyComponent [ont check fun]
- (walk/postwalk (fn [v] (if (check v) (fun v) v)) ont))
+(defn- updateOntologyComponents [ontology updateThis? updateFunction]
+ (walk/postwalk (fn [v] (if (updateThis? v) (updateFunction v) v)) ontology))
 
+(defn dropAxiom 
+ "Drops the axiom from the ontology"
+ [ontology axiom]
+ (updateOntology ontology axiom (comp constantly disj) :axioms))
+
+(defn dropAxioms 
+ "Drops all axioms in the set from the ontology"
+ [ontology & axioms]
+ (updateOntology ontology axioms (comp constantly (partial apply disj)) :axioms))
+
+;TODO automate name fixing 
+(defn dropPrefix 
+ "Drops the prefix from the ontology"
+ [ontology prefix]
+ (updateOntology ontology prefix (comp constantly disj) :prefixes))
+
+(defn dropPrefixes 
+ "Drops all prefixes in the set from the ontology"
+ [ontology & prefixes]
+ (addStuffToOntologyWithFunction ontology prefixes dropPrefix))
+
+(defn dropImport 
+ "Drops the import from the ontology"
+ [ontology import]
+ (updateOntology ontology import (comp constantly disj) :imports))
+
+(defn dropImports 
+ "Drops all imports in the set from the ontology"
+ [ontology & imports]
+ (updateOntology ontology imports (comp constantly (partial apply disj)) :imports))
+
+(defn dropAnnotation 
+ "Drops the annotation from the ontology"
+ [ontology annotation]
+ (updateOntology ontology annotation (comp constantly disj) :annotations))
+
+(defn dropAnnotations 
+ "Drops all annotations in the set from the ontology"
+ [ontology & annotations]
+ (updateOntology ontology annotations (comp constantly (partial apply disj)) :annotations))
+
+;TODO automate name fixing 
 (defn addAxiom 
  "Adds an axiom to an ontology"
  [ontology axiom]
@@ -198,22 +279,37 @@
 
 (defn addAxioms
  "Adds a set of axioms to an ontology"
- [ontology axioms]
- (updateOntology ontology axioms (comp constantly (partial apply conj)) :axioms))
+ [ontology & axioms]
+ (addStuffToOntologyWithFunction ontology axioms addAxiom))
+
+(defn- -addPrefix
+ [ontology prefix]
+ (updateOntologyComponents
+  (updateOntology ontology prefix (comp constantly conj) :prefixes)
+  #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
+        (or (and (:iri %) (not (:prefix %)) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix prefix) "\\S+")) (:iri %))))
+            (and (= (:prefix %) (:prefix prefix)))))
+  #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix prefix) "(\\S+)")) (:iri %)) 1))
+         pre (if (:prefix %) (:prefix %) (:prefix prefix))
+         namespace (subs (:iri prefix) 1 (- (count (:iri prefix)) 1))]
+  (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short))))
 
 (defn addPrefix 
- "Adds a prefix to an ontology. If any IRIs in the ontology have this prefix, they are adjusted."
+ "Adds a prefix to an ontology. If it is already in use it is overwritten. Any IRIs in the ontology that have this prefix are adjusted."
  [ontology prefix]
- (updateOntologyComponent (updateOntology ontology prefix (comp constantly conj) :prefixes) #(= (:prefix %) (:prefix prefix)) #(update (update % :namespace (constantly (subs (:iri prefix) 1 (- (count (:iri prefix)) 1)))) :iri (constantly (str "<" (subs (:iri prefix) 1 (- (count (:iri prefix)) 1)) (:short %) ">")))))
+ (loop [prefixes (:prefixes ontology)]
+ (cond 
+  (empty? prefixes)  
+   (-addPrefix ontology prefix)
+  (= (:prefix (first prefixes)) (:prefix prefix))
+   (-addPrefix (dropPrefix ontology (first prefixes)) prefix)
+  :else 
+   (recur (rest prefixes)))))
 
 (defn addPrefixes
  "Adds a set of prefixes to an ontology"
- [ontology prefixes]
- (loop [prefixes prefixes
-        ontology ontology]
-  (if (empty? prefixes)
-   ontology
-   (recur (addPrefix ontology (first prefixes)_ (rest prefixes)))))
+ [ontology & prefixes]
+ (addStuffToOntologyWithFunction ontology prefixes addPrefix))
 
 (defn addImport 
  "Adds an import to an ontology"
@@ -222,9 +318,10 @@
 
 (defn addImports
  "Adds a set of imports to an ontology"
- [ontology imports]
+ [ontology & imports]
  (updateOntology ontology imports (comp constantly (partial apply conj)) :imports))
 
+;TODO automate name fixing 
 (defn addAnnotation 
  "Adds an annotation to an ontology"
  [ontology annotation]
@@ -232,8 +329,8 @@
 
 (defn addAnnotations
  "Adds a set of annotations to an ontology"
- [ontology annotations]
- (updateOntology ontology annotations (comp constantly (partial apply conj)) :annotations))
+ [ontology & annotations]
+ (addStuffToOntologyWithFunction ontology annotations addAnnotation))
 
 (defn setOntologyIRI 
  "Sets the Ontology IRI of he ontology to the input IRI"
@@ -244,76 +341,6 @@
  "Sets the Version IRI of the ontology to the input IRI"
  [ontology iri]
  (update ontology :versionIRI (constantly (versionIRI iri))))
-
-(defn dropAxiom 
- "Drops the axiom from the ontology"
- [ontology axiom]
- (updateOntology ontology axiom (comp constantly disj) :axioms))
-
-(defn dropAxioms 
- "Drops all axioms in the set from the ontology"
- [ontology axioms]
- (updateOntology ontology axioms (comp constantly (partial apply disj)) :axioms))
-
-(defn dropPrefix 
- "Drops the prefix from the ontology"
- [ontology prefix]
- (updateOntology ontology prefix (comp constantly disj) :prefixes))
-
-(defn dropPrefixes 
- "Drops all prefixes in the set from the ontology"
- [ontology prefixes]
- (updateOntology ontology prefixes (comp constantly (partial apply disj)) :prefixes))
-
-(defn dropImport 
- "Drops the import from the ontology"
- [ontology import]
- (updateOntology ontology import (comp constantly disj) :imports))
-
-(defn dropImports 
- "Drops all imports in the set from the ontology"
- [ontology imports]
- (updateOntology ontology imports (comp constantly (partial apply disj)) :imports))
-
-(defn dropAnnotation 
- "Drops the annotation from the ontology"
- [ontology annotation]
- (updateOntology ontology annotation (comp constantly disj) :annotations))
-
-(defn dropAnnotations 
- "Drops all annotations in the set from the ontology"
- [ontology annotations]
- (updateOntology ontology annotations (comp constantly (partial apply disj)) :annotations))
-
-(defn getClassNamesInObject
- "Gets a set of all the class names used in this object"
- [object]
- (-getStuffInNestedMap #(= (:innerType %) :className) identity object))
-
-(defn getRoleNamesInObject
- "Gets a set of all the role names used in this object"
- [object]
- (-getStuffInNestedMap #(= (:innerType %) :roleName) identity object))
-
-(defn getDataRoleNamesInObject
- "Gets a set of all the data role names used in this object"
- [object]
- (-getStuffInNestedMap #(= (:innerType %) :dataRoleName) identity object))
-
-(defn getClassesInObject
- "Gets a set of all the classes used in this object"
- [object]
- (-getStuffInNestedMap #(= (:type %) :class) identity object))
-
-(defn getRolesInObject
- "Gets a set of all the roles used in this object"
- [object]
- (-getStuffInNestedMap #(or (= (:type %) :role)(= (:type %) :inverseRole)) identity object))
-
-(defn getRoleChainsInObject
- "Gets a set of all the roles chains used in this object"
- [object]
- (-getStuffInNestedMap #(= (:type %) :roleChain) identity object))
 
 (defn negate 
  "same as not, but doesn't make double negations"
@@ -858,7 +885,7 @@
 (def expressionPat
  #"(ObjectInverseOf|Class|Datatype|ObjectProperty|DataProperty|AnnotationProperty|NamedIndividual|ObjectPropertyChain|ObjectIntersectionOf|ObjectUnionOf|ObjectComplementOf|ObjectOneOf|ObjectSomeValuesFrom|ObjectAllValuesFrom|ObjectHasValue|ObjectHasSelf|ObjectMinCardinality|ObjectMaxCardinality|ObjectExactCardinality|DataSomeValuesFrom|DataAllValuesFrom|DataHasValue|DataMinCardinality|DataMaxCardinality|DataExactCardinality|DataIntersectionOf|DataUnionOf|DataComplementOf|DataOneOf|DatatypeRestriction|Variable|Body|Head|ClassAtom|DataRangeAtom|ObjectPropertyAtom|DataPropertyAtom|BuiltInAtom|SameIndividualAtom|DifferentIndividualsAtom)\s*\(\s*([\s\S]*)")
 (def prefixPat
- #"^(?:Prefix)\s*\(\s*([^\)\:]*\:)=\s*([<][^>]+[>])\s*\)\s*([\s\S]*)")
+ #"^(?:Prefix)\s*\(\s*([^\)\:]*)\:=\s*([<][^>]+[>])\s*\)\s*([\s\S]*)")
 (def annotationPat
  #"^(Annotation)\s*\(\s*([\s\S]*)")
 (def ontPat
@@ -868,7 +895,7 @@
 
 (defn- swapPrefixes [iri]
  (if (:prefix iri)
-  (str (:prefix iri)(:short iri))
+  (str (:prefix iri)":"(:short iri))
   (:iri iri)))
 
 (defn- noPrefixes [iri]
@@ -880,10 +907,11 @@
   (:short iri)))
 
 (defn- assignPrefix [name prefixes]
- (let [splits (re-matches #"([^\:]*?:)([\s\S]+)" name)
+ (let [splits (re-matches #"([^\:]*?):([\s\S]+)" name)
        key (get splits 1)
        val (get splits 2)
        pref (:iri (first (drop-while (fn [x] (not (= key (:prefix x)))) prefixes)))
+       _ (prn key val pref)
        fullIRI (if pref (subs pref 1 (- (count pref) 1)))]
  (if fullIRI [val fullIRI key][name])))
 
@@ -1055,7 +1083,7 @@
   :ontology (str "Ontology(" (toString (:ontologyIRI thing)) (toString (:versionIRI thing)) "\n" (str/join "\n" (map (fn [x] (toString x)) (:imports thing))) "\n" (str/join "\n" (map (fn [x] (toString x )) (:annotations thing))) "\n" (str/join "\n" (map (fn [x] (toString x )) (:axioms thing))) ")")
   :ontologyIRI (:iri thing)
   :versionIRI (:iri thing)
-  :prefix (str "Prefix(" (:prefix thing) "=" (:iri thing) ")")
+  :prefix (str "Prefix(" (:prefix thing) ":=" (:iri thing) ")")
   :prefixes (str (str/join "\n" (map toString (:prefixes thing))))
   :import (str "Import(" (:iri thing) ")")
   :declaration (str "Declaration(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toString (:name thing) ) "))")
@@ -1144,9 +1172,6 @@
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
-
-;(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toString x)))
-;(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (toDLString x)))
 
 (defn- getType [type]
  (case type

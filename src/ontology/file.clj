@@ -33,7 +33,7 @@
   (if (or (= nil directImports)(= (:type directImports) :imports))
     (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
       (if (or (= nil axioms)(= (:type axioms) :axioms))
-        {:ontologyIRI nil :versionIRI nil :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
+        {:axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
         (throw+ {:type ::notaxioms :axioms axioms}))
       (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
     (throw+ {:type ::directImports :directImports directImports})))
@@ -42,7 +42,7 @@
     (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
       (if (or (= nil axioms)(= (:type axioms) :axioms))
         (if (= (:type ontologyIRI) :ontologyIRI)
-          {:ontologyIRI ontologyIRI :versionIRI nil :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
+          {:ontologyIRI ontologyIRI :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
           (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
         (throw+ {:type ::notaxioms :axioms axioms}))
       (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
