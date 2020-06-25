@@ -55,7 +55,7 @@ main=> (-> emptyOntologyFile
           (makeOWLFile "test.owl")
           println)
 
-:output
+;output
 nil
 ```
 
