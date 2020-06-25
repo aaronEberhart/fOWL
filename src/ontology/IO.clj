@@ -1512,7 +1512,7 @@
 (defn readFunctionalFile 
  "Reads an OWL file written in functional syntax"
  [file]
- (with-open [rdr (io/reader file)]
+ (with-open [rdr (io/reader (if (string? file) (io/file file) file))]
   (let [ontFile (line-seq rdr)
        [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches ontPat (get % 1))) nil)
        [ontologyIRI ontFile] (firstFromVec (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))

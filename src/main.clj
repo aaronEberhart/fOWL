@@ -7,7 +7,7 @@
 
 
 (defn -main [& args]
- )
+ (prn (getClassAxiomsNoAnnotations (readFunctionalFile "OWL/fs/enslavedv2.owlfs.owl"))))
 
 
 
@@ -16,5 +16,5 @@
  
   toString - standard Functional syntax
   toDLString - DL instead of functional"
- toString) 
+ toDLString) 
 (defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))
