@@ -17,7 +17,7 @@ main=> (doc makeOWLFile)
 ;output
 -------------------------
 ontology.IO/makeOWLFile
-([filename ontology])
+([ontology filename])
   Writes an owl file of the ontology in functional syntax with the supplied file name
   
 
