@@ -7,7 +7,7 @@
 
 
 (defn -main [& args]
- (prn (getClassAxiomsNoAnnotations (readFunctionalFile "OWL/fs/enslavedv2.owlfs.owl"))))
+ )
 
 
 
