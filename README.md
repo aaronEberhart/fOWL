@@ -4,8 +4,7 @@ FIXME: description
 ## Usage
 This program requires [Leiningen](https://leiningen.org/). To run a program, simply type code in main or your own files, then run the command
 
-
-lein run
+`lein run`
 
 in the terminal. It is also easy to use in the REPL by running lein repl. A list of OWL functions currently available in main can be seen by running (dir ontology.IO). More detail on each function can be obtained by entering (doc _function name_).
 
