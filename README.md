@@ -2,7 +2,7 @@
 FIXME: description
 
 ## Usage
-This program requires [Leiningen](https://leiningen.org/). To run a program, simply type code in main or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of OWL functions currently available in main can be seen by entering `(dir ontology.IO)`. More detail on each function can be obtained by entering `(doc function_name)`.
+This program requires [Leiningen](https://leiningen.org/). To run a program, simply type code in main or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of OWL functions currently available in main can be seen by entering `(dir ontology.IO)`. `(doc function_name)` will show more detail about each function.
 
 ## Examples
 ```
