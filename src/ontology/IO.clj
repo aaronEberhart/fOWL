@@ -38,16 +38,27 @@
 
 (defn- -getStuffInNestedMap
  ([getThis? doThis stuff]
-  (cond
-   (map? stuff) (reduce (partial -getStuffInNestedMap getThis? doThis) #{} stuff)
-   (coll? stuff) (reduce (fn [things thing] (reduce (partial -getStuffInNestedMap getThis? doThis) things thing)) #{} stuff)
-   :else stuff))
+ (cond
+  (map? stuff) 
+   (reduce (partial -getStuffInNestedMap getThis? doThis) #{} stuff)
+  (coll? stuff) 
+   (loop [stuff stuff
+          acc #{}]
+   (cond 
+    (empty? stuff)
+     acc
+    (getThis? (first stuff))
+     (recur (rest stuff) (conj acc (first stuff)))
+    :else
+    (recur (rest stuff) (apply conj acc (reduce (partial -getStuffInNestedMap getThis? doThis) acc (first stuff))))))
+  :else stuff))
  ([getThis? doThis acc [k v]]
   (cond 
-   (getThis? v)
-    (conj acc (doThis v))
    (coll? v)
-    (apply conj acc (-getStuffInNestedMap getThis? doThis v))
+    (let [in (-getStuffInNestedMap getThis? doThis v)]
+    (apply conj acc in))
+   (getThis? v)
+    (conj acc (doThis v))   
    :else
     acc)))
 
@@ -228,7 +239,11 @@
  (update ontology key (fun (key ontology) object)))
 
 (defn- updateOntologyComponents [ontology updateThis? updateFunction]
- (walk/postwalk (fn [v] (if (updateThis? v) (updateFunction v) v)) ontology))
+ (walk/postwalk (fn [v] (if (updateThis? v) 
+ ;(do (prn v)
+ (updateFunction v)
+ ;)
+  v)) ontology))
 
 (defn dropAxiom 
  "Drops the axiom from the ontology"
@@ -1493,7 +1508,6 @@
          function nil
          expressions '([])
          functionList '()]
-         ;(if (> (count state) 5)(prn (subs state 0 5)))
   (let [[state objects function expressions functionList] (loopFunction state objects function expressions functionList prefixes)]
    (if (stopCondition [objects state lines])
     [(persistent! objects) (lazy-seq (cons state (if (some? lines)(rest lines))))]
