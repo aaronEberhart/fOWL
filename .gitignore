@@ -21,3 +21,4 @@ err
 /test*
 /src/main.clj
 *.log
+*.txt
