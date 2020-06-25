@@ -50,8 +50,12 @@ nil
 main=> (-> emptyOntologyFile
           (setOntologyIRI "<http://www.test.stuff>")
           (addAnnotations (annotation "annotations" "are fun"))
-          (addPrefixes (prefix "" "<http://www.test.stuff/>")(prefix "" "<http://www.overwriting.test.stuff/>")(prefix "prefix" "<http://www.prefix.stuff/>"))
-          (addAxioms (classImplication "a" (IRI "prefix" "b"))(classImplication (IRI "prefix" "b" "http://www.namespace/but.overwritten/by.prefix/") "c")(classImplication "d" "a"))
+          (addPrefixes (prefix "" "<http://www.test.stuff/>")
+                       (prefix "" "<http://www.overwriting.test.stuff/>")
+                       (prefix "prefix" "<http://www.prefix.stuff/>"))
+          (addAxioms (classImplication "a" (IRI "prefix" "b"))
+                     (classImplication (IRI "prefix" "b" "http://www.namespace/but.overwritten/by.prefix/") "c")
+                     (classImplication "d" "a"))
           (makeOWLFile "test.owl")
           println)
 
