@@ -16,5 +16,5 @@
  
   toString - standard Functional syntax
   toDLString - DL instead of functional"
- toDLString) 
+ toString) 
 (defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))
