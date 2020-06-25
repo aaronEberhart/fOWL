@@ -239,11 +239,7 @@
  (update ontology key (fun (key ontology) object)))
 
 (defn- updateOntologyComponents [ontology updateThis? updateFunction]
- (walk/postwalk (fn [v] (if (updateThis? v) 
- ;(do (prn v)
- (updateFunction v)
- ;)
-  v)) ontology))
+ (walk/postwalk (fn [v] (if (updateThis? v) (updateFunction v) v)) ontology))
 
 (defn dropAxiom 
  "Drops the axiom from the ontology"
@@ -1516,15 +1512,15 @@
 (defn readFunctionalFile 
  "Reads an OWL file written in functional syntax"
  [file]
- (with-open [rdataRole (io/reader file)]
-  (let [ontFile (line-seq rdataRole)
-   [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches ontPat (get % 1))) nil)
-   [ontologyIRI ontFile] (firstFromVec (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
-   [versionIRI ontFile] (firstFromVec (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
-   [imports ontFile] (parseLines ontFile parseImportLine #(or (some? (re-matches annotationPat (get % 1)))(or (some? (re-matches axiomPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
-   [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (re-find axiomPat (get % 1))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2))))) prefixes)
-   [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))) prefixes)]
-   (cond
-    (and (some? ontologyIRI)(some? versionIRI))(ontologyFile prefixes (ontology ontologyIRI versionIRI imports annotations axioms))
-    (some? ontologyIRI)(ontologyFile prefixes (ontology ontologyIRI imports annotations axioms))
-    :else (ontologyFile prefixes (ontology imports annotations axioms))))))
+ (with-open [rdr (io/reader file)]
+  (let [ontFile (line-seq rdr)
+       [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches ontPat (get % 1))) nil)
+       [ontologyIRI ontFile] (firstFromVec (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
+       [versionIRI ontFile] (firstFromVec (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
+       [imports ontFile] (parseLines ontFile parseImportLine #(or (some? (re-matches annotationPat (get % 1)))(or (some? (re-matches axiomPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
+       [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (re-find axiomPat (get % 1))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2))))) prefixes)
+       [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))) prefixes)]
+       (cond
+        (and (some? ontologyIRI)(some? versionIRI))(ontologyFile prefixes (ontology ontologyIRI versionIRI imports annotations axioms))
+        (some? ontologyIRI)(ontologyFile prefixes (ontology ontologyIRI imports annotations axioms))
+        :else (ontologyFile prefixes (ontology imports annotations axioms))))))
