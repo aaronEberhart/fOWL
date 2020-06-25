@@ -5,12 +5,12 @@
 (defn- -ontologyFile
  "ontologyDocument := { prefixDeclaration } Ontology"
  ([ontology]
-   (if (= (:type ontology) :ontology)
+   (if (= (:innerType ontology) :ontology)
      ontology
      (throw+ {:type ::notOntology :ontology ontology})))
  ([prefixes ontology]
   (if (= (:type prefixes) :prefixes)
-     (if (= (:type ontology) :ontology)
+     (if (= (:innerType ontology) :ontology)
        (assoc ontology :prefixes (:prefixes prefixes))
        (throw+ {:type ::notOntology :ontology ontology}))
      (throw+ {:type ::notPrefixes :prefixes prefixes}))))
@@ -33,7 +33,7 @@
   (if (or (= nil directImports)(= (:type directImports) :imports))
     (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
       (if (or (= nil axioms)(= (:type axioms) :axioms))
-        {:axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
+        {:axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :innerType :ontology}
         (throw+ {:type ::notaxioms :axioms axioms}))
       (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
     (throw+ {:type ::directImports :directImports directImports})))
@@ -42,7 +42,7 @@
     (if (or (= nil ontologyAnnotations)(= (:type ontologyAnnotations) :annotations))
       (if (or (= nil axioms)(= (:type axioms) :axioms))
         (if (= (:type ontologyIRI) :ontologyIRI)
-          {:ontologyIRI ontologyIRI :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
+          {:ontologyIRI ontologyIRI :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :innerType :ontology}
           (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
         (throw+ {:type ::notaxioms :axioms axioms}))
       (throw+ {:type ::notontologyAnnotations :ontologyAnnotations ontologyAnnotations}))
@@ -53,7 +53,7 @@
       (if (or (= nil axioms)(= (:type axioms) :axioms))
         (if (= (:type ontologyIRI) :ontologyIRI)
           (if (= (:type versionIRI) :versionIRI)
-            {:ontologyIRI ontologyIRI :versionIRI versionIRI :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :type :ontology}
+            {:ontologyIRI ontologyIRI :versionIRI versionIRI :axioms (:axioms axioms) :imports (:imports directImports) :annotations (:annotations ontologyAnnotations) :innerType :ontology}
             (throw+ {:type ::notversionIRI :versionIRI versionIRI}))
           (throw+ {:type ::notontologyIRI :ontologyIRI ontologyIRI}))
         (throw+ {:type ::notaxioms :axioms axioms}))

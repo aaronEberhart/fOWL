@@ -30,13 +30,13 @@ main=> (doseq [x [(classImplication (existential "r" "a") "b")
                   (dataRoleFact "d" "i" (stringLiteral "l"))
                   (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g")))))
                   (getNNF (classImplication (<=role 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g"))))))
+                  ;Use let to store some values and write a file
                   (let [ont emptyOntologyFile
                         ont (setOntologyIRI ont "<http://www.test.stuff>")
-                        ont (addAxioms ont (classImplication "a" (IRI "b" "http://www.namespace/" "test"))(classImplication (IRI "b" "http://www.namespace/" "test") "c")(classImplication "d" "a"))
-                        ont (addPrefixes ont (prefix "" "<http://www.test.stuff/>")(prefix "" "<http://www.overwriting.test.stuff/>")(prefix "test" "<http://www.other.test.stuff/>"))                  
-                        names (getClassNamesInObject ont)
-                        _ (makeOWLFile "test.owl" ont)]
-                        (str "Ontology Saved Containing " (count names) " Class Names: " names))]]
+                        ont (addPrefixes ont (prefix "" "<http://www.test.stuff/>")(prefix "" "<http://www.overwriting.test.stuff/>")(prefix "prefix" "<http://www.prefix.stuff/>")) 
+                        ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))(classImplication (IRI "prefix" "b" "http://www.namespace/") "c")(classImplication "d" "a")))                                         
+                        names (getClassNames ont)
+                  (makeOWLFile ont "test.owl"))]]
        (println x))
 
 ;output
@@ -48,7 +48,19 @@ ClassAssertion(a i)
 DataPropertyAssertion(d i l)
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(d e) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(e) ObjectComplementOf(d)) ObjectIntersectionOf(g f)))
-Ontology Saved Containing 4 Class Names: #{test:b :a :c :d}
+nil
+
+;use threading to accomplish the same task as the let expression
+main=> (-> emptyOntologyFile
+          (setOntologyIRI "<http://www.test.stuff>")
+          (addAnnotations (annotation "annotations" "are fun"))
+          (addPrefixes (prefix "" "<http://www.test.stuff/>")(prefix "" "<http://www.overwriting.test.stuff/>")(prefix "prefix" "<http://www.prefix.stuff/>"))
+          (addAxioms (classImplication "a" (IRI "prefix" "b"))(classImplication (IRI "prefix" "b" "http://www.namespace/") "c")(classImplication "d" "a"))
+          (makeOWLFile "test.owl")
+          println)
+
+:output
+nil
 ```
 
 ## License

@@ -43,7 +43,7 @@
  "xsd:positiveInteger" "xsd:negativeInteger" "xsd:unsignedLong" "xsd:unsignedInt" "xsd:unsignedShort" "xsd:unsignedByte" "rdf:PlainLiteral" "xsd:string" "xsd:NCName" "xsd:Name"
  "xsd:NMTOKEN" "xsd:token" "xsd:language" "xsd:normalizedString" "xsd:boolean" "xsd:base64Binary" "xsd:hexBinary" "xsd:anyURI" "xsd:dateTime" "xsd:dateTimeStamp" "rdf:XMLLiteral"})
 
-(defn- isReservedIRI? [iri]
+(defn isReservedIRI? [iri]
  (contains? reservedIRIs iri))
 
 (defn XSDDatatype
@@ -51,56 +51,15 @@
  ([iri]
   (if (not (string? iri))
    (throw+ {:type ::notStringIRI :iri iri})
-   {:knownDataType (contains? dataTypeMaps iri) :iri iri}))
- ([iri namespace prefix]
+   {:reserved (isReservedIRI? iri) :knownDataType (contains? dataTypeMaps iri) :iri iri}))
+ ([prefix iri]
+  (if (not (and (string? iri)(string? prefix)))
+   (throw+ {:type ::notStringIRI :iri iri})
+   {:reserved (isReservedIRI? (str prefix ":" iri)) :knownDataType (contains? dataTypeMaps (str prefix ":" iri)) :short iri :prefix prefix :iri (str prefix ":" iri )}))
+ ([prefix iri namespace]
   (if (not (and (and (string? iri)(string? namespace))(string? prefix)))
    (throw+ {:type ::notStringIRI :iri iri})
-   {:knownDataType (contains? dataTypeMaps (str prefix iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri ">")})))
-(defn- OWLReservedIRI
- "IRI := String"
- ([iri]
-  (if (not (string? iri))
-   (throw+ {:type ::notStringIRI :iri iri})
-   (if (not (isReservedIRI? iri))
-    (throw+ {:type ::reservedIRI :iri iri})
-    {:namespace nil :short iri ::iri iri})))
- ([iri prefix namespace prefix]
-  (if (or (or (not (string? iri))(not (string? namespace)))(not (string? prefix)))
-   (throw+ {:type ::notStringIRI :iri iri})
-   (let [check (str namespace iri)]
-    (if (not (isReservedIRI? check))
-     (throw+ {:type ::reservedIRI :iri check})
-     {:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")})))))
-(defn- RDFReservedIRI
- "IRI := String"
- ([iri]
-  (if (not (string? iri))
-   (throw+ {:type ::notStringIRI :iri iri})
-   (if (not (isReservedIRI? iri))
-    (throw+ {:type ::reservedIRI :iri iri})
-    {:namespace nil :short iri :iri iri})))
- ([iri namespace prefix]
-  (if (or (or (not (string? iri))(not (string? namespace)))(not (string? prefix)))
-   (throw+ {:type ::notStringIRI :iri iri})
-   (let [check (str namespace iri)]
-    (if (not (isReservedIRI? check))
-     (throw+ {:type ::reservedIRI :iri check})
-     {:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")})))))
-(defn- RDFSReservedIRI
- "IRI := String"
- ([iri]
-  (if (not (string? iri))
-   (throw+ {:type ::notStringIRI :iri iri})
-   (if (not (isReservedIRI? iri))
-    (throw+ {:type ::reservedIRI :iri iri})
-    {:reserved true :iri iri})))
- ([iri namespace prefix]
-  (if (or (or (not (string? iri))(not (string? namespace)))(not (string? prefix)))
-   (throw+ {:type ::notStringIRI :iri iri})
-   (let [check (str namespace iri)]
-    (if (not (isReservedIRI? check))
-     (throw+ {:type ::reservedIRI :iri check})
-     {:reserved true :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")})))))
+   {:reserved (isReservedIRI? (str prefix ":" iri)) :knownDataType (contains? dataTypeMaps (str prefix ":" iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri ">")})))
 
 (defn IRI
  "IRI := String"
@@ -110,9 +69,13 @@
    (if (:iri iri)
     iri
     (throw+ {:type ::notIRI :iri iri}))))
- ([iri namespace prefix]
+ ([prefix iri]
+  (if (and (string? iri)(string? prefix))
+   {:reserved (isReservedIRI? (str prefix ":" iri)) :short iri :prefix prefix :iri (str prefix ":" iri )}
+   (throw+ {:type ::notStringIRI :iri iri})))
+ ([prefix iri namespace]
   (if (and (and (string? iri)(string? namespace))(string? prefix))
-   {:reserved (isReservedIRI? (str prefix iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}
+   {:reserved (isReservedIRI? (str prefix ":" iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}
    (throw+ {:type ::notStringIRI :iri iri}))))
 
 (defn className
@@ -123,8 +86,10 @@
   	(if (contains? iri :type)
   		(throw+ {:type ::notClassName :iri iri})
   		(assoc iri :innerType :className :type :className))))
- ([iri namespace prefix]
-  (assoc (IRI iri namespace prefix) :innerType :className :type :className)))
+ ([prefix iri]
+  (assoc (IRI prefix iri) :innerType :className :type :className))
+ ([prefix iri namespace]
+  (assoc (IRI prefix iri namespace) :innerType :className :type :className)))
 
 (defn roleName
  "ObjectProperty := IRI"
@@ -134,8 +99,10 @@
   	(if (contains? iri :type)
   		(throw+ {:type ::notRoleName :iri iri})
   		(assoc iri :type :roleName :innerType :roleName))))
- ([iri namespace prefix]
-  (assoc (IRI iri namespace prefix) :type :roleName :innerType :roleName)))
+ ([prefix iri]
+  (assoc (IRI prefix iri) :type :roleName :innerType :roleName))
+ ([prefix iri namespace]
+  (assoc (IRI prefix iri namespace) :type :roleName :innerType :roleName)))
 
 (defn- -inverseRoleName 
  "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
@@ -147,29 +114,37 @@
 (defn inverseRoleName
  ([iri]
   (-inverseRoleName (roleName iri)))
- ([iri namespace prefix]
-  (-inverseRoleName (roleName iri namespace prefix))))
+ ([prefix iri]
+  (-inverseRoleName (roleName prefix iri)))
+ ([prefix iri namespace]
+  (-inverseRoleName (roleName prefix iri namespace))))
 
 (defn dataRoleName
  "DataProperty := IRI"
  ([iri]
   (assoc iri :type :dataRoleName :innerType :dataRoleName))
- ([iri namespace prefix]
-  (assoc (IRI iri namespace prefix) :type :dataRoleName :innerType :dataRoleName)))
+ ([prefix iri]
+  (assoc (IRI prefix iri) :type :dataRoleName :innerType :dataRoleName))
+ ([prefix iri namespace]
+  (assoc (IRI prefix iri namespace) :type :dataRoleName :innerType :dataRoleName)))
 
 (defn- -namedIndividual
  "NamedIndividual := IRI"
  ([iri]
   (assoc iri :type :namedIndividual :innerType :namedIndividual))
- ([iri namespace prefix]
-  (assoc (IRI iri namespace prefix) :type :namedIndividual :innerType :namedIndividual)))
+ ([prefix iri]
+  (assoc (IRI prefix iri) :type :namedIndividual :innerType :namedIndividual))
+ ([prefix iri namespace]
+  (assoc (IRI prefix iri namespace) :type :namedIndividual :innerType :namedIndividual)))
 
 (defn- -anonymousIndividual
  "AnonymousIndividual := nodeID"
  ([iri]
   (assoc iri :type :anonymousIndividual :innerType :anonymousIndividual))
- ([iri namespace prefix]
-  (assoc (IRI iri namespace prefix) :type :anonymousIndividual :innerType :anonymousIndividual)))
+ ([prefix iri]
+  (assoc (IRI prefix iri) :type :anonymousIndividual :innerType :anonymousIndividual))
+ ([prefix iri namespace]
+  (assoc (IRI prefix iri namespace) :type :anonymousIndividual :innerType :anonymousIndividual)))
 
 (defn- -individual 
  "Individual := AnonymousIndividual | NamedIndividual"
@@ -182,9 +157,11 @@
  ([iri]
   (if (string? iri)
   	(-individual (-namedIndividual (IRI iri)))
-  	(-individual (if (= (:prefix iri) "_")(-anonymousIndividual iri)(-namedIndividual iri)))))
- ([iri namespace prefix]
-  (-individual (if (= prefix "_")(-anonymousIndividual iri namespace prefix)(-namedIndividual iri namespace prefix)))))
+  	(-individual (if (= (get (:prefix iri) 0) \_)(-anonymousIndividual iri)(-namedIndividual iri)))))
+ ([prefix iri]
+  (-individual (if (= (get prefix 0) \_)(-anonymousIndividual prefix iri)(-namedIndividual prefix iri))))
+ ([prefix iri namespace]
+  (-individual (if (= (get prefix 0) \_)(-anonymousIndividual prefix iri namespace)(-namedIndividual prefix iri namespace)))))
 
 (defn- -dataType
  "Datatype := IRI"
@@ -192,9 +169,13 @@
   (if (:iri iri)
    (assoc iri :arity 1 :type :dataType :innerType :dataType)
    (throw+ {:type ::notdataType :iri iri})))
- ([iri namespace prefix]
+ ([prefix iri]
   (if (or (= (str prefix iri) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix iri)) (not (isReservedIRI? (str prefix iri)))))
-   (assoc (XSDDatatype iri namespace prefix) :arity 1 :type :dataType :innerType :dataType)
+   (assoc (XSDDatatype prefix iri) :arity 1 :type :dataType :innerType :dataType)
+   (throw+ {:type ::notdataType :iri iri})))
+ ([prefix iri namespace]
+  (if (or (= (str prefix iri) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix iri)) (not (isReservedIRI? (str prefix iri)))))
+   (assoc (XSDDatatype prefix iri namespace) :arity 1 :type :dataType :innerType :dataType)
    (throw+ {:type ::notdataType :iri iri :namespace namespace}))))
 
 (defn dataType
@@ -206,8 +187,10 @@
      iri
      (throw+ {:type ::notDataType :dataType iri}))
     (-dataType iri))))
- ([iri namespace prefix]
-  (-dataType (XSDDatatype iri namespace prefix))))
+ ([prefix iri]
+  (-dataType (XSDDatatype prefix iri)))
+ ([prefix iri namespace]
+  (-dataType (XSDDatatype prefix iri namespace))))
 
 (defn- -literal 
  "Literal := typedLiteral | stringLiteralNoLanguage | stringLiteralWithLanguage"
@@ -227,7 +210,7 @@
  "lexicalForm := quotedString"
  [stri]
  (if (string? stri)
-  {:value  stri :type :lexicalForm :innerType :lexicalForm}
+  {:value  (str \" stri \" )  :type :lexicalForm :innerType :lexicalForm}
   (throw+ {:type ::notString :string stri})))
 
 (defn typedLiteral [lexicalForm datatype]
@@ -237,7 +220,7 @@
  "stringLiteralNoLanguage := quotedString"
  [string]
  (if (string? string)
-  {:value (str string) :type :stringLiteralNoLanguage :innerType :stringLiteralNoLanguage}
+  {:value (str \" string \" ) :type :stringLiteralNoLanguage :innerType :stringLiteralNoLanguage}
   (throw+ {:type ::notStringLiteral :string string})))
 
 (defn stringLiteralNoLanguage [string]
@@ -247,7 +230,7 @@
  "stringLiteralWithLanguage := quotedString languageTag"
  [string lang]
  (if (and (string? string) (string? lang))
-  {:value (str string \@ lang) :type :stringLiteralWithLanguage :innerType :stringLiteralWithLanguage}
+  {:value (str \" string \" \@ lang) :type :stringLiteralWithLanguage :innerType :stringLiteralWithLanguage}
   (throw+ {:type ::notStringLiteralWithLang :string string :lang lang})))
 
 (defn stringLiteralWithLanguage [string lang]

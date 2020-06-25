@@ -7,8 +7,13 @@
 
 
 (defn -main [& args]
- 
- )
+ (-> emptyOntologyFile
+    (setOntologyIRI "<http://www.test.stuff>")
+    (addAnnotations (annotation "annotations" "are fun"))
+    (addPrefixes (prefix "" "<http://www.test.stuff/>")(prefix "" "<http://www.overwriting.test.stuff/>")(prefix "prefix" "<http://www.prefix.stuff/>"))
+    (addAxioms (classImplication "a" (IRI "prefix" "b"))(classImplication (IRI "prefix" "b" "http://www.namespace/") "c")(classImplication "d" "a"))
+    (makeOWLFile "test.owl")
+    println))
 
 
 

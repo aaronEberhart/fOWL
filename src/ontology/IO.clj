@@ -111,32 +111,32 @@
  ([ontology](onf/ontologyFile ontology))
  ([prefixes ontology](onf/ontologyFile prefixes ontology)))
 
-(defn getClassNamesInObject
+(defn getClassNames
  "Gets a set of all the class names used in this object"
  [object]
  (-getStuffInNestedMap #(= (:innerType %) :className) identity object))
 
-(defn getRoleNamesInObject
+(defn getRoleNames
  "Gets a set of all the role names used in this object"
  [object]
  (-getStuffInNestedMap #(= (:innerType %) :roleName) identity object))
 
-(defn getDataRoleNamesInObject
+(defn getDataRoleNames
  "Gets a set of all the data role names used in this object"
  [object]
  (-getStuffInNestedMap #(= (:innerType %) :dataRoleName) identity object))
 
-(defn getClassesInObject
+(defn getClasses
  "Gets a set of all the classes used in this object"
  [object]
  (-getStuffInNestedMap #(= (:type %) :class) identity object))
 
-(defn getRolesInObject
+(defn getRoles
  "Gets a set of all the roles used in this object"
  [object]
  (-getStuffInNestedMap #(or (= (:type %) :role)(= (:type %) :inverseRole)) identity object))
 
-(defn getRoleChainsInObject
+(defn getRoleChains
  "Gets a set of all the roles chains used in this object"
  [object]
  (-getStuffInNestedMap #(= (:type %) :roleChain) identity object))
@@ -240,11 +240,18 @@
  [ontology & axioms]
  (updateOntology ontology axioms (comp constantly (partial apply disj)) :axioms))
 
-;TODO automate name fixing 
 (defn dropPrefix 
- "Drops the prefix from the ontology"
+ "Drops the prefix from the ontology. Removes it from any IRI in the ontology"
  [ontology prefix]
- (updateOntology ontology prefix (comp constantly disj) :prefixes))
+ (let [num (count (:prefixes ontology))
+       ontology (updateOntology ontology prefix (comp constantly disj) :prefixes)]
+ (if (< (count (:prefixes ontology)) num)
+  (updateOntologyComponents 
+   ontology 
+   #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
+       (and (= (:prefix %) (:prefix prefix))))
+   #(assoc (dissoc % :namespace :prefix :short) :iri (get (re-matches (re-pattern (str (subs (:iri prefix) 0 (- (count (:iri prefix)) 1)) "(\\S+)>")) (:iri %)) 1)))
+  ontology)))
 
 (defn dropPrefixes 
  "Drops all prefixes in the set from the ontology"
@@ -271,11 +278,31 @@
  [ontology & annotations]
  (updateOntology ontology annotations (comp constantly (partial apply disj)) :annotations))
 
-;TODO automate name fixing 
 (defn addAxiom 
- "Adds an axiom to an ontology"
- [ontology axiom]
- (updateOntology ontology axiom (comp constantly conj) :axioms))
+ "Adds an axiom to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
+ [ontology axiom] 
+ (if (:prefixes ontology)
+  (let [names (getClassNames axiom)]
+   (loop [axiom axiom
+          prefixes (:prefixes ontology)
+          ontology ontology]
+   (cond 
+    (empty? prefixes)  
+     (updateOntology ontology axiom (comp constantly conj) :axioms)
+    (not (empty? (keep #(if (or (= (:prefix %) (:prefix (first prefixes)))(not (:prefix %))) %) names)))
+     (recur (updateOntologyComponents 
+             axiom 
+              #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
+                    (or (and (:iri %) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix (first prefixes)) "\\S+")) (:iri %))))
+                        (and (= (:prefix %) (:prefix (first prefixes))))))
+             #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix (first prefixes)) "(\\S+)")) (:iri %)) 1))
+                    pre (if (:prefix %) (:prefix %) (:prefix (first prefixes)))
+                    namespace (subs (:iri (first prefixes)) 1 (- (count (:iri (first prefixes))) 1))]
+             (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short)))
+     (rest prefixes) ontology)
+    :else 
+     (recur axiom (rest prefixes) ontology))))
+  (updateOntology ontology axiom (comp constantly conj) :axioms)))
 
 (defn addAxioms
  "Adds a set of axioms to an ontology"
@@ -285,14 +312,14 @@
 (defn- -addPrefix
  [ontology prefix]
  (updateOntologyComponents
-  (updateOntology ontology prefix (comp constantly conj) :prefixes)
+  (updateOntology ontology prefix (comp constantly conj) :prefixes) 
   #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
         (or (and (:iri %) (not (:prefix %)) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix prefix) "\\S+")) (:iri %))))
             (and (= (:prefix %) (:prefix prefix)))))
   #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix prefix) "(\\S+)")) (:iri %)) 1))
          pre (if (:prefix %) (:prefix %) (:prefix prefix))
          namespace (subs (:iri prefix) 1 (- (count (:iri prefix)) 1))]
-  (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short))))
+   (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short))))
 
 (defn addPrefix 
  "Adds a prefix to an ontology. If it is already in use it is overwritten. Any IRIs in the ontology that have this prefix are adjusted."
@@ -321,11 +348,31 @@
  [ontology & imports]
  (updateOntology ontology imports (comp constantly (partial apply conj)) :imports))
 
-;TODO automate name fixing 
 (defn addAnnotation 
- "Adds an annotation to an ontology"
+ "Adds an annotation to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
  [ontology annotation]
- (updateOntology ontology annotation (comp constantly conj) :annotations))
+ (if (:prefixes ontology)
+  (let [names (getClassNames annotation)]
+   (loop [annotation annotation
+          prefixes (:prefixes ontology)
+          ontology ontology]
+   (cond 
+    (empty? prefixes)  
+     (update ontology :annotations conj annotation)
+    (not (empty? (keep #(if (or (= (:prefix %) (:prefix (first prefixes)))(not (:prefix %))) %) names)))
+     (recur (updateOntologyComponents 
+             annotation 
+              #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
+                    (or (and (:iri %) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix (first prefixes)) "\\S+")) (:iri %))))
+                        (and (= (:prefix %) (:prefix (first prefixes))))))
+             #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix (first prefixes)) "(\\S+)")) (:iri %)) 1))
+                    pre (if (:prefix %) (:prefix %) (:prefix (first prefixes)))
+                    namespace (subs (:iri (first prefixes)) 1 (- (count (:iri (first prefixes))) 1))]
+              (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short)))
+     (rest prefixes) ontology)
+    :else 
+     (recur annotation (rest prefixes) ontology))))
+  (updateOntology ontology annotation (comp constantly conj) :annotations)))
 
 (defn addAnnotations
  "Adds a set of annotations to an ontology"
@@ -610,7 +657,8 @@
 (defn annotationRole
  "AnnotationProperty := IRI"
  ([iri](ann/annotationRole iri))
- ([iri namespace prefix](ann/annotationRole iri namespace prefix)))
+ ([prefix name](ann/annotationRole prefix name))
+ ([prefix name namespace](ann/annotationRole prefix name namespace)))
 
 (defn annotationValue 
  "AnnotationValue := AnonymousIndividual | IRI | Literal"
@@ -640,7 +688,8 @@
 (defn annotationDataType
  "Datatype := IRI"
  ([iri] (ann/annotationDataType iri))
- ([iri namespace prefix](ann/annotationDataType iri namespace prefix)))
+ ([prefix name](ann/annotationDataType prefix name))
+ ([prefix name namespace](ann/annotationDataType prefix name namespace)))
 
 (def Top
  "owl:Thing"
@@ -667,32 +716,38 @@
 (defn IRI
  "IRI := String"
  ([iri](co/IRI iri))
- ([iri namespace prefix](co/IRI iri namespace prefix)))
+ ([prefix name](co/IRI prefix name))
+ ([prefix name namespace](co/IRI prefix name namespace)))
 
 (defn className
  "Class := IRI"
  ([iri](co/className iri))
- ([iri namespace prefix](co/className iri namespace prefix)))
+ ([prefix name](co/className prefix name))
+ ([prefix name namespace](co/className prefix name namespace)))
 
 (defn roleName
  "ObjectProperty := IRI"
  ([iri](co/roleName iri))
- ([iri namespace prefix](co/roleName iri namespace prefix)))
+ ([prefix name](co/roleName prefix name))
+ ([prefix name namespace](co/roleName prefix name namespace)))
 
 (defn inverseRoleName
  "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
  ([iri](co/inverseRoleName iri))
- ([iri namespace prefix](co/inverseRoleName iri namespace prefix)))
+ ([prefix name](co/inverseRoleName prefix name))
+ ([prefix name namespace](co/inverseRoleName prefix name namespace)))
 
 (defn dataRoleName
  "DataProperty := IRI"
  ([iri](co/dataRoleName iri))
- ([iri namespace prefix](co/dataRoleName iri namespace prefix)))
+ ([prefix name](co/dataRoleName prefix name))
+ ([prefix name namespace](co/dataRoleName prefix name namespace)))
 
 (defn individual
  "Individual := IRI | nodeID"
  ([iri](co/individual iri))
- ([iri namespace prefix](co/individual iri namespace prefix)))
+ ([prefix name](co/individual prefix name))
+ ([prefix name namespace](co/individual prefix name namespace)))
 
 (defn typedLiteral 
  "typedLiteral := lexicalForm '^^' Datatype"
@@ -711,10 +766,9 @@
 
 (defn dataType
  "Datatype := IRI"
- ([iri]
-  (co/dataType iri))
- ([iri namespace prefix]
-  (co/dataType iri namespace prefix)))
+ ([iri] (co/dataType iri))
+ ([prefix name](co/dataType prefix name))
+ ([prefix name namespace](co/dataType prefix name namespace)))
 
 (defn dataRange 
  "DataRange := Datatype | DataIntersectionOf | DataUnionOf | DataComplementOf | DataOneOf | DatatypeRestriction"
@@ -758,22 +812,26 @@
 (defn role
  "ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
  ([iri](ex/role iri))
- ([iri namespace prefix](ex/role iri namespace prefix)))
+ ([prefix name](ex/role prefix name))
+ ([prefix name namespace](ex/role prefix name namespace)))
 
 (defn inverseRole
  "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
  ([iri](ex/inverseRole iri))
- ([iri namespace prefix](ex/inverseRole iri namespace prefix)))
+ ([prefix name](ex/inverseRole prefix name))
+ ([prefix name namespace](ex/inverseRole prefix name namespace)))
 
 (defn dataRole
  "DataPropertyExpression := DataProperty"
  ([iri](ex/dataRole iri))
- ([iri namespace prefix](ex/dataRole iri namespace prefix)))
+ ([prefix name](ex/dataRole prefix name))
+ ([prefix name namespace](ex/dataRole prefix name namespace)))
 
 (defn -class
  "ClassExpression := Class | ObjectIntersectionOf | ObjectUnionOf | ObjectComplementOf | ObjectOneOf | ObjectSomeValuesFrom | ObjectAllValuesFrom | ObjectHasValue | ObjectHasSelf | ObjectMinCardinality | ObjectMaxCardinality | ObjectExactCardinality | DataSomeValuesFrom | DataAllValuesFrom | DataHasValue | DataMinCardinality | DataMaxCardinality | DataExactCardinality"
  ([iri](ex/class iri))
- ([iri namespace prefix](ex/class iri namespace prefix)))
+ ([prefix name](ex/class prefix name))
+ ([prefix name namespace](ex/class prefix name namespace)))
 
 (defn -and
  "ObjectIntersectionOf := 'ObjectIntersectionOf' '(' ClassExpression ClassExpression { ClassExpression } ')'"
@@ -813,7 +871,8 @@
 (defn Self
  "ObjectHasSelf := 'ObjectHasSelf' '(' ObjectPropertyExpression ')'"
  ([iri](ex/Self iri))
- ([iri namespace prefix](ex/Self iri namespace prefix)))
+ ([prefix name](ex/Self prefix name))
+ ([prefix name namespace](ex/Self prefix name namespace)))
 
 (defn >=role
  "ObjectMinCardinality := 'ObjectMinCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
@@ -871,17 +930,17 @@
 (def prefIRIPat
  #"^([^\<\(\)\"\\\s]*\:[^\>\(\)\"\\\s]+)\s*([\s\S]*)")
 (def literalTypedPat
- #"^(\"[\s\S]*?(?<!\\)\")\^\^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))\s*([\s\S]*)")
+ #"^\"([\s\S]*?(?<!\\))\"\^\^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))\s*([\s\S]*)")
 (def literalQuotedPat
- #"^(\"[\s\S]*?(?<!\\)\")\s*([\s\S]*)")
+ #"^\"([\s\S]*?(?<!\\))\"\s*([\s\S]*)")
 (def literalLangPat
- #"^(\"[\s\S]*?(?<!\\)\")\@([^\s\(\)\"\\\:]+)\s*([\s\S]*)")
+ #"^\"([\s\S]*?(?<!\\))\"\@([^\s\(\)\"\\\:]+)\s*([\s\S]*)")
 (def numPat
  #"^(\d+)\s*([\s\S]*)")
 (def commPat
  #"^(#[^\r\n\f]*)([\s\S]*)")
 (def blankPat
- #"^\s*$")
+ #"^(\s*)$")
 (def expressionPat
  #"(ObjectInverseOf|Class|Datatype|ObjectProperty|DataProperty|AnnotationProperty|NamedIndividual|ObjectPropertyChain|ObjectIntersectionOf|ObjectUnionOf|ObjectComplementOf|ObjectOneOf|ObjectSomeValuesFrom|ObjectAllValuesFrom|ObjectHasValue|ObjectHasSelf|ObjectMinCardinality|ObjectMaxCardinality|ObjectExactCardinality|DataSomeValuesFrom|DataAllValuesFrom|DataHasValue|DataMinCardinality|DataMaxCardinality|DataExactCardinality|DataIntersectionOf|DataUnionOf|DataComplementOf|DataOneOf|DatatypeRestriction|Variable|Body|Head|ClassAtom|DataRangeAtom|ObjectPropertyAtom|DataPropertyAtom|BuiltInAtom|SameIndividualAtom|DifferentIndividualsAtom)\s*\(\s*([\s\S]*)")
 (def prefixPat
@@ -911,9 +970,8 @@
        key (get splits 1)
        val (get splits 2)
        pref (:iri (first (drop-while (fn [x] (not (= key (:prefix x)))) prefixes)))
-       _ (prn key val pref)
        fullIRI (if pref (subs pref 1 (- (count pref) 1)))]
- (if fullIRI [val fullIRI key][name])))
+ (if fullIRI [key val fullIRI][name])))
 
 ;think need to update this fun?
 (defn- parseIRI [name prefixes]
@@ -943,8 +1001,8 @@
   :roleTop "U"
   :roleBot "∅"
   :typedLiteral (:value thing)
-  :stringLiteralNoLanguage (str (:prefix thing) (:value thing))
-  :stringLiteralWithLanguage (str (:prefix thing) (:value thing))
+  :stringLiteralNoLanguage (:value thing)
+  :stringLiteralWithLanguage (:value thing)
   :dataType (swapPrefixes thing)
   :restrictedValue (str (swapPrefixes thing) " " (:value thing))
   :className (noPrefixes thing)
@@ -952,13 +1010,13 @@
   :inverseRoleName (str (noPrefixes thing) "\u207B")
   :dataRoleName (noPrefixes thing)
   :namedIndividual (noPrefixes thing)
-  :anonymousIndividual (:nodeID thing)
+  :anonymousIndividual (swapPrefixes thing);(:nodeID thing)
   :annotationRole (noPrefixes thing)
   :annotationSubject (noPrefixes thing)
   :annotationValue (noPrefixes thing)
 
   ;filestuff
-  :ontology (str "Ontology(" (toDLString (:ontologyIRI thing)) (toDLString (:versionIRI thing)) "\n" (str/join "\n" (map (fn [x] (toDLString x)) (:imports thing))) "\n" (str/join "\n" (map (fn [x] (toDLString x)) (:annotations thing))) "\n" (str/join "\n" (map (fn [x] (toDLString x )) (:axioms thing))) ")")
+  :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (str/join "\n" (map (fn [x] (toDLString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toDLString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toDLString (:versionIRI thing)) "\n")) "\n")) (if (not (empty? (:imports thing))) (str (str/join "\n" (map (fn [x] (toDLString x)) (:imports thing))) "\n")) (if (not (empty? (:annotations thing))) (str (str/join "\n" (map (fn [x] (toDLString x)) (:annotations thing))) "\n")) (if (not (empty? (:axioms thing))) (str/join "\n" (map (fn [x] (toDLString x)) (:axioms thing)))) "\n)")
   :ontologyIRI (:iri thing)
   :versionIRI (:iri thing)
   :prefix (str "Prefix(" (:prefix thing) "=<" (:iri thing) ">)")
@@ -991,7 +1049,7 @@
   :dataOr (str/join " ∨ " (map (fn [x] (if (or (= (:innerType x) :dataOr)(= (:innerType x) :dataAnd)) (str "(" (toDLString x) ")")(toDLString x))) (:dataRanges thing)))
   :dataAnd (str/join " ∧ " (map (fn [x] (if (or (= (:innerType x) :dataOr)(= (:innerType x) :dataAnd)) (str "(" (toDLString x) ")")(toDLString x))) (:dataRanges thing)))
   :dataOneOf (str "[" (str/join "," (map (fn [x] (:value x)) (:literals thing))) "]")
-  :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) (:short thing) " " (str/join " " (map toDLString (:restrictedValues thing)))")")
+  :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) ":" (:short thing) " " (str/join " " (map toDLString (:restrictedValues thing)))")")
   :Self  (str "∃" (:role thing) ".Self")
   :nominal (str "{" (str/join " " (map (fn [x] (toDLString x)) (:individuals thing))) "}")
 
@@ -1061,8 +1119,8 @@
 
   ;atoms
   :typedLiteral (:value thing)
-  :stringLiteralNoLanguage (str (:prefix thing) (:value thing))
-  :stringLiteralWithLanguage (str (:prefix thing) (:value thing))
+  :stringLiteralNoLanguage (:value thing)
+  :stringLiteralWithLanguage (:value thing)
   :top (swapPrefixes thing)
   :bot (swapPrefixes thing)
   :roleTop (swapPrefixes thing)
@@ -1074,13 +1132,13 @@
   :inverseRoleName (str "ObjectInverseOf(" (swapPrefixes thing) ")")
   :dataRoleName (swapPrefixes thing)
   :namedIndividual (swapPrefixes thing)
-  :anonymousIndividual (:nodeID thing)
+  :anonymousIndividual (swapPrefixes thing);(:nodeID thing)
   :annotationRole (swapPrefixes thing)
   :annotationSubject (swapPrefixes thing)
   :annotationValue (swapPrefixes thing)
 
   ;filestuff
-  :ontology (str "Ontology(" (toString (:ontologyIRI thing)) (toString (:versionIRI thing)) "\n" (str/join "\n" (map (fn [x] (toString x)) (:imports thing))) "\n" (str/join "\n" (map (fn [x] (toString x )) (:annotations thing))) "\n" (str/join "\n" (map (fn [x] (toString x )) (:axioms thing))) ")")
+  :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (str/join "\n" (map (fn [x] (toString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toString (:versionIRI thing)) "\n")) "\n")) (if (not (empty? (:imports thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:imports thing))) "\n\n")) (if (not (empty? (:annotations thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:annotations thing))) "\n\n")) (if (not (empty? (:axioms thing))) (str/join "\n" (map (fn [x] (toString x)) (:axioms thing)))) "\n)")
   :ontologyIRI (:iri thing)
   :versionIRI (:iri thing)
   :prefix (str "Prefix(" (:prefix thing) ":=" (:iri thing) ")")
@@ -1113,7 +1171,7 @@
   :dataOr (str "DataUnionOf(" (str/join " " (map (fn [x] (toString x )) (:dataRanges thing))) ")")
   :dataAnd (str "DataIntersectionOf(" (str/join " " (map (fn [x] (toString x )) (:dataRanges thing))) ")")
   :dataOneOf (str "DataOneOf(" (str/join " " (map (fn [x] (:value x)) (:literals thing))) ")")
-  :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) (:short thing) " " (str/join " " (map toString (:restrictedValues thing))) ")")
+  :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) ":" (:short thing) " " (str/join " " (map toString (:restrictedValues thing))) ")")
   :Self (str "ObjectHasSelf(" (toString (:role thing)) ")")
   :nominal (str "ObjectOneOf("(str/join " " (map (fn [x] (toString x)) (:individuals thing))) ")")
 
@@ -1272,7 +1330,7 @@
    (.write wrt ")"))))
 (defn makeOWLFile
  "Writes an owl file of the ontology in functional syntax with the supplied file name"
- [filename ontology]
+ [ontology filename]
  (-makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology)))
 
 (defn- parsePrefixLine [state prefixes _ _ _ _]
@@ -1366,7 +1424,7 @@
  (if-some [commMatch (re-matches commPat state)]
   [(get commMatch 2) annotations annFun exps expFuns]
  (if-some [blankMatch (re-matches blankPat state)]
-  [state annotations annFun exps expFuns]
+  [(str state (get blankMatch 1)) annotations annFun exps expFuns]
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
   (recur (get fullIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (IRI (get fullIRIMatch 1)))) expFuns)
  (if-some [prefIRIMatch (re-matches prefIRIPat state)]
@@ -1406,7 +1464,7 @@
  (if-some [commMatch (re-matches commPat state)]
   [(get commMatch 2) axioms axFun exps expFuns]
  (if-some [blankMatch (re-matches blankPat state)]
-  [state axioms axFun exps expFuns]
+  [(str state (get blankMatch 1)) axioms axFun exps expFuns]
  (if-some [numMatch (re-matches numPat state)]
     (recur (get numMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (read-string (get numMatch 1)))) expFuns)
  (if-some [fullIRIMatch (re-matches fullIRIPat state)]
@@ -1435,6 +1493,7 @@
          function nil
          expressions '([])
          functionList '()]
+         ;(if (> (count state) 5)(prn (subs state 0 5)))
   (let [[state objects function expressions functionList] (loopFunction state objects function expressions functionList prefixes)]
    (if (stopCondition [objects state lines])
     [(persistent! objects) (lazy-seq (cons state (if (some? lines)(rest lines))))]

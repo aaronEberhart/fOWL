@@ -24,7 +24,8 @@
      			iri
        	(-role iri))
        (-role (co/roleName iri)))))
- ([iri namespace prefix](-role (co/roleName iri namespace prefix))))
+ ([prefix iri](-role (co/roleName prefix iri)))
+ ([prefix iri namespace](-role (co/roleName prefix iri namespace))))
 
 (defn inverseRole
  ([iri]
@@ -35,7 +36,8 @@
         iri
         (throw+ {:type ::notInverseRole :roleName iri}))
       (-role (co/inverseRoleName iri)))))
- ([iri namespace prefix](-role (co/inverseRoleName iri namespace prefix))))
+ ([prefix iri](-role (co/inverseRoleName prefix iri)))
+ ([prefix iri namespace](-role (co/inverseRoleName prefix iri namespace))))
 
 (defn- -dataRole 
  "DataPropertyExpression := DataProperty"
@@ -53,7 +55,8 @@
      (if (contains? iri :type)
        (-dataRole iri)
        (-dataRole (co/dataRoleName iri)))))
- ([iri namespace prefix](-dataRole (co/dataRoleName iri namespace prefix))))
+ ([prefix iri](-dataRole (co/dataRoleName prefix iri)))
+ ([prefix iri namespace](-dataRole (co/dataRoleName prefix iri namespace))))
 
 (defn- -class
  "ClassExpression := Class | ObjectIntersectionOf | ObjectUnionOf | ObjectComplementOf | ObjectOneOf | ObjectSomeValuesFrom | ObjectAllValuesFrom |
@@ -71,7 +74,8 @@
     (if (contains? iri :type)
       (-class iri)
       (-class (co/className iri)))))
- ([iri namespace prefix](-class (co/className iri namespace prefix))))
+ ([prefix iri](-class (co/className prefix iri)))
+ ([prefix iri namespace](-class (co/className prefix iri namespace))))
 
 (defn- -and 
  "ObjectIntersectionOf := 'ObjectIntersectionOf' '(' ClassExpression ClassExpression { ClassExpression } ')'"
@@ -161,7 +165,7 @@
 
 (defn Self
  ([iri](class (-Self (role iri))))
- ([iri namespace prefix](-class (-Self (role iri namespace prefix)))))
+ ([prefix iri namespace](-class (-Self (role prefix iri namespace)))))
 
 (defn- ->=role
  "ObjectMinCardinality := 'ObjectMinCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"

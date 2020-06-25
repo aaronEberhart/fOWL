@@ -9,26 +9,33 @@
  "AnnotationProperty := IRI"
  ([iri]
     (if (:iri iri)
-      (assoc iri :type :annotationRole :innerType :annotationRole)
-    (if (not (string? iri))
-     (throw+ {:type ::notStringIRI :iri iri})
-     {:namespace "" :short iri :prefix "" :iri (str "<" iri ">")})))
-  ([iri namespace prefix]
+     (assoc iri :type :annotationRole :innerType :annotationRole)
+     (if (string? iri)
+      {:reserved (co/isReservedIRI? iri) :iri iri :type :annotationRole :innerType :annotationRole}
+      (throw+ {:type ::notStringIRI :iri iri}))))
+ ([prefix iri]
+   (if (and (string? iri)(string? prefix))
+    (let [check (str prefix iri)]
+     {:reserved (co/isReservedIRI? (str prefix ":" iri)) :short iri :prefix prefix :iri (str prefix ":" iri )}))
+     (throw+ {:type ::notStringIRI :iri iri}))
+  ([prefix iri namespace]
    (if (and (and (string? iri)(string? namespace))(string? prefix))
     (let [check (str prefix iri)]
-     {:namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}))
+     {:reserved (co/isReservedIRI? (str prefix ":" iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}))
      (throw+ {:type ::notStringIRI :iri iri})))
 
 (defn annotationValue 
  "AnnotationValue := AnonymousIndividual | IRI | Literal"
  [value]
- (if (= (:type value) :literal)
-   (assoc value :type :annotationValue)
-   (if (= (:innerType value) :anonymousIndividual)
-     (assoc value :type :annotationValue)
-     (if (:iri value)
-       (assoc value :innerType :annotationValue :type :annotationValue)
-       (throw+ {:type ::notAnnotationValue :value value})))))
+ (if (string? value)
+  (assoc (co/stringLiteralNoLanguage value) :type :annotationValue)
+  (if (= (:type value) :literal)
+    (assoc value :type :annotationValue)
+    (if (= (:innerType value) :anonymousIndividual)
+      (assoc value :type :annotationValue)
+      (if (:iri value)
+        (assoc value :innerType :annotationValue :type :annotationValue)
+        (throw+ {:type ::notAnnotationValue :value value}))))))
 
 (defn- -metaAnnotations 
   "annotationAnnotations := { Annotation }"
@@ -81,4 +88,5 @@
 (defn annotationDataType
  "Datatype := IRI"
  ([iri] (assoc (co/XSDDatatype iri) :arity 1 :type :dataType :innerType :dataType))
- ([iri namespace prefix](assoc (co/XSDDatatype iri namespace prefix) :arity 1 :type :dataType :innerType :dataType)))
+ ([prefix iri](assoc (co/XSDDatatype prefix iri) :arity 1 :type :dataType :innerType :dataType))
+ ([prefix iri namespace](assoc (co/XSDDatatype prefix iri namespace) :arity 1 :type :dataType :innerType :dataType)))
