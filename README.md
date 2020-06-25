@@ -2,7 +2,7 @@
 FIXME: description
 
 ## Usage
-This program requires Leiningen. To run a program, simply type code in main or your own files, then run the command
+This program requires [Leiningen]{https://leiningen.org/}. To run a program, simply type code in main or your own files, then run the command
 
 
 lein run
