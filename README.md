@@ -30,8 +30,12 @@ main=> (doseq [x [(classImplication (existential "r" "a") "b")
                   ;Use let to store some values and write a file
                   (let [ont emptyOntologyFile
                         ont (setOntologyIRI ont "<http://www.test.stuff>")
-                        ont (addPrefixes ont (prefix "" "<http://www.test.stuff/>")(prefix "" "<http://www.overwriting.test.stuff/>")(prefix "prefix" "<http://www.prefix.stuff/>")) 
-                        ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))(classImplication (IRI "prefix" "b" "http://www.namespace/") "c")(classImplication "d" "a")))]
+                        ont (addPrefixes ont (prefix "" "<http://www.test.stuff/>")
+                                             (prefix "" "<http://www.overwriting.test.stuff/>")
+                                             (prefix "prefix" "<http://www.prefix.stuff/>")) 
+                        ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))
+                                           (classImplication (IRI "prefix" "b" "http://www.hasNamespace.but/overwrittenBy/prefix#") "c")
+                                           (classImplication "d" "a"))]
                   (makeOWLFile ont "test.owl"))]]
        (println x))
 
