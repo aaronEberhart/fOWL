@@ -30,6 +30,7 @@ main=> (doseq [x [(classImplication (exists "r" "a") "b")
                   ;Use let to store some values and write a file
                   (let [ont emptyOntologyFile
                         ont (setOntologyIRI ont "<http://www.test.stuff>")
+                        ont (addAnnotations ont (annotation "annotations" "are fun"))
                         ont (addPrefixes ont (prefix "" "<http://www.test.stuff/>")
                                              (prefix "" "<http://www.overwriting.test.stuff/>")
                                              (prefix "prefix" "<http://www.prefix.stuff/>")) 
