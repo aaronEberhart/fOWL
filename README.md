@@ -33,7 +33,7 @@ main=> (doseq [x [(classImplication (exists "r" "a") "b")
                         ont (addAnnotations ont (annotation "annotations" "are fun"))
                         ont (addPrefixes ont (prefix "" "http://www.test.stuff/")
                                              (prefix "" "http://www.overwriting.test.stuff/")
-                                             (prefix "prefix" <http://www.prefix.stuff/")) 
+                                             (prefix "prefix" http://www.prefix.stuff/")) 
                         ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))
                                            (classImplication (IRI "prefix" "b" "http://www.hasNamespace.but/overwrittenBy/prefix#") "c")
                                            (classImplication "d" "a"))]
