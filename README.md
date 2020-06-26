@@ -19,7 +19,7 @@ ontology.IO/makeOWLFile
   
 
 ;do some things sequentially
-main=> (doseq [x [(classImplication (existential "r" "a") "b")
+main=> (doseq [x [(classImplication (exists "r" "a") "b")
                   (classImplication (-or "b" "c") (-not (-or "d" "e")))
                   (roleImplication (roleChain "r" (inverseRole "s")) "t")
                   (roleFact (inverseRole "s") "i" "j")
