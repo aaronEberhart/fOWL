@@ -69,4 +69,4 @@ nil
 ```
 
 ## License
-FREE
+Don't copy this and say you wrote it.
