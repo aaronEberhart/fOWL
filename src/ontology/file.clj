@@ -64,7 +64,9 @@
  "ontologyIRI := IRI"
  [iri]
  (if (string? iri)
-  (assoc (co/IRI iri) :type :ontologyIRI :innerType :ontologyIRI)
+  (if (and (= (subs iri 0 1) "<")(= (subs iri (- (count iri) 1)(count iri)) ">"))
+   (assoc (co/IRI iri) :type :ontologyIRI :innerType :ontologyIRI)
+   (assoc (co/IRI (str "<" iri ">" )) :type :ontologyIRI :innerType :ontologyIRI))
   (if (:iri iri)
     (assoc iri :type :ontologyIRI :innerType :ontologyIRI)
     (throw+ {:type ::notIRI :IRI iri}))))
@@ -73,7 +75,9 @@
  "versionIRI := IRI"
  [iri]
  (if (string? iri)
-  (assoc (co/IRI iri) :type :versionIRI :innerType :versionIRI)
+  (if (and (= (subs iri 0 1) "<")(= (subs iri (- (count iri) 1)(count iri)) ">"))
+   (assoc (co/IRI iri) :type :versionIRI :innerType :versionIRI)
+   (assoc (co/IRI (str "<" iri ">" )) :type :versionIRI :innerType :versionIRI))
   (if (:iri iri)
     (assoc iri :type :versionIRI :innerType :versionIRI)
     (throw+ {:type ::notIRI :IRI iri}))))
@@ -88,9 +92,13 @@
 (defn directImport 
  "'Import' '(' IRI ')'"
  [iri]
- (if (:iri iri)
-  (assoc iri :type :import :innerType :import)
-  (throw+ {:type ::notIRI :IRIs iri})))
+ (if (string? iri)
+  (if (and (= (subs iri 0 1) "<")(= (subs iri (- (count iri) 1)(count iri)) ">"))
+   (assoc (co/IRI iri) :type :import :innerType :import)
+   (assoc (co/IRI (str "<" iri ">" )) :type :import :innerType :import))
+  (if (:iri iri)
+   (assoc iri :type :import :innerType :import)
+   (throw+ {:type ::notIRI :IRIs iri}))))
 
 (defn ontologyAnnotations 
  "ontologyAnnotations := { Annotation }"

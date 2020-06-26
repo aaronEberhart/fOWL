@@ -58,8 +58,7 @@
     (conj acc (doThis v)) 
    (coll? v)
     (let [in (-getStuffInNestedMap getThis? doThis v)]
-    (apply conj acc in))
-     
+    (apply conj acc in))     
    :else
     acc)))
 
@@ -69,7 +68,9 @@
 
 (def emptyOntologyFile
  "Returns an empty ontology file"
- (onf/ontologyFile #{} emptyOntology))
+ (onf/ontologyFile 
+  #{{:prefix "" :iri "empty:ontology" :type :prefix :innerType :prefix}{:prefix "owl" :iri co/owlNS :type :prefix :innerType :prefix}{:prefix "rdf" :iri co/rdfNS :type :prefix :innerType :prefix}{:prefix "rdfs" :iri co/rdfsNS :type :prefix :innerType :prefix}{:prefix "xsd" :iri co/xsdNS :type :prefix :innerType :prefix}} 
+  (update emptyOntology :ontologyIRI (constantly (onf/ontologyIRI "empty:ontology")))))
 
 (defn prefix 
  "prefixDeclaration := 'Prefix' '(' prefixName '=' fullIRI ')'"
@@ -123,6 +124,11 @@
  ([ontology](onf/ontologyFile ontology))
  ([prefixes ontology](onf/ontologyFile prefixes ontology)))
 
+(defn getNames
+ "Gets a set of all the iris used in this object"
+ [object]
+ (-getStuffInNestedMap #(and (map? %)(contains? % :iri)) identity object))
+
 (defn getClassNames
  "Gets a set of all the class names used in this object"
  [object]
@@ -137,6 +143,11 @@
  "Gets a set of all the data role names used in this object"
  [object]
  (-getStuffInNestedMap #(= (:innerType %) :dataRoleName) identity object))
+
+(defn getDataTypes
+ "Gets a set of all the data types used in this object"
+ [object]
+ (-getStuffInNestedMap #(= (:innerType %) :dataType) identity object))
 
 (defn getClasses
  "Gets a set of all the classes used in this object"
@@ -294,7 +305,7 @@
  "Adds an axiom to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
  [ontology axiom] 
  (if (:prefixes ontology)
-  (let [names (getClassNames axiom)]
+  (let [names (getNames axiom)]
    (loop [axiom axiom
           prefixes (:prefixes ontology)
           ontology ontology]
@@ -956,13 +967,13 @@
 (def expressionPat
  #"(ObjectInverseOf|Class|Datatype|ObjectProperty|DataProperty|AnnotationProperty|NamedIndividual|ObjectPropertyChain|ObjectIntersectionOf|ObjectUnionOf|ObjectComplementOf|ObjectOneOf|ObjectSomeValuesFrom|ObjectAllValuesFrom|ObjectHasValue|ObjectHasSelf|ObjectMinCardinality|ObjectMaxCardinality|ObjectExactCardinality|DataSomeValuesFrom|DataAllValuesFrom|DataHasValue|DataMinCardinality|DataMaxCardinality|DataExactCardinality|DataIntersectionOf|DataUnionOf|DataComplementOf|DataOneOf|DatatypeRestriction|Variable|Body|Head|ClassAtom|DataRangeAtom|ObjectPropertyAtom|DataPropertyAtom|BuiltInAtom|SameIndividualAtom|DifferentIndividualsAtom)\s*\(\s*([\s\S]*)")
 (def prefixPat
- #"^(?:Prefix)\s*\(\s*([^\)\:]*)\:=\s*([<][^>]+[>])\s*\)\s*([\s\S]*)")
+ #"^(?:Prefix)\s*\(\s*([^\)\:]*)\:=\s*[<]([^>]+)[>]\s*\)\s*([\s\S]*)")
 (def annotationPat
  #"^(Annotation)\s*\(\s*([\s\S]*)")
 (def ontPat
  #"^(Ontology)\s*\(\s*([\s\S]*)")
 (def importPat
- #"^Import\s*\(\s*([<][^>]+[>])\s*\)\s*([\s\S]*)")
+ #"^Import\s*\(\s*[<]([^>]+)[>]\s*\)\s*([\s\S]*)")
 
 (defn- swapPrefixes [iri]
  (if (:prefix iri)
@@ -1153,7 +1164,7 @@
   :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (str/join "\n" (map (fn [x] (toString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toString (:versionIRI thing)) "\n")) "\n")) (if (not (empty? (:imports thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:imports thing))) "\n\n")) (if (not (empty? (:annotations thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:annotations thing))) "\n\n")) (if (not (empty? (:axioms thing))) (str/join "\n" (map (fn [x] (toString x)) (:axioms thing)))) "\n)")
   :ontologyIRI (:iri thing)
   :versionIRI (:iri thing)
-  :prefix (str "Prefix(" (:prefix thing) ":=" (:iri thing) ")")
+  :prefix (str "Prefix(" (:prefix thing) ":=<" (:iri thing) ">)")
   :prefixes (str (str/join "\n" (map toString (:prefixes thing))))
   :import (str "Import(" (:iri thing) ")")
   :declaration (str "Declaration(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toString (:name thing) ) "))")
@@ -1333,7 +1344,7 @@
    (doseq [prefix prefixes] (.write wrt (str (toString prefix) "\n")))
    (if (not (empty? prefixes)) (.write wrt "\n\n"))
    (.write wrt "Ontology(")
-   (.write wrt (if ontologyIRI (str (toString ontologyIRI) "\n" (if versionIRI (str (toString versionIRI) "\n")))"\n"))
+   (.write wrt (if ontologyIRI (str (toString ontologyIRI) "\n" (if versionIRI (str (toString versionIRI) "\n")) "\n")"\n"))
    (doseq [im imports] (.write wrt (str (toString im) "\n")))
    (if (not (empty? imports)) (.write wrt "\n"))
    (doseq [ann annotations] (.write wrt (str (toString ann) "\n")))
@@ -1411,7 +1422,7 @@
  (if-some [annMatch (re-matches annotationPat state)]
   [state imports]
  (if-some [importMatch (re-matches importPat state)]
-  (recur (get importMatch 2) (conj! imports (directImport (co/IRI (get importMatch 1)))))
+  (recur (get importMatch 2) (conj! imports (directImport (get importMatch 1))))
  (if-some [axMatch (re-matches axiomPat state)]
   [state imports]))))))))
 
