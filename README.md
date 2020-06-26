@@ -45,7 +45,7 @@ SubClassOf(ObjectUnionOf(c b) ObjectComplementOf(ObjectUnionOf(d e)))
 SubObjectPropertyOf(ObjectPropertyChain(r ObjectInverseOf(s)) t)
 ObjectPropertyAssertion(ObjectInverseOf(s) i j)
 ClassAssertion(a i)
-DataPropertyAssertion(d i l)
+DataPropertyAssertion(d i "l")
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(d e) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(e) ObjectComplementOf(d)) ObjectIntersectionOf(g f)))
 nil

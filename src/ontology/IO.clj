@@ -306,7 +306,8 @@
               #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
                     (or (and (:iri %) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix (first prefixes)) "\\S+")) (:iri %))))
                         (and (= (:prefix %) (:prefix (first prefixes))))))
-             #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix (first prefixes)) "(\\S+)")) (:iri %)) 1))
+             #(let [_ (prn %)
+                    short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix (first prefixes)) "(\\S+)")) (:iri %)) 1))
                     pre (if (:prefix %) (:prefix %) (:prefix (first prefixes)))
                     namespace (subs (:iri (first prefixes)) 1 (- (count (:iri (first prefixes))) 1))]
              (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short)))
