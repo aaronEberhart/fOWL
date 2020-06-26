@@ -654,7 +654,7 @@
 
 (defn classFact 
  "ClassAssertion := 'ClassAssertion' '(' axiomAnnotations ClassExpression Individual ')'"
- [& args](prn (apply extractParams args))
+ [& args]
  (apply fs/classFact (apply extractParams args)))
 
 (defn roleFact 
