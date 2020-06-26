@@ -4,7 +4,7 @@
  (:use [slingshot.slingshot :only [throw+]]))
 
 (def classTypes
- #{:className :class :and :or :not :nominal :existential :universal :partialRole :Self :>=role :<=role :=role :dataExistential :dataUniversal :partialDataRole :>=dataRole :<=dataRole :=dataRole})
+ #{:className :class :and :or :not :nominal :exists :all :partialRole :Self :>=exists :<=exists :=exists :dataExists :dataAll :partialDataRole :>=dataExists :<=dataExists :=dataExists})
 
 (defn- -role
  "ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
@@ -120,29 +120,29 @@
  ([individual](-class (-nominal (into #{} [(co/individual individual)]))))
  ([individual & individuals](-class (-nominal (into #{} (map co/individual (flatten [individual individuals])))))))
 
-(defn- -existential 
+(defn- -exists 
  "ObjectSomeValuesFrom := 'ObjectSomeValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
  [role class]
  (if (= (:type role) :role)
    (if (= (:type class) :class)
-   {:class class :role role :type :existential :innerType :existential}
+   {:class class :role role :type :exists :innerType :exists}
      (throw+ {:type ::notClass :class class}))
  (throw+ {:type ::notRole :role role})))
 
-(defn existential [r c]
- (-class (-existential (role r)(class c))))
+(defn exists [r c]
+ (-class (-exists (role r)(class c))))
 
-(defn- -universal 
+(defn- -all 
  "ObjectAllValuesFrom := 'ObjectAllValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
  [role class]
  (if (= (:type role) :role)
    (if (= (:type class) :class)
-   {:class class :role role :type :universal :innerType :universal}
+   {:class class :role role :type :all :innerType :all}
      (throw+ {:type ::notClass :role role :class class}))
  (throw+ {:type ::notRole :role role})))
 
-(defn universal [r c]
- (-class (-universal (role r)(class c))))
+(defn all [r c]
+ (-class (-all (role r)(class c))))
 
 (defn- -partialRole 
  "ObjectHasValue := 'ObjectHasValue' '(' ObjectPropertyExpression Individual ')'"
@@ -167,161 +167,161 @@
  ([iri](class (-Self (role iri))))
  ([prefix iri namespace](-class (-Self (role prefix iri namespace)))))
 
-(defn- ->=role
+(defn- ->=exists
  "ObjectMinCardinality := 'ObjectMinCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
  ([nat role]
    (if (<= 0 nat)
      (if (= (:type role) :role)
-       {:role role :nat nat :type :>=role :innerType :>=role}
+       {:role role :nat nat :type :>=exists :innerType :>=exists}
        (throw+ {:type ::notRole :role role}))
      (throw+ {:type ::notNaturalNumber :nat nat})))
  ([nat role class]
    (if (<= 0 nat)
      (if (= (:type role) :role)
        (if (= (:type class) :class)
-         {:role role :class class :nat nat :type :>=role :innerType :>=role}
+         {:role role :class class :nat nat :type :>=exists :innerType :>=exists}
          (throw+ {:type ::notClass :class class}))
        (throw+ {:type ::notRole :role role}))
      (throw+ {:type ::notNaturalNumber :nat nat}))))
 
-(defn >=role
- ([nat r](-class (->=role nat (role r))))
- ([nat r c](-class (->=role nat (role r)(class c)))))
+(defn >=exists
+ ([nat r](-class (->=exists nat (role r))))
+ ([nat r c](-class (->=exists nat (role r)(class c)))))
 
-(defn- -<=role
+(defn- -<=exists
  "ObjectMaxCardinality := 'ObjectMaxCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
  ([nat role]
    (if (<= 0 nat)
      (if (= (:type role) :role)
-       {:role role :nat nat :type :<=role :innerType :<=role}
+       {:role role :nat nat :type :<=exists :innerType :<=exists}
        (throw+ {:type ::notRole :role role}))
      (throw+ {:type ::notNaturalNumber :nat nat})))
  ([nat role class]
    (if (<= 0 nat)
      (if (= (:type role) :role)
        (if (= (:type class) :class)
-         {:role role :class class :nat nat :type :<=role :innerType :<=role}
+         {:role role :class class :nat nat :type :<=exists :innerType :<=exists}
          (throw+ {:type ::notClass :class class}))
        (throw+ {:type ::notRole :role role}))
      (throw+ {:type ::notNaturalNumber :nat nat}))))
 
-(defn <=role
- ([nat r](-class (-<=role nat (role r))))
- ([nat r c](-class (-<=role nat (role r)(class c)))))
+(defn <=exists
+ ([nat r](-class (-<=exists nat (role r))))
+ ([nat r c](-class (-<=exists nat (role r)(class c)))))
 
-(defn- -=role
+(defn- -=exists
  "ObjectExactCardinality := 'ObjectExactCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
  ([nat role]
    (if (<= 0 nat)
      (if (= (:type role) :role)
-       {:role role :nat nat :type :=role :innerType :=role}
+       {:role role :nat nat :type :=exists :innerType :=exists}
        (throw+ {:type ::notRole :role role}))
      (throw+ {:type ::notNaturalNumber :nat nat})))
  ([nat role class]
    (if (<= 0 nat)
      (if (= (:type role) :role)
        (if (= (:type class) :class)
-         {:role role :class class :nat nat :type :=role :innerType :=role}
+         {:role role :class class :nat nat :type :=exists :innerType :=exists}
          (throw+ {:type ::notClass :class class}))
        (throw+ {:type ::notRole :role role}))
      (throw+ {:type ::notNaturalNumber :nat nat}))))
 
-(defn =role
- ([nat r](-class (-=role nat (role r))))
- ([nat r c](-class (-=role nat (role r)(class c)))))
+(defn =exists
+ ([nat r](-class (-=exists nat (role r))))
+ ([nat r c](-class (-=exists nat (role r)(class c)))))
 
-(defn- -dataExistential
+(defn- -dataExists
  "DataSomeValuesFrom := 'DataSomeValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
  [dataRoles dataRange]
   (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
    (if (= (:type dataRange) :dataRange)
     (if (= (:arity dataRange) (count dataRoles))
-     {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataExistential :innerType :dataExistential}
+     {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataExists :innerType :dataExists}
      (throw+ {:type ::incorrectArity :dataRange dataRange}))
     (throw+ {:type ::notDataRange :dataRange dataRange}))
    (throw+ {:type ::notDataRoles :role role})))
 
-(defn dataExistential [dataRoles dataRange]
-(-class (-dataExistential (into #{} (if (map? dataRoles) [(dataRole dataRoles)] (map dataRole dataRoles))) (co/dataRange dataRange))))
+(defn dataExists [dataRoles dataRange]
+(-class (-dataExists (into #{} (if (map? dataRoles) [(dataRole dataRoles)] (map dataRole dataRoles))) (co/dataRange dataRange))))
 
-(defn- -dataUniversal 
+(defn- -dataAll 
  "DataAllValuesFrom := 'DataAllValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
  [dataRoles dataRange]
  (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
    (if (= (:type dataRange) :dataRange)
      (if (= (:arity dataRange) (count dataRoles))
-     {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataUniversal :innerType :dataUniversal}
+     {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataAll :innerType :dataAll}
        (throw+ {:type ::incorrectArity :dataRange dataRange}))
      (throw+ {:type ::notDataRange :dataRange dataRange}))
  (throw+ {:type ::notDataRoles :role role})))
 
-(defn dataUniversal [dataRoles dataRange]
- (-class (-dataUniversal (if (map? dataRoles) #{(dataRole dataRoles)} (into #{} (map dataRole dataRoles))) (co/dataRange dataRange))))
+(defn dataAll [dataRoles dataRange]
+ (-class (-dataAll (if (map? dataRoles) #{(dataRole dataRoles)} (into #{} (map dataRole dataRoles))) (co/dataRange dataRange))))
 
-(defn- ->=dataRole
+(defn- ->=dataExists
  "DataMinCardinality := 'DataMinCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
  ([nat dataRole]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
-       {:dataRole dataRole :nat nat :type :>=dataRole :innerType :>=dataRole}
+       {:dataRole dataRole :nat nat :type :>=dataExists :innerType :>=dataExists}
        (throw+ {:type ::notDataRole :dataRole dataRole}))
      (throw+ {:type ::notNaturalNumber :nat nat})))
  ([nat dataRole dataRange]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        (if (= (:type dataRange) :dataRange)
-         {:dataRole dataRole :dataRange dataRange :nat nat :type :>=dataRole :innerType :>=dataRole}
+         {:dataRole dataRole :dataRange dataRange :nat nat :type :>=dataExists :innerType :>=dataExists}
          (throw+ {:type ::notDataRange :dataRange dataRange}))
        (throw+ {:type ::notDataRole :dataRole dataRole}))
      (throw+ {:type ::notNaturalNumber :nat nat}))))
 
-(defn >=dataRole
+(defn >=dataExists
  ([nat dr]
-   (-class (->=dataRole nat (dataRole dr))))
+   (-class (->=dataExists nat (dataRole dr))))
  ([nat dr dataRange]
-   (-class (->=dataRole nat (dataRole dr) (co/dataRange dataRange)))))
+   (-class (->=dataExists nat (dataRole dr) (co/dataRange dataRange)))))
 
-(defn- -<=dataRole
+(defn- -<=dataExists
  "DataMaxCardinality := 'DataMaxCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
  ([nat dataRole]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
-       {:dataRole dataRole :nat nat :type :<=dataRole :innerType :<=dataRole}
+       {:dataRole dataRole :nat nat :type :<=dataExists :innerType :<=dataExists}
        (throw+ {:type ::notDataRole :dataRole dataRole}))
      (throw+ {:type ::notNaturalNumber :nat nat})))
  ([nat dataRole dataRange]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        (if (= (:type dataRange) :dataRange)
-         {:dataRole dataRole :dataRange dataRange :nat nat :type :<=dataRole :innerType :<=dataRole}
+         {:dataRole dataRole :dataRange dataRange :nat nat :type :<=dataExists :innerType :<=dataExists}
          (throw+ {:type ::notDataRange :dataRange dataRange}))
        (throw+ {:type ::notDataRole :dataRole dataRole}))
      (throw+ {:type ::notNaturalNumber :nat nat}))))
 
-(defn <=dataRole
- ([nat dr](-class (-<=dataRole nat (dataRole dr))))
- ([nat dr dataRange](-class (-<=dataRole nat (dataRole dr) (co/dataRange dataRange)))))
+(defn <=dataExists
+ ([nat dr](-class (-<=dataExists nat (dataRole dr))))
+ ([nat dr dataRange](-class (-<=dataExists nat (dataRole dr) (co/dataRange dataRange)))))
 
-(defn- -=dataRole
+(defn- -=dataExists
  "DataExactCardinality := 'DataExactCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
  ([nat dataRole]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
-       {:dataRole dataRole :nat nat :type :=dataRole :innerType :=dataRole}
+       {:dataRole dataRole :nat nat :type :=dataExists :innerType :=dataExists}
        (throw+ {:type ::notDataRole :dataRole dataRole}))
      (throw+ {:type ::notNaturalNumber :nat nat})))
  ([nat dataRole dataRange]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        (if (= (:type dataRange) :dataRange)
-         {:dataRole dataRole :dataRange dataRange :nat nat :type :=dataRole :innerType :=dataRole}
+         {:dataRole dataRole :dataRange dataRange :nat nat :type :=dataExists :innerType :=dataExists}
          (throw+ {:type ::notDataRange :dataRange dataRange}))
        (throw+ {:type ::notDataRole :dataRole dataRole}))
      (throw+ {:type ::notNaturalNumber :nat nat}))))
 
-(defn =dataRole
- ([nat dr](-class (-=dataRole nat (dataRole dr))))
- ([nat dr dataRange](-class (-=dataRole nat (dataRole dr) (co/dataRange dataRange)))))
+(defn =dataExists
+ ([nat dr](-class (-=dataExists nat (dataRole dr))))
+ ([nat dr dataRange](-class (-=dataExists nat (dataRole dr) (co/dataRange dataRange)))))
 
 (defn- -partialDataRole 
  "DataHasValue := 'DataHasValue' '(' DataPropertyExpression Literal ')'"

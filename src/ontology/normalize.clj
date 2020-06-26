@@ -12,24 +12,24 @@
   (constantly :or))
 (def -and
   (constantly :and))
-(def universal
-  (constantly :universal))
-(def existential
-  (constantly :existential))
-(def <=role
-  (constantly :<=role))
-(def >=role
-  (constantly :>=role))
-(def dataUniversal
-  (constantly :dataUniversal))
-(def dataExistential
-  (constantly :dataExistential))
-(def <=dataRole
-  (constantly :<=dataRole))
-(def >=dataRole
-  (constantly :>=dataRole))
+(def all
+  (constantly :all))
+(def exists
+  (constantly :exists))
+(def <=exists
+  (constantly :<=exists))
+(def >=exists
+  (constantly :>=exists))
+(def dataAll
+  (constantly :dataAll))
+(def dataExists
+  (constantly :dataExists))
+(def <=dataExists
+  (constantly :<=dataExists))
+(def >=dataExists
+  (constantly :>=dataExists))
 (def atomics
-  #{:className :>=dataRole :<=dataRole :dataExistential :dataUniversal :Self :nominal :partialRole :partialDataRole})
+  #{:className :>=dataExists :<=dataExists :dataExists :dataAll :Self :nominal :partialRole :partialDataRole})
 
 (defn negate
   "same as not, but doesn't make double negations"
@@ -65,26 +65,26 @@
   :partialDataRole class
   :and (update (update (:class class) :classes (constantlyMapToClassSet (notFun fun) (:classes (:class class)))) :innerType -or)
   :or (update (update (:class class) :classes (constantlyMapToClassSet (notFun fun) (:classes (:class class)))) :innerType -and)
-  :existential (update (update (:class class) :class (notFun fun)) :innerType universal)
-  :universal (update (update (:class class) :class (notFun fun)) :innerType existential)
-  :<=role (update (update (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class)) :nat inc) :innerType >=role)
-  :dataExistential (update (update (:class class) :dataRange co/dataNot) :innerType dataUniversal)
-  :dataUniversal (update (update (:class class) :dataRange co/dataNot) :innerType dataExistential)
-  :<=dataRole (update (update (:class class) :nat inc) :innerType >=dataRole)
-  :=dataRole (ex/and (update (if (> (:nat (:class class)) 0) (:class class) (update (:class class) :nat one)) :innerType >=dataRole)
-                       (update (if (> (:nat (:class class)) 0) (:class class) (update (:class class) :nat zero)) :innerType <=dataRole))
-   :>=dataRole (if (> (:nat (:class class)) 0)
-                   (update (update (:class class) :nat dec) :innerType <=dataRole)
-                   (ex/and (update (update (:class class) :nat zero) :innerType <=dataRole)
-                           (update (:class class) :nat one)))
-  :>=role (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
+  :exists (update (update (:class class) :class (notFun fun)) :innerType all)
+  :all (update (update (:class class) :class (notFun fun)) :innerType exists)
+  :<=exists (update (update (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class)) :nat inc) :innerType >=exists)
+  :dataExists (update (update (:class class) :dataRange co/dataNot) :innerType dataAll)
+  :dataAll (update (update (:class class) :dataRange co/dataNot) :innerType dataExists)
+  :<=dataExists (update (update (:class class) :nat inc) :innerType >=dataExists)
+  :=dataExists (ex/or (update (update (:class class) :nat (if (> (:nat (:class class)) 0) inc one)) :innerType >=dataExists)
+                    (update (update (:class class) :nat (if (> (:nat (:class class)) 0) dec zero)) :innerType <=dataExists))
+  :>=dataExists (if (> (:nat (:class class)) 0)
+                  (update (update (:class class) :nat dec) :innerType <=dataExists)
+                  (ex/and (update (update (:class class) :nat zero) :innerType <=dataExists)
+                          (update (:class class) :nat one)))
+  :>=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
              (if (> (:nat class) 0)
-               (update (update class :nat dec) :innerType <=role)
-               (ex/and (update (update class :nat zero) :innerType <=role)
+               (update (update class :nat dec) :innerType <=exists)
+               (ex/and (update (update class :nat zero) :innerType <=exists)
                        (update class :nat one))))
-   :=role (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
-              (ex/and (update (if (> (:nat class) 0) class (update class :nat one)) :innerType >=role)
-                 (update (if (> (:nat class) 0) class (update class :nat zero)) :innerType <=role)))
+   :=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
+               (ex/or (update  (update class :nat (if (> (:nat class) 0) inc one)) :innerType >=exists)
+                      (update  (update class :nat (if (> (:nat class) 0) dec zero)) :innerType <=exists)))
   (throw+ {:type ::notNormalizable :class class})))
 
 (defn getClassNNF 
@@ -95,20 +95,20 @@
   :Self class
   :nominal class
   :partialRole class
-  :dataExistential class
-  :dataUniversal class
-  :>=dataRole class
-  :<=dataRole class
+  :dataExists class
+  :dataAll class
+  :>=dataExists class
+  :<=dataExists class
   :partialDataRole class
-  :universal (if (:class class) (checkInnerClass class getClassNNF) class)
-  :existential (if (:class class) (checkInnerClass class getClassNNF) class)
-  :>=role (if (:class class) (checkInnerClass class getClassNNF) class)
-  :<=role (if (:class class) (checkInnerClass class getClassNNF) class)
+  :all (if (:class class) (checkInnerClass class getClassNNF) class)
+  :exists (if (:class class) (checkInnerClass class getClassNNF) class)
+  :>=exists (if (:class class) (checkInnerClass class getClassNNF) class)
+  :<=exists (if (:class class) (checkInnerClass class getClassNNF) class)
   :or (update class :classes (constantlyMapToClassSet getClassNNF (:classes class)))
   :and (update class :classes (constantlyMapToClassSet getClassNNF (:classes class)))
-  :=dataRole (ex/and (update class :innerType >=dataRole)(update class :innerType <=dataRole))
-  :=role (let [class (if (:class class) (update class :class getClassNNF) class)]
-              (ex/and (update class :innerType >=role) (update class :innerType <=role)))
+  :=dataExists (ex/and (update class :innerType >=dataExists)(update class :innerType <=dataExists))
+  :=exists (let [class (if (:class class) (update class :class getClassNNF) class)]
+              (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
   :not (if (= :not (:innerType (:class class)))
         (getClassNNF (:class (:class class)))
         (deMorgan class getClassNNF))
@@ -168,20 +168,20 @@
   :bot class
   :nominal class
   :partialRole class
-  :dataExistential class
-  :dataUniversal class
-  :>=dataRole class
-  :<=dataRole class
+  :dataExists class
+  :dataAll class
+  :>=dataExists class
+  :<=dataExists class
   :partialDataRole class
-  :universal (if (:class class) (checkInnerClass class getClassDSNF) class)
-  :existential (if (:class class) (checkInnerClass class getClassDSNF) class)
-  :>=role (if (:class class) (checkInnerClass class getClassDSNF) class)
-  :<=role (if (:class class) (checkInnerClass class getClassDSNF) class)
+  :all (if (:class class) (checkInnerClass class getClassDSNF) class)
+  :exists (if (:class class) (checkInnerClass class getClassDSNF) class)
+  :>=exists (if (:class class) (checkInnerClass class getClassDSNF) class)
+  :<=exists (if (:class class) (checkInnerClass class getClassDSNF) class)
   :or (update class :classes (constantlyMapToClassSet getClassDSNF (:classes class)))
   :and (negate (update (update class :classes (constantlyMapToClassSet (notFun getClassDSNF) (:classes class))) :innerType -or))
-  :=dataRole (negate (ex/or (negate (update class :innerType >=dataRole))(negate (update class :innerType <=dataRole))))
-  :=role (let [class (if (:class class) (update class :class getClassDSNF) class)]
-          (negate (ex/or (update class :innerType >=role) (update class :innerType <=role))))
+  :=dataExists (negate (ex/or (negate (update class :innerType >=dataExists))(negate (update class :innerType <=dataExists))))
+  :=exists (let [class (if (:class class) (update class :class getClassDSNF) class)]
+          (negate (ex/or (update class :innerType >=exists) (update class :innerType <=exists))))
   :not (case (:innerType (:class class))
         :not (getClassDSNF (:class (:class class)))
         :or (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassDSNF (:classes (:class class))))))
@@ -209,23 +209,25 @@
   :Self class
   :nominal class
   :partialRole class
-  :dataExistential class
-  :dataUniversal class
-  :>=dataRole class
-  :<=dataRole class
+  :dataExists class
+  :dataAll class
+  :>=dataExists class
+  :<=dataExists class
   :partialDataRole class
-  :universal (if (:class class) (checkInnerClass class getClassCSNF) class)
-  :existential (if (:class class) (checkInnerClass class getClassCSNF) class)
-  :>=role (if (:class class) (checkInnerClass class getClassCSNF) class)
-  :<=role (if (:class class) (checkInnerClass class getClassCSNF) class)
+  :all (if (:class class) (checkInnerClass class getClassCSNF) class)
+  :exists (if (:class class) (checkInnerClass class getClassCSNF) class)
+  :>=exists (if (:class class) (checkInnerClass class getClassCSNF) class)
+  :<=exists (if (:class class) (checkInnerClass class getClassCSNF) class)
   :or (negate (update (update class :classes (constantlyMapToClassSet (notFun getClassCSNF) (:classes class))) :innerType -and))
   :and (update class :classes (constantlyMapToClassSet getClassCSNF (:classes class)))
-  :=dataRole (ex/and (update class :innerType >=dataRole)(update class :innerType <=dataRole))
-  :=role (let [class (if (:class class) (update class :class getClassCSNF) class)]
-          (ex/and (update class :innerType >=role) (update class :innerType <=role)))
+  :=dataExists (ex/and (update class :innerType >=dataExists)(update class :innerType <=dataExists))
+  :=exists (let [class (if (:class class) (update class :class getClassCSNF) class)]
+          (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
   :not (case (:innerType (:class class))
         :not (getClassCSNF (:class (:class class)))
         :and (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassCSNF (:classes (:class class))))))
+        :=exists (let [_ (prn class) class (deMorgan class getClassCSNF) _ (prn (ex/not (update class  :innerType -and)))] class)
+        :=dataExists (let [_ (prn class) class (deMorgan class getClassCSNF) _ (prn class)] class)
         (deMorgan class getClassCSNF))
   (throw+ {:type ::notNormalizable :class class})))
 

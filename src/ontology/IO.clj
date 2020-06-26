@@ -864,15 +864,15 @@
  ([individual](ex/nominal individual))
  ([individual & individuals](ex/nominal individual individuals)))
 
-(defn existential 
+(defn exists 
  "ObjectSomeValuesFrom := 'ObjectSomeValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
  [role class]
- (ex/existential role class))
+ (ex/exists role class))
 
-(defn universal 
+(defn all 
  "ObjectAllValuesFrom := 'ObjectAllValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
  [role class]
- (ex/universal role class))
+ (ex/all role class))
 
 (defn partialRole 
  "ObjectHasValue := 'ObjectHasValue' '(' ObjectPropertyExpression Individual ')'"
@@ -885,45 +885,45 @@
  ([prefix name](ex/Self prefix name))
  ([prefix name namespace](ex/Self prefix name namespace)))
 
-(defn >=role
+(defn >=exists
  "ObjectMinCardinality := 'ObjectMinCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
- ([naturalNumber role](ex/>=role naturalNumber role))
- ([naturalNumber role class](ex/>=role naturalNumber role class)))
+ ([naturalNumber role](ex/>=exists naturalNumber role))
+ ([naturalNumber role class](ex/>=exists naturalNumber role class)))
 
-(defn <=role
+(defn <=exists
  "ObjectMaxCardinality := 'ObjectMaxCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
- ([naturalNumber role](ex/<=role naturalNumber role))
- ([naturalNumber role class](ex/<=role naturalNumber role class)))
+ ([naturalNumber role](ex/<=exists naturalNumber role))
+ ([naturalNumber role class](ex/<=exists naturalNumber role class)))
 
-(defn =role
+(defn =exists
  "ObjectExactCardinality := 'ObjectExactCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
- ([naturalNumber r](ex/=role naturalNumber r))
- ([naturalNumber r c](ex/=role naturalNumber r c)))
+ ([naturalNumber r](ex/=exists naturalNumber r))
+ ([naturalNumber r c](ex/=exists naturalNumber r c)))
 
-(defn dataExistential
+(defn dataExists
  "DataSomeValuesFrom := 'DataSomeValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
  [dataRoles dataRange]
- (ex/dataExistential dataRoles dataRange))
+ (ex/dataExists dataRoles dataRange))
 
-(defn dataUniversal 
+(defn dataAll 
  "DataAllValuesFrom := 'DataAllValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
  [dataRoles dataRange]
- (ex/dataUniversal dataRoles dataRange))
+ (ex/dataAll dataRoles dataRange))
 
-(defn >=dataRole
+(defn >=dataExists
  "DataMinCardinality := 'DataMinCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
- ([naturalNumber dataRole](ex/>=dataRole naturalNumber dataRole))
- ([naturalNumber dataRole dataRange](ex/>=dataRole naturalNumber dataRole dataRange)))
+ ([naturalNumber dataRole](ex/>=dataExists naturalNumber dataRole))
+ ([naturalNumber dataRole dataRange](ex/>=dataExists naturalNumber dataRole dataRange)))
 
-(defn <=dataRole
+(defn <=dataExists
  "DataMaxCardinality := 'DataMaxCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
- ([naturalNumber dataRole](ex/<=dataRole naturalNumber dataRole))
- ([naturalNumber dataRole dataRange](ex/<=dataRole naturalNumber dataRole dataRange)))
+ ([naturalNumber dataRole](ex/<=dataExists naturalNumber dataRole))
+ ([naturalNumber dataRole dataRange](ex/<=dataExists naturalNumber dataRole dataRange)))
 
-(defn =dataRole
+(defn =dataExists
  "DataExactCardinality := 'DataExactCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
- ([naturalNumber dataRole](ex/=dataRole naturalNumber dataRole))
- ([naturalNumber dataRole dataRange](ex/=dataRole naturalNumber dataRole dataRange)))
+ ([naturalNumber dataRole](ex/=dataExists naturalNumber dataRole))
+ ([naturalNumber dataRole dataRange](ex/=dataExists naturalNumber dataRole dataRange)))
 
 (defn partialDataRole 
  "DataHasValue := 'DataHasValue' '(' DataPropertyExpression Literal ')'"
@@ -969,7 +969,7 @@
   (:iri iri)))
 
 (defn- noPrefixes [iri]
- (case (:prefix iri)
+ (case (:short iri)
   "Thing" "⊤"
   "Nothing" "⊥"
   "topObjectProperty" "U"
@@ -1037,20 +1037,20 @@
 
   ;data roles ⊑ ⊓ ⊔ ∃ ∀ ∘ ≡ ≤ ≥ ⊤ ⊥ U ∅ ¬
   :partialDataRole (str "∃" (toDLString (:dataRole thing)) "[" (:value (:literal thing)) "]")
-  :=dataRole (str "=" (:nat thing) (toDLString (:dataRole thing)) ".[" (toDLString (:dataRange thing)) "]")
-  :<=dataRole (str "≤" (:nat thing) (toDLString (:dataRole thing)) ".["  (toDLString (:dataRange thing)) "]")
-  :>=dataRole (str "≥" (:nat thing) (toDLString (:dataRole thing)) ".[" (toDLString (:dataRange thing)) "]")
-  :dataExistential (str "∃" (str/join " " (map (fn [x] (toDLString x)) (:dataRoles thing))) ".[" (toDLString (:dataRange thing)) "]")
-  :dataUniversal (str "∀" (str/join " " (map (fn [x] (toDLString x)) (:dataRoles thing))) ".[" (toDLString (:dataRange thing)) "]")
+  :=dataExists (str "=" (:nat thing) (toDLString (:dataRole thing)) ".[" (toDLString (:dataRange thing)) "]")
+  :<=dataExists (str "≤" (:nat thing) (toDLString (:dataRole thing)) ".["  (toDLString (:dataRange thing)) "]")
+  :>=dataExists (str "≥" (:nat thing) (toDLString (:dataRole thing)) ".[" (toDLString (:dataRange thing)) "]")
+  :dataExists (str "∃" (str/join " " (map (fn [x] (toDLString x)) (:dataRoles thing))) ".[" (toDLString (:dataRange thing)) "]")
+  :dataAll (str "∀" (str/join " " (map (fn [x] (toDLString x)) (:dataRoles thing))) ".[" (toDLString (:dataRange thing)) "]")
 
   ;roles
   :roleChain (str/join " ∘ " (map (fn [x] (toDLString x)) (:roles thing)))
   :partialRole (str "∃" (toDLString (:role thing)) "{" (:short (:individual thing)) "}")
-  :=role (str "=" (:nat thing) (toDLString (:role thing)) (str "."  (if (:class thing) (toDLString (:class thing)) "⊤")))
-  :<=role (str "≤" (:nat thing) (toDLString (:role thing))  (str "." (if (:class thing) (toDLString (:class thing)) "⊤")))
-  :>=role (str "≥" (:nat thing) (toDLString (:role thing))  (str "."  (if (:class thing) (toDLString (:class thing)) "⊤")))
-  :existential (str "∃" (toDLString (:role thing)) "." (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))))
-  :universal (str "∀" (toDLString (:role thing)) "." (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))))
+  :=exists (str "=" (:nat thing) (toDLString (:role thing)) (str "."  (if (:class thing) (toDLString (:class thing)) "⊤")))
+  :<=exists (str "≤" (:nat thing) (toDLString (:role thing))  (str "." (if (:class thing) (toDLString (:class thing)) "⊤")))
+  :>=exists (str "≥" (:nat thing) (toDLString (:role thing))  (str "."  (if (:class thing) (toDLString (:class thing)) "⊤")))
+  :exists (str "∃" (toDLString (:role thing)) "." (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))))
+  :all (str "∀" (toDLString (:role thing)) "." (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))))
 
   ;classes
   :not (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "¬(" (toDLString (:class thing)) ")")(str "¬" (toDLString (:class thing))))
@@ -1159,20 +1159,20 @@
 
   ;data roles
   :partialDataRole (str "DataHasValue(" (toString (:dataRole thing)) " " (:value (:literal thing)) ")")
-  :=dataRole (str "DataExactCardinality(" (:nat thing) " " (toString (:dataRole thing)) (if (:dataRange thing) (str " " (toString (:dataRange thing)))) ")")
-  :<=dataRole (str "DataMaxCardinality(" (:nat thing) " " (toString (:dataRole thing) ) (if (:dataRange thing) (str " " (toString (:dataRange thing))))")")
-  :>=dataRole (str "DataMinCardinality(" (:nat thing) " " (toString (:dataRole thing) ) (if (:dataRange thing) (str " " (toString (:dataRange thing))))")")
-  :dataExistential (str "DataSomeValuesFrom(" (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) " " (toString (:dataRange thing) ) ")")
-  :dataUniversal (str "DataAllValuesFrom(" (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) " " (toString (:dataRange thing) ) ")")
+  :=dataExists (str "DataExactCardinality(" (:nat thing) " " (toString (:dataRole thing)) (if (:dataRange thing) (str " " (toString (:dataRange thing)))) ")")
+  :<=dataExists (str "DataMaxCardinality(" (:nat thing) " " (toString (:dataRole thing) ) (if (:dataRange thing) (str " " (toString (:dataRange thing))))")")
+  :>=dataExists (str "DataMinCardinality(" (:nat thing) " " (toString (:dataRole thing) ) (if (:dataRange thing) (str " " (toString (:dataRange thing))))")")
+  :dataExists (str "DataSomeValuesFrom(" (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) " " (toString (:dataRange thing) ) ")")
+  :dataAll (str "DataAllValuesFrom(" (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) " " (toString (:dataRange thing) ) ")")
 
   ;roles
   :roleChain (str "ObjectPropertyChain(" (str/join " " (map (fn [x] (toString x )) (:roles thing))) ")")
   :partialRole (str "ObjectHasValue(" (toString (:role thing) ) " " (toString (:individual thing)) ")")
-  :=role (str "ObjectExactCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
-  :<=role (str "ObjectMaxCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
-  :>=role (str "ObjectMinCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
-  :existential (str "ObjectSomeValuesFrom(" (toString (:role thing) ) " " (toString (:class thing) ) ")")
-  :universal (str "ObjectAllValuesFrom(" (toString (:role thing) ) " " (toString (:class thing) ) ")")
+  :=exists (str "ObjectExactCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
+  :<=exists (str "ObjectMaxCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
+  :>=exists (str "ObjectMinCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
+  :exists (str "ObjectSomeValuesFrom(" (toString (:role thing) ) " " (toString (:class thing) ) ")")
+  :all (str "ObjectAllValuesFrom(" (toString (:role thing) ) " " (toString (:class thing) ) ")")
 
   ;classes
   :not (str "ObjectComplementOf(" (toString (:class thing) ) ")")
@@ -1264,17 +1264,17 @@
   "ObjectUnionOf" -or
   "ObjectComplementOf" -not
   "ObjectOneOf" nominal
-  "ObjectSomeValuesFrom" existential
-  "ObjectAllValuesFrom" universal
+  "ObjectSomeValuesFrom" exists
+  "ObjectAllValuesFrom" all
   "ObjectHasValue" partialRole
   "ObjectHasSelf" Self
-  "ObjectMinCardinality" >=role
-  "ObjectMaxCardinality" <=role
-  "ObjectExactCardinality" =role
-  "DataSomeValuesFrom" dataExistential
-  "DataAllValuesFrom" dataUniversal
-  "DataMinCardinality" >=dataRole
-  "DataExactCardinality" =dataRole
+  "ObjectMinCardinality" >=exists
+  "ObjectMaxCardinality" <=exists
+  "ObjectExactCardinality" =exists
+  "DataSomeValuesFrom" dataExists
+  "DataAllValuesFrom" dataAll
+  "DataMinCardinality" >=dataExists
+  "DataExactCardinality" =dataExists
   "SubClassOf" classImplication
   "EquivalentClasses" =Classes
   "DisjointUnion" disjOr
@@ -1302,7 +1302,7 @@
   "AnnotationPropertyDomain" annotationDomain
   "AnnotationPropertyRange" annotationRange
   "DataHasValue" ex/partialDataRole
-  "DataMaxCardinality" ex/<=dataRole
+  "DataMaxCardinality" ex/<=dataExists
   "ObjectPropertyChain" roleChain
   "SubAnnotationPropertyOf" annotationImplication
   "SameIndividual" =individuals
