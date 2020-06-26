@@ -253,6 +253,27 @@
 (defn- updateOntologyComponents [ontology updateThis? updateFunction]
  (walk/postwalk (fn [v] (if (updateThis? v) (updateFunction v) v)) ontology))
 
+(defn- updateForDroppedPrefix
+ [ontology prefix]
+ (updateOntologyComponents 
+  ontology 
+  #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
+        (or (and (:iri %) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix prefix) "\\S+")) (:iri %))))
+            (and (= (:prefix %) (:prefix prefix)))))
+  #(dissoc (assoc % :iri (get (re-matches (re-pattern (str (subs (:iri prefix) 0 (- (count (:iri prefix)) 1)) "(\\S+)>")) (:iri %)) 1)) :namespace :prefix :short)))
+
+(defn- updateForAddedPrefix
+ [thing prefix]
+ (updateOntologyComponents 
+  thing 
+  #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
+         (or (and (:iri %) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix prefix) "\\S+")) (:iri %))))
+             (and (= (:prefix %) (:prefix prefix)))))
+  #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix prefix) "(\\S+)")) (:iri %)) 1))
+         pre (if (:prefix %) (:prefix %) (:prefix prefix))
+         namespace (subs (:iri prefix) 1 (- (count (:iri prefix)) 1))]
+  (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short))))
+
 (defn dropAxiom 
  "Drops the axiom from the ontology"
  [ontology axiom]
@@ -269,11 +290,7 @@
  (let [num (count (:prefixes ontology))
        ontology (updateOntology ontology prefix (comp constantly disj) :prefixes)]
  (if (< (count (:prefixes ontology)) num)
-  (updateOntologyComponents 
-   ontology 
-   #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
-       (and (= (:prefix %) (:prefix prefix))))
-   #(assoc (dissoc % :namespace :prefix :short) :iri (get (re-matches (re-pattern (str (subs (:iri prefix) 0 (- (count (:iri prefix)) 1)) "(\\S+)>")) (:iri %)) 1)))
+  (updateForDroppedPrefix ontology prefix)
   ontology)))
 
 (defn dropPrefixes 
@@ -313,16 +330,7 @@
     (empty? prefixes)  
      (updateOntology ontology axiom (comp constantly conj) :axioms)
     (not (empty? (keep #(if (or (= (:prefix %) (:prefix (first prefixes)))(not (:prefix %))) %) names)))
-     (recur (updateOntologyComponents 
-             axiom 
-              #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
-                    (or (and (:iri %) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix (first prefixes)) "\\S+")) (:iri %))))
-                        (and (= (:prefix %) (:prefix (first prefixes))))))
-             #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix (first prefixes)) "(\\S+)")) (:iri %)) 1))
-                    pre (if (:prefix %) (:prefix %) (:prefix (first prefixes)))
-                    namespace (subs (:iri (first prefixes)) 1 (- (count (:iri (first prefixes))) 1))]
-             (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short)))
-     (rest prefixes) ontology)
+     (recur (updateForAddedPrefix axiom (first prefixes)) (rest prefixes) ontology)
     :else 
      (recur axiom (rest prefixes) ontology))))
   (updateOntology ontology axiom (comp constantly conj) :axioms)))
@@ -334,15 +342,7 @@
 
 (defn- -addPrefix
  [ontology prefix]
- (updateOntologyComponents
-  (updateOntology ontology prefix (comp constantly conj) :prefixes) 
-  #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
-        (or (and (:iri %) (not (:prefix %)) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix prefix) "\\S+")) (:iri %))))
-            (and (= (:prefix %) (:prefix prefix)))))
-  #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix prefix) "(\\S+)")) (:iri %)) 1))
-         pre (if (:prefix %) (:prefix %) (:prefix prefix))
-         namespace (subs (:iri prefix) 1 (- (count (:iri prefix)) 1))]
-   (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short))))
+ (updateForAddedPrefix (updateOntology ontology prefix (comp constantly conj) :prefixes) prefix))
 
 (defn addPrefix 
  "Adds a prefix to an ontology. If it is already in use it is overwritten. Any IRIs in the ontology that have this prefix are adjusted."
@@ -352,7 +352,7 @@
   (empty? prefixes)  
    (-addPrefix ontology prefix)
   (= (:prefix (first prefixes)) (:prefix prefix))
-   (-addPrefix (dropPrefix ontology (first prefixes)) prefix)
+   (-addPrefix (updateOntology ontology (first prefixes) (comp constantly disj) :prefixes) prefix)
   :else 
    (recur (rest prefixes)))))
 
@@ -375,24 +375,15 @@
  "Adds an annotation to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
  [ontology annotation]
  (if (:prefixes ontology)
-  (let [names (getClassNames annotation)]
+  (let [names (getNames annotation)]
    (loop [annotation annotation
           prefixes (:prefixes ontology)
           ontology ontology]
    (cond 
-    (empty? prefixes)  
-     (update ontology :annotations conj annotation)
+    (empty? prefixes)
+     (updateOntology ontology annotation (comp constantly conj) :annotations)
     (not (empty? (keep #(if (or (= (:prefix %) (:prefix (first prefixes)))(not (:prefix %))) %) names)))
-     (recur (updateOntologyComponents 
-             annotation 
-              #(and (not (or (= (:type %) :prefix)(= (:type %) :import)(= (:type %) :ontologyIRI)(= (:type %) :versionIRI)))
-                    (or (and (:iri %) (not (:namespace %)) (some? (re-matches (re-pattern (str (:prefix (first prefixes)) "\\S+")) (:iri %))))
-                        (and (= (:prefix %) (:prefix (first prefixes))))))
-             #(let [short (if (:short %) (:short %) (get (re-matches (re-pattern (str (:prefix (first prefixes)) "(\\S+)")) (:iri %)) 1))
-                    pre (if (:prefix %) (:prefix %) (:prefix (first prefixes)))
-                    namespace (subs (:iri (first prefixes)) 1 (- (count (:iri (first prefixes))) 1))]
-              (assoc % :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short)))
-     (rest prefixes) ontology)
+     (recur (updateForAddedPrefix annotation (first prefixes)) (rest prefixes) ontology)
     :else 
      (recur annotation (rest prefixes) ontology))))
   (updateOntology ontology annotation (comp constantly conj) :annotations)))
@@ -1199,7 +1190,7 @@
   :nominal (str "ObjectOneOf("(str/join " " (map (fn [x] (toString x)) (:individuals thing))) ")")
 
   ;annotation
-  :annotation (str "Annotation(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:annotationRole thing) ) " "  (toString (:annotationValue thing) ) ")")
+  :annotation (str "Annotation(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:annotationRole thing)) " "  (toString (:annotationValue thing) ) ")")
   :axiomAnnotations (str (str/join " " (map (fn [x] (toString x )) (:annotations thing))) " ")
   :metaAnnotations (str (str/join " " (map (fn [x] (toString x )) (:annotations thing))) " ")
   :annotationFact (str "AnnotationAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:annotationRole thing)) " " (toString (:annotationSubject thing)) " "  (toString (:annotationValue thing)) ")")

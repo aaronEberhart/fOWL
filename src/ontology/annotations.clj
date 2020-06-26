@@ -8,10 +8,11 @@
 (defn annotationRole
  "AnnotationProperty := IRI"
  ([iri]
+ (if (string? iri)
+      {:reserved (co/isReservedIRI? iri) :iri iri :type :annotationRole :innerType :annotationRole}
     (if (:iri iri)
      (assoc iri :type :annotationRole :innerType :annotationRole)
-     (if (string? iri)
-      {:reserved (co/isReservedIRI? iri) :iri iri :type :annotationRole :innerType :annotationRole}
+     
       (throw+ {:type ::notStringIRI :iri iri}))))
  ([prefix iri]
    (if (and (string? iri)(string? prefix))

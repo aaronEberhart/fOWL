@@ -29,11 +29,11 @@ main=> (doseq [x [(classImplication (exists "r" "a") "b")
                   (getNNF (classImplication (<=exists 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g"))))))
                   ;Use let to store some values and write a file
                   (let [ont emptyOntologyFile
-                        ont (setOntologyIRI ont "<http://www.test.stuff>")
+                        ont (setOntologyIRI ont "http://www.test.stuff")
                         ont (addAnnotations ont (annotation "annotations" "are fun"))
-                        ont (addPrefixes ont (prefix "" "<http://www.test.stuff/>")
-                                             (prefix "" "<http://www.overwriting.test.stuff/>")
-                                             (prefix "prefix" "<http://www.prefix.stuff/>")) 
+                        ont (addPrefixes ont (prefix "" "http://www.test.stuff/")
+                                             (prefix "" "http://www.overwriting.test.stuff/")
+                                             (prefix "prefix" <http://www.prefix.stuff/")) 
                         ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))
                                            (classImplication (IRI "prefix" "b" "http://www.hasNamespace.but/overwrittenBy/prefix#") "c")
                                            (classImplication "d" "a"))]
@@ -53,11 +53,11 @@ nil
 
 ;use threading to accomplish the same task as the let expression
 main=> (-> emptyOntologyFile
-          (setOntologyIRI "<http://www.test.stuff>")
+          (setOntologyIRI "http://www.test.stuff")
           (addAnnotations (annotation "annotations" "are fun"))
-          (addPrefixes (prefix "" "<http://www.test.stuff/>")
-                       (prefix "" "<http://www.overwriting.test/stuff#>")
-                       (prefix "prefix" "<http://www.prefix.stuff/>"))
+          (addPrefixes (prefix "" "http://www.test.stuff/")
+                       (prefix "" "http://www.overwriting.test/stuff#")
+                       (prefix "prefix" "http://www.prefix.stuff/"))
           (addAxioms (classImplication "a" (IRI "prefix" "b"))
                      (classImplication (IRI "prefix" "b" "http://www.hasNamespace.but/overwrittenBy/prefix#") "c")
                      (classImplication "d" "a"))
