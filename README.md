@@ -1,8 +1,8 @@
 # FOWL
-FIXME: Make good description
+FOWL is a minimalistic functional programming style ontology editor. Ontologies in FOWL are implemented as standalone data structures with internalized types (nested maps containing values and sets of maps \[vectors for role chains\]). FOWL's homogenous Ontology data structure means that functions for single axioms or expressions will often work identically on an entire ontology. The lazy functional style of Clojure also allows for intuitive and simple Ontology modification with a minimal memory footprint.
 
 ## Usage
-This program requires [Leiningen](https://leiningen.org/). If you want to load your own ontology the program can read and write Functional Syntax OWL files, more formats are planned in the future.
+This program was built with [Leiningen](https://leiningen.org/). If you want to load your own ontology the program can read and write Functional Syntax OWL files, more formats are planned in the future.
 
 To run a program, simply type code in main, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of OWL functions currently available in main can be seen by entering `(dir ontology.IO)`, and `(doc function_name)` will show more detail about each function.
 
