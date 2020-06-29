@@ -25,14 +25,12 @@ main=> (doseq [x [(classImplication (exists "r" "a") "b")
                   (roleFact (inverseRole "s") "i" "j")
                   (classFact "a" "i")
                   (dataRoleFact "d" "i" (stringLiteral "l"))
-                  (classImplication 
-                   (<=exists 4 "r" "c") 
-                   (-not (-or (-and "d" "e") 
-                              (-not (-and "f" "g")))))
-                  (getNNF (classImplication 
-                           (<=exists 4 "r" "c")
-                           (-not (-or (-and "d" "e")
-                                      (-not (-and "f" "g"))))))
+                  (classImplication (<=exists 4 "r" "c") 
+                                    (-not (-or (-and "d" "e") 
+                                          (-not (-and "f" "g")))))
+                  (getNNF (classImplication (<=exists 4 "r" "c") 
+                                            (-not (-or (-and "d" "e") 
+                                                  (-not (-and "f" "g"))))))
                   
                   ;Use let to store some values and write a file
                   (let [ont emptyOntologyFile
