@@ -25,8 +25,14 @@ main=> (doseq [x [(classImplication (exists "r" "a") "b")
                   (roleFact (inverseRole "s") "i" "j")
                   (classFact "a" "i")
                   (dataRoleFact "d" "i" (stringLiteral "l"))
-                  (classImplication (<=exists 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g")))))
-                  (getNNF (classImplication (<=exists 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g"))))))
+                  (classImplication 
+                   (<=exists 4 "r" "c") 
+                   (-not (-or (-and "d" "e") 
+                              (-not (-and "f" "g")))))
+                  (getNNF (classImplication 
+                           (<=exists 4 "r" "c")
+                           (-not (-or (-and "d" "e")
+                                      (-not (-and "f" "g"))))))
                   
                   ;Use let to store some values and write a file
                   (let [ont emptyOntologyFile
@@ -36,7 +42,9 @@ main=> (doseq [x [(classImplication (exists "r" "a") "b")
                                              (prefix "" "http://www.overwriting.test.stuff/")
                                              (prefix "prefix" "http://www.prefix.stuff/")) 
                         ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))
-                                           (classImplication (IRI "prefix" "b" "http://www.hasNamespace.but/overwrittenBy/prefix#") "c")
+                                           (classImplication 
+                                            (IRI "prefix" "b" "http://existing.prefix.overwrites/this#")
+                                            "c")
                                            (classImplication "d" "a"))]
                   (makeOWLFile ont "test.owl"))]]
        (println x))
@@ -60,7 +68,9 @@ main=> (-> emptyOntologyFile
                        (prefix "" "http://www.overwriting.test/stuff#")
                        (prefix "prefix" "http://www.prefix.stuff/"))
           (addAxioms (classImplication "a" (IRI "prefix" "b"))
-                     (classImplication (IRI "prefix" "b" "http://www.hasNamespace.but/overwrittenBy/prefix#") "c")
+                     (classImplication 
+                      (IRI "prefix" "b" "http://existing.prefix.overwrites/this#")
+                      "c")
                      (classImplication "d" "a"))
           (makeOWLFile "test.owl")
           println)
