@@ -5,9 +5,9 @@
 (def axiomTypes
   #{:declaration :classAxiom :roleAxiom :dataRoleAxiom :newDataType :hasKey :fact :annotationAxiom :rule :dgAxiom})
 (def classAxiomTypes
-  #{:classImplication :=Classes :disjClasses :disjOr})
+  #{:classImplication :=classes :disjClasses :disjOr})
 (def roleAxiomTypes
-  #{:roleImplication  :=Roles :disjRoles :inverseRoles :roleDomain :roleRange :functionalRole :functionalInverseRole :reflexiveRole :irreflexiveRole :symmetricRole :asymmetricRole :transitiveRole})
+  #{:roleImplication  :=roles :disjRoles :inverseRoles :roleDomain :roleRange :functionalRole :functionalInverseRole :reflexiveRole :irreflexiveRole :symmetricRole :asymmetricRole :transitiveRole})
 (def dataRoleAxiomTypes
   #{:dataRoleImplication :=DataRoles :disjDataRoles :dataRoleDomain :dataRoleRange :functionalDataRole})
 (def annotationAxiomTypes
@@ -125,28 +125,28 @@
   ([annotations antecedent consequent]
     (-axiom (-classAxiom (-classImplication (ann/axiomAnnotations annotations)(ex/class antecedent)(ex/class consequent))))))
 
-(defn- -=Classes
+(defn- -=classes
  "EquivalentClasses := 'EquivalentClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
  ([classes]
     (if (< 1 (count classes))
       (if (every? (fn [x] (= (:type x) :class)) classes)
-        {:classes classes :type :=Classes :innerType :=Classes :outerType :=Classes}
+        {:classes classes :type :=classes :innerType :=classes :outerType :=classes}
         (throw+ {:type ::notClasses :classes classes}))
       (throw+ {:type ::notEnoughClasses :classes classes})))
   ([annotations classes]
     (if (< 1 (count classes))
       (if (every? (fn [x] (= (:type x) :class)) classes)
         (if (= (:type annotations) :axiomAnnotations)
-          {:classes classes :annotations (:annotations annotations) :type :=Classes :innerType :=Classes :outerType :=Classes}
+          {:classes classes :annotations (:annotations annotations) :type :=classes :innerType :=classes :outerType :=classes}
           (throw+ {:type ::notAnnotations :annotations annotations}))
         (throw+ {:type ::notClasses :classes classes}))
       (throw+ {:type ::notEnoughClasses :classes classes}))))
 
-(defn =Classes
+(defn =classes
   ([classes]
-    (-axiom (-classAxiom (-=Classes (into #{} (map ex/class classes))))))
+    (-axiom (-classAxiom (-=classes (into #{} (map ex/class classes))))))
   ([annotations classes]
-    (-axiom (-classAxiom (-=Classes (ann/axiomAnnotations annotations) (into #{} (map ex/class classes)))))))
+    (-axiom (-classAxiom (-=classes (ann/axiomAnnotations annotations) (into #{} (map ex/class classes)))))))
 
 (defn- -disjClasses
  "DisjointClasses := 'DisjointClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
@@ -258,28 +258,28 @@
   ([annotations antecedent consequent]
     (-axiom (-roleAxiom (-roleImplication (ann/axiomAnnotations annotations)(ex/role antecedent)(ex/role consequent))))))
 
-(defn- -=Roles
+(defn- -=roles
  "EquivalentObjectProperties := 'EquivalentObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
   ([roles]
     (if (< 1 (count roles))
       (if (every? (fn [x] (= (:type x) :role)) roles)
-        {:roles roles :type :=Roles :innerType :=Roles :outerType :=Roles}
+        {:roles roles :type :=roles :innerType :=roles :outerType :=roles}
         (throw+ {:type ::notRoles :roles roles}))
       (throw+ {:type ::notEnoughRoles :roles roles})))
   ([annotations roles]
     (if (< 1 (count roles))
       (if (every? (fn [x] (= (:type x) :role)) roles)
         (if (= (:type annotations) :axiomAnnotations)
-          {:roles roles :annotations (:annotations annotations) :type :=Roles :innerType :=Roles :outerType :=Roles}
+          {:roles roles :annotations (:annotations annotations) :type :=roles :innerType :=roles :outerType :=roles}
           (throw+ {:type ::notAnnotations :annotations annotations}))
         (throw+ {:type ::notRoles :roles roles}))
       (throw+ {:type ::notEnoughRoles :roles roles}))))
 
-(defn =Roles
+(defn =roles
   ([roles]
-    (-axiom (-roleAxiom (-=Roles (into #{} (map ex/role roles))))))
+    (-axiom (-roleAxiom (-=roles (into #{} (map ex/role roles))))))
   ([annotations roles]
-    (-axiom (-roleAxiom (-=Roles (ann/axiomAnnotations annotations) (into #{} (map ex/role roles)))))))
+    (-axiom (-roleAxiom (-=roles (ann/axiomAnnotations annotations) (into #{} (map ex/role roles)))))))
 
 (defn- -disjRoles
  "DisjointObjectProperties := 'DisjointObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"

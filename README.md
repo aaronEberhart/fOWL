@@ -27,13 +27,14 @@ main=> (doseq [x [(classImplication (exists "r" "a") "b")
                   (dataRoleFact "d" "i" (stringLiteral "l"))
                   (classImplication (<=exists 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g")))))
                   (getNNF (classImplication (<=exists 4 "r" "c") (-not (-or (-and "d" "e") (-not (-and "f" "g"))))))
+                  
                   ;Use let to store some values and write a file
                   (let [ont emptyOntologyFile
                         ont (setOntologyIRI ont "http://www.test.stuff")
                         ont (addAnnotations ont (annotation "annotations" "are fun"))
                         ont (addPrefixes ont (prefix "" "http://www.test.stuff/")
                                              (prefix "" "http://www.overwriting.test.stuff/")
-                                             (prefix "prefix" http://www.prefix.stuff/")) 
+                                             (prefix "prefix" "http://www.prefix.stuff/")) 
                         ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))
                                            (classImplication (IRI "prefix" "b" "http://www.hasNamespace.but/overwrittenBy/prefix#") "c")
                                            (classImplication "d" "a"))]
