@@ -202,7 +202,7 @@
     (map getClassAxiomDSNF (toClassImplications axiom))))
 
 (defn getDSNF 
- "Gets the Disjunctive Syntactic Normal Form for an axiom or class"
+ "Gets the Disjunctive Syntactic Normal Form for an axiom or class. Unfinished"
  [thing]
  (case (:type thing)
   :axiom (if (= (:outerType thing) :classAxiom)
@@ -245,7 +245,7 @@
    (map getClassAxiomCSNF (toClassImplications axiom))))
 
 (defn getCSNF 
- "Gets the Conjunctive Syntactic Normal Form for an axiom or class"
+ "Gets the Conjunctive Syntactic Normal Form for an axiom or class. Unfinished"
  [thing]
  (case (:type thing)
   :axiom (if (= (:outerType thing) :classAxiom)
