@@ -408,20 +408,15 @@
  [class] 
  (nml/negate class))
 
-(defn getClassNNF 
- "Gets the NNF for a class"
- [class] 
- (nml/getClassNNF class))
-
 (defn toClassImplications 
  "Converts an axiom to an equivalent axiom or set of axioms that are class implications"
  [classaxiom] 
  (nml/toClassImplications classaxiom))
 
 (defn getNNF 
- "Gets the NNF of any axiom. Any non-class axiom is returned, since NNF is undefined."
- [axiom] 
- (nml/getNNF axiom))
+ "Gets the NNF of any object that is a class axiom or a class. Any non-class axiom or non-class is returned, since NNF is undefined."
+ [object] 
+ (nml/getNNF object))
 
 (defn body 
  "The body of a SWRL rule."
@@ -973,6 +968,7 @@
 
 (defn- noPrefixes [iri]
  (case (:short iri)
+  nil (:iri iri)
   "Thing" "⊤"
   "Nothing" "⊥"
   "topObjectProperty" "U"
@@ -1049,9 +1045,9 @@
   ;roles
   :roleChain (str/join " ∘ " (map (fn [x] (toDLString x)) (:roles thing)))
   :partialRole (str "∃" (toDLString (:role thing)) "{" (:short (:individual thing)) "}")
-  :=exists (str "=" (:nat thing) (toDLString (:role thing)) (str "."  (if (:class thing) (toDLString (:class thing)) "⊤")))
-  :<=exists (str "≤" (:nat thing) (toDLString (:role thing))  (str "." (if (:class thing) (toDLString (:class thing)) "⊤")))
-  :>=exists (str "≥" (:nat thing) (toDLString (:role thing))  (str "."  (if (:class thing) (toDLString (:class thing)) "⊤")))
+  :=exists (str "=" (:nat thing) (toDLString (:role thing)) (str "."  (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
+  :<=exists (str "≤" (:nat thing) (toDLString (:role thing))  (str "." (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
+  :>=exists (str "≥" (:nat thing) (toDLString (:role thing))  (str "."  (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
   :exists (str "∃" (toDLString (:role thing)) "." (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))))
   :all (str "∀" (toDLString (:role thing)) "." (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))))
 
@@ -1062,7 +1058,7 @@
   :dataNot (str "¬" (toDLString (:dataRange thing)))
   :dataOr (str/join " ∨ " (map (fn [x] (if (or (= (:innerType x) :dataOr)(= (:innerType x) :dataAnd)) (str "(" (toDLString x) ")")(toDLString x))) (:dataRanges thing)))
   :dataAnd (str/join " ∧ " (map (fn [x] (if (or (= (:innerType x) :dataOr)(= (:innerType x) :dataAnd)) (str "(" (toDLString x) ")")(toDLString x))) (:dataRanges thing)))
-  :dataOneOf (str "[" (str/join "," (map (fn [x] (:value x)) (:literals thing))) "]")
+  :dataOneOf (str/join "," (map (fn [x] (:value x)) (:literals thing)))
   :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) ":" (:short thing) " " (str/join " " (map toDLString (:restrictedValues thing)))")")
   :Self  (str "∃" (:role thing) ".Self")
   :nominal (str "{" (str/join " " (map (fn [x] (toDLString x)) (:individuals thing))) "}")

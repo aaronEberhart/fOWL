@@ -4,7 +4,7 @@
 
 "for logging"
 (def file "output.txt")
-(defn strToFile [str]
+(defn strToFile [file str]
  (spit file (with-out-str (println str)) :append true))
 
 "for testing lazy seqs"

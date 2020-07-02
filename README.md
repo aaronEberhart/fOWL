@@ -40,8 +40,7 @@ main=> (doseq [x [(classImplication (exists "r" "a") "b")
                                              (prefix "" "http://www.overwriting.test.stuff/")
                                              (prefix "prefix" "http://www.prefix.stuff/")) 
                         ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))
-                                           (classImplication 
-                                            (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
+                                           (classImplication (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
                                            (classImplication "d" "a"))]
                   (makeOWLFile ont "test.owl"))]]
        (println x))
@@ -65,8 +64,7 @@ main=> (-> emptyOntologyFile
                        (prefix "" "http://www.overwriting.test/stuff#")
                        (prefix "prefix" "http://www.prefix.stuff/"))
           (addAxioms (classImplication "a" (IRI "prefix" "b"))
-                     (classImplication 
-                      (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
+                     (classImplication (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
                      (classImplication "d" "a"))
           (makeOWLFile "test.owl")
           println)

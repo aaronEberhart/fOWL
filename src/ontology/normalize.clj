@@ -71,23 +71,27 @@
   :dataExists (update (update (:class class) :dataRange co/dataNot) :innerType dataAll)
   :dataAll (update (update (:class class) :dataRange co/dataNot) :innerType dataExists)
   :<=dataExists (update (update (:class class) :nat inc) :innerType >=dataExists)
-  :=dataExists (ex/or (update (update (:class class) :nat (if (> (:nat (:class class)) 0) inc one)) :innerType >=dataExists)
-                    (update (update (:class class) :nat (if (> (:nat (:class class)) 0) dec zero)) :innerType <=dataExists))
+  :=dataExists (if (> (:nat (:class class)) 0)
+                (ex/or (update (update (:class class) :nat inc) :innerType >=dataExists)
+                       (update (update (:class class) :nat dec) :innerType <=dataExists))
+                (update (update (:class class) :nat one) :innerType >=dataExists))
   :>=dataExists (if (> (:nat (:class class)) 0)
-                  (update (update (:class class) :nat dec) :innerType <=dataExists)
-                  (ex/and (update (update (:class class) :nat zero) :innerType <=dataExists)
-                          (update (:class class) :nat one)))
+                 (update (update (:class class) :nat dec) :innerType <=dataExists)
+                 (ex/and (update (update (:class class) :nat zero) :innerType <=dataExists)
+                         (update (:class class) :nat one)))
   :>=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
              (if (> (:nat class) 0)
-               (update (update class :nat dec) :innerType <=exists)
-               (ex/and (update (update class :nat zero) :innerType <=exists)
-                       (update class :nat one))))
+              (update (update class :nat dec) :innerType <=exists)
+              (ex/and (update (update class :nat zero) :innerType <=exists)
+                      (update class :nat one))))
    :=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
-               (ex/or (update  (update class :nat (if (> (:nat class) 0) inc one)) :innerType >=exists)
-                      (update  (update class :nat (if (> (:nat class) 0) dec zero)) :innerType <=exists)))
+             (if (> (:nat class) 0)
+              (ex/or (update (update class :nat inc) :innerType >=exists)
+                     (update (update class :nat dec) :innerType <=exists)))
+              (update (update class :nat one) :innerType >=exists))
   (throw+ {:type ::notNormalizable :class class})))
 
-(defn getClassNNF 
+(defn- getClassNNF 
  "Gets the NNF for a class"
  [class]
   (case (:innerType class)
@@ -125,13 +129,13 @@
 
 (defn- equivToImp
   ([classes]
-    (reduce disjToImp #{} classes))
+    (reduce equivToImp #{} classes))
   ([classes pair]
     (conj classes (ax/classImplication (first pair) (first (rest pair))) (ax/classImplication (first (rest pair)) (first pair)))))
 
 (defn- disjOrToImp
-  ([class classes]classes)
-  ([class class1 class2]class))
+  ([class classes](reduce disjToImp #{} classes))
+  ([classes class1 class2](throw+ {:type ::notNormalizable :class class})))
 
 (defn toClassImplications 
  "Converts an axiom to an equivalent axiom or set of axioms that are class implications"
@@ -143,7 +147,7 @@
   :disjOr (throw+ {:type ::notNormalizableYet :axiom axiom})
   (throw+ {:type ::incompatibleClassAxiom :axiom axiom})))
 
-(defn getClassAxiomNNF 
+(defn- getClassAxiomNNF 
  "Gets the NNF of a class axiom"
  [axiom]
  (if (= (:innerType axiom) :classImplication)
@@ -151,14 +155,14 @@
   (map getClassAxiomNNF (toClassImplications axiom))))
 
 (defn getNNF 
- "Gets the NNF of any axiom. (any axiom besides a class axiom currently returns itself)"
- [axiom]
- ((case (:outerType axiom)
-   :classAxiom getClassAxiomNNF
-   :roleAxiom identity
-   :dataRoleAxiom identity
-   :fact identity)
-    axiom))
+ "Gets the NNF of any axiom or class. (anything besides a class axiom returns itself)"
+ [thing]
+ (case (:type thing)
+  :axiom (if (= (:outerType thing) :classAxiom)
+          (getClassAxiomNNF thing)
+          thing)
+  :class (getClassNNF thing)
+  thing))
 
 (defn- getClassDSNF [class]
  (case (:innerType class)
@@ -179,12 +183,16 @@
   :<=exists (if (:class class) (checkInnerClass class getClassDSNF) class)
   :or (update class :classes (constantlyMapToClassSet getClassDSNF (:classes class)))
   :and (negate (update (update class :classes (constantlyMapToClassSet (notFun getClassDSNF) (:classes class))) :innerType -or))
-  :=dataExists (negate (ex/or (negate (update class :innerType >=dataExists))(negate (update class :innerType <=dataExists))))
+  :=dataExists (negate (ex/or (update (update class :nat (if (> (:nat class) 0) inc one)) :innerType >=dataExists)
+                              (update (update class :nat (if (> (:nat class) 0) dec zero)) :innerType <=dataExists)))
   :=exists (let [class (if (:class class) (update class :class getClassDSNF) class)]
-          (negate (ex/or (update class :innerType >=exists) (update class :innerType <=exists))))
+            (negate (ex/or (update (update class :nat (if (> (:nat class) 0) inc one)) :innerType >=exists) 
+                           (update (update class :nat (if (> (:nat class) 0) dec zero)) :innerType <=exists))))
   :not (case (:innerType (:class class))
         :not (getClassDSNF (:class (:class class)))
         :or (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassDSNF (:classes (:class class))))))
+        :=exists (let [class (negate (update class :class getClassDSNF)) _ (prn "D" class)] class)
+        :=dataExists (update class :class getClassDSNF)
         (deMorgan class getClassDSNF))
   (throw+ {:type ::notNormalizable :class class})))
 
@@ -194,14 +202,14 @@
     (map getClassAxiomDSNF (toClassImplications axiom))))
 
 (defn getDSNF 
- "Gets the Disjunctive Syntactic Normal Form for an axiom"
- [axiom]
-  ((case (:outerType axiom)
-   :classAxiom getClassAxiomDSNF
-   :roleAxiom identity
-   :dataRoleAxiom identity
-   :fact identity)
-    axiom))
+ "Gets the Disjunctive Syntactic Normal Form for an axiom or class"
+ [thing]
+ (case (:type thing)
+  :axiom (if (= (:outerType thing) :classAxiom)
+          (getClassAxiomDSNF thing)
+          thing)
+  :class (getClassDSNF thing)
+  thing))
 
 (defn- getClassCSNF [class]
   (case (:innerType class)
@@ -222,12 +230,12 @@
   :and (update class :classes (constantlyMapToClassSet getClassCSNF (:classes class)))
   :=dataExists (ex/and (update class :innerType >=dataExists)(update class :innerType <=dataExists))
   :=exists (let [class (if (:class class) (update class :class getClassCSNF) class)]
-          (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
+            (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
   :not (case (:innerType (:class class))
         :not (getClassCSNF (:class (:class class)))
         :and (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassCSNF (:classes (:class class))))))
-        :=exists (let [_ (prn class) class (deMorgan class getClassCSNF) _ (prn (ex/not (update class  :innerType -and)))] class)
-        :=dataExists (let [_ (prn class) class (deMorgan class getClassCSNF) _ (prn class)] class)
+        :=exists (let [class (update class :class getClassCSNF) _ (prn "C" class)] class)
+        :=dataExists (update class :class getClassCSNF)
         (deMorgan class getClassCSNF))
   (throw+ {:type ::notNormalizable :class class})))
 
@@ -237,11 +245,11 @@
    (map getClassAxiomCSNF (toClassImplications axiom))))
 
 (defn getCSNF 
- "Gets the Conjunctive Syntactic Normal Form for an axiom"
- [axiom]
-  ((case (:outerType axiom)
-   :classAxiom getClassAxiomCSNF
-   :roleAxiom identity
-   :dataRoleAxiom identity
-   :fact identity)
-    axiom))
+ "Gets the Conjunctive Syntactic Normal Form for an axiom or class"
+ [thing]
+ (case (:type thing)
+  :axiom (if (= (:outerType thing) :classAxiom)
+          (getClassAxiomCSNF thing)
+          thing)
+  :class (getClassCSNF thing)
+  thing))
