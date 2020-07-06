@@ -1,6 +1,6 @@
 (ns main
  (:use [clojure.repl])
- (:require [ontology.IO :refer :all]
+ (:require [ontology.functions :refer :all]
            [clojure.string :as str][clojure.java.io :as io]))
 
 

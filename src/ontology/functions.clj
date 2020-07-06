@@ -1,8 +1,9 @@
-(ns ontology.IO
- (:refer-clojure :exclude [name])
+(ns ontology.functions
+ ;(:refer-clojure :exclude [name])
  (:require [clojure.java.io :as io][clojure.string :as str][clojure.set :as set][clojure.walk :as walk]
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
+           [ontology.regexes :as reg]
            [util.msc :as msc])
  (:use [slingshot.slingshot :only [throw+]]))
 
@@ -928,39 +929,6 @@
  [dataRole literal]
  (ex/partialDataRole dataRole literal))
 
-(def iriStopPat
- #"^(?:Annotation|Import|Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DatatypeDefinition|DGRule|DLSafeRule)[\s\S]*")
-(def closeParenPat
- #"^(\))\s*([\s\S]*)")
-(def axiomPat
- #"(Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DatatypeDefinition|DGRule|DLSafeRule)\s*\(\s*([\s\S]*)")
-(def fullIRIPat
- #"^([<][^>]+[>])\s*([\s\S]*)")
-(def prefIRIPat
- #"^([^\<\(\)\"\\\s]*\:[^\>\(\)\"\\\s]+)\s*([\s\S]*)")
-(def literalTypedPat
- #"^\"([\s\S]*?(?<!\\))\"\^\^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))\s*([\s\S]*)")
-(def literalQuotedPat
- #"^\"([\s\S]*?(?<!\\))\"\s*([\s\S]*)")
-(def literalLangPat
- #"^\"([\s\S]*?(?<!\\))\"\@([^\s\(\)\"\\\:]+)\s*([\s\S]*)")
-(def numPat
- #"^(\d+)\s*([\s\S]*)")
-(def commPat
- #"^(#[^\r\n\f]*)([\s\S]*)")
-(def blankPat
- #"^(\s*)$")
-(def expressionPat
- #"(ObjectInverseOf|Class|Datatype|ObjectProperty|DataProperty|AnnotationProperty|NamedIndividual|ObjectPropertyChain|ObjectIntersectionOf|ObjectUnionOf|ObjectComplementOf|ObjectOneOf|ObjectSomeValuesFrom|ObjectAllValuesFrom|ObjectHasValue|ObjectHasSelf|ObjectMinCardinality|ObjectMaxCardinality|ObjectExactCardinality|DataSomeValuesFrom|DataAllValuesFrom|DataHasValue|DataMinCardinality|DataMaxCardinality|DataExactCardinality|DataIntersectionOf|DataUnionOf|DataComplementOf|DataOneOf|DatatypeRestriction|Variable|Body|Head|ClassAtom|DataRangeAtom|ObjectPropertyAtom|DataPropertyAtom|BuiltInAtom|SameIndividualAtom|DifferentIndividualsAtom)\s*\(\s*([\s\S]*)")
-(def prefixPat
- #"^(?:Prefix)\s*\(\s*([^\)\:]*)\:=\s*[<]([^>]+)[>]\s*\)\s*([\s\S]*)")
-(def annotationPat
- #"^(Annotation)\s*\(\s*([\s\S]*)")
-(def ontPat
- #"^(Ontology)\s*\(\s*([\s\S]*)")
-(def importPat
- #"^Import\s*\(\s*[<]([^>]+)[>]\s*\)\s*([\s\S]*)")
-
 (defn- swapPrefixes [iri]
  (if (:prefix iri)
   (str (:prefix iri)":"(:short iri))
@@ -1241,7 +1209,7 @@
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
 
-(defn- getType [type]
+(defn- getFunction [type]
  (case type
   "Import" directImport
   "Class" (comp entity className)
@@ -1343,83 +1311,83 @@
  [ontology filename]
  (-makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology)))
 
-(defn- parsePrefixLine [state prefixes _ _ _ _]
+(defn- parsePrefixLine [regexes state prefixes _ _ _ _]
  (loop [state state
         prefixes prefixes]
- (if-some [blankMatch (re-matches blankPat state)]
+ (if-some [blankMatch (re-matches (:blankPat regexes) state)]
   [state prefixes]
- (if-some [commMatch (re-matches commPat state)]
+ (if-some [commMatch (re-matches (:commPat regexes) state)]
   [(get commMatch 2) prefixes]
- (if-some [ontMatch (re-matches ontPat state)]
+ (if-some [ontMatch (re-matches (:ontPat regexes) state)]
   [state prefixes]
- (if-some [prefMatch (re-matches prefixPat state)]
+ (if-some [prefMatch (re-matches (:prefixPat regexes) state)]
    (recur (get prefMatch 3) (conj! prefixes (apply prefix [(get prefMatch 1)(get prefMatch 2)])))
  [state prefixes]))))))
 
-(defn- parseOntologyIRILine [state ontologyIRI _ _ _ _]
+(defn- parseOntologyIRILine [regexes state ontologyIRI _ _ _ _]
  (loop [state state
         ontologyIRI ontologyIRI]
- (if-some [doneMatch (re-matches closeParenPat state)]
+ (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
   [state ontologyIRI]
- (if-some [blankMatch (re-matches blankPat state)]
+ (if-some [blankMatch (re-matches (:blankPat regexes) state)]
   [state ontologyIRI]
- (if-some [ontMatch (re-matches ontPat state)]
+ (if-some [ontMatch (re-matches (:ontPat regexes) state)]
   (recur (get ontMatch 2) ontologyIRI)
- (if-some [fullIRIMatch (re-matches fullIRIPat state)]
+ (if-some [fullIRIMatch (re-matches (:fullIRIPat regexes) state)]
   [(get fullIRIMatch 2) (conj! ontologyIRI (get fullIRIMatch 1))]
- (if-some [commMatch (re-matches commPat state)]
+ (if-some [commMatch (re-matches (:commPat regexes) state)]
   [(get commMatch 2) ontologyIRI]
- (if-some [importMatch (re-matches importPat state)]
+ (if-some [importMatch (re-matches (:importPat regexes) state)]
   [state ontologyIRI]
- (if-some [annMatch (re-matches annotationPat state)]
+ (if-some [annMatch (re-matches (:annotationPat regexes) state)]
   [state ontologyIRI]
- (if-some [axMatch (re-matches axiomPat state)]
+ (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   [state ontologyIRI]))))))))))
 
-(defn- parseVersionIRILine [state versionIRI _ _ _ _]
+(defn- parseVersionIRILine [regexes state versionIRI _ _ _ _]
  (loop [state state
         versionIRI versionIRI]
- (if-some [doneMatch (re-matches closeParenPat state)]
+ (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
   [state versionIRI]
- (if-some [blankMatch (re-matches blankPat state)]
+ (if-some [blankMatch (re-matches (:blankPat regexes) state)]
   [state versionIRI]
- (if-some [fullIRIMatch (re-matches fullIRIPat state)]
+ (if-some [fullIRIMatch (re-matches (:fullIRIPat regexes) state)]
   [(get fullIRIMatch 2) (conj! versionIRI (get fullIRIMatch 1))]
- (if-some [commMatch (re-matches commPat state)]
+ (if-some [commMatch (re-matches (:commPat regexes) state)]
   [(get commMatch 2) versionIRI]
- (if-some [importMatch (re-matches importPat state)]
+ (if-some [importMatch (re-matches (:importPat regexes) state)]
   [state versionIRI]
- (if-some [annMatch (re-matches annotationPat state)]
+ (if-some [annMatch (re-matches (:annotationPat regexes) state)]
   [state versionIRI]
- (if-some [axMatch (re-matches axiomPat state)]
+ (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   [state versionIRI])))))))))
 
 (defn- firstFromVec [[x y]]
  [(first x) y])
 
-(defn- parseImportLine [state imports _ _ _ _]
+(defn- parseImportLine [regexes state imports _ _ _ _]
  (loop [state state
         imports imports]
- (if-some [doneMatch (re-matches closeParenPat state)]
+ (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
   [state imports]
- (if-some [blankMatch (re-matches blankPat state)]
+ (if-some [blankMatch (re-matches (:blankPat regexes) state)]
   [state imports]
- (if-some [commMatch (re-matches commPat state)]
+ (if-some [commMatch (re-matches (:commPat regexes) state)]
   [(get commMatch 2) imports]
- (if-some [annMatch (re-matches annotationPat state)]
+ (if-some [annMatch (re-matches (:annotationPat regexes) state)]
   [state imports]
- (if-some [importMatch (re-matches importPat state)]
+ (if-some [importMatch (re-matches (:importPat regexes) state)]
   (recur (get importMatch 2) (conj! imports (directImport (get importMatch 1))))
- (if-some [axMatch (re-matches axiomPat state)]
+ (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   [state imports]))))))))
 
-(defn- parseAnnotationLine [state annotations annFun exps expFuns prefixes]
+(defn- parseAnnotationLine [regexes state annotations annFun exps expFuns prefixes]
  (loop [state state
         annotations annotations
         annFun annFun
         exps exps
         expFuns expFuns]
- (if-some [doneMatch (re-matches closeParenPat state)]
+ (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
   (cond
    (nil? annFun)
     [(str (get doneMatch 1)(get doneMatch 2)) annotations nil exps expFuns]
@@ -1431,35 +1399,35 @@
     (recur (get doneMatch 2) annotations annFun (list (conj (first (rest exps)) (apply (first expFuns) (first exps)))) (rest expFuns))
    :else
     (recur (get doneMatch 2) annotations annFun (conj (rest (rest exps)) (conj (first (rest exps)) (apply (first expFuns) (first exps)))) (rest expFuns)))
- (if-some [commMatch (re-matches commPat state)]
+ (if-some [commMatch (re-matches (:commPat regexes) state)]
   [(get commMatch 2) annotations annFun exps expFuns]
- (if-some [blankMatch (re-matches blankPat state)]
+ (if-some [blankMatch (re-matches (:blankPat regexes) state)]
   [(str state (get blankMatch 1)) annotations annFun exps expFuns]
- (if-some [fullIRIMatch (re-matches fullIRIPat state)]
+ (if-some [fullIRIMatch (re-matches (:fullIRIPat regexes) state)]
   (recur (get fullIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (IRI (get fullIRIMatch 1)))) expFuns)
- (if-some [prefIRIMatch (re-matches prefIRIPat state)]
+ (if-some [prefIRIMatch (re-matches (:prefIRIPat regexes) state)]
   (recur (get prefIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (parseIRI (get prefIRIMatch 1) prefixes))) expFuns)
- (if-some [literalTypedMatch (re-matches literalTypedPat state)]
+ (if-some [literalTypedMatch (re-matches (:literalTypedPat regexes) state)]
   (recur (get literalTypedMatch 4) annotations annFun (conj (rest exps) (conj (first exps) (typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (dataType (get literalTypedMatch 2)) (apply dataType (assignPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
- (if-some [literalLangMatch (re-matches literalLangPat state)]
+ (if-some [literalLangMatch (re-matches (:literalLangPat regexes) state)]
   (recur (get literalLangMatch 3) annotations annFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
- (if-some [literalQuotedMatch (re-matches literalQuotedPat state)]
+ (if-some [literalQuotedMatch (re-matches (:literalQuotedPat regexes) state)]
   (recur (get literalQuotedMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalQuotedMatch 1)))) expFuns)
- (if-some [annMatch (re-matches annotationPat state)]
+ (if-some [annMatch (re-matches (:annotationPat regexes) state)]
   (if (nil? annFun)
    (recur (get annMatch 2) annotations annotation exps expFuns)
    (recur (get annMatch 2) annotations annFun (conj exps []) (conj expFuns annotation)))
- (if-some [axMatch (re-matches axiomPat state)]
+ (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   [state annotations annFun exps expFuns]
  [(str state "\n") annotations annFun exps expFuns]))))))))))))
 
-(defn- parseAxiomLine [state axioms ax exs funs prefixes]
+(defn- parseAxiomLine [regexes state axioms ax exs funs prefixes]
  (loop [state state
         axioms axioms
         axFun ax
         exps exs
         expFuns funs]
- (if-some [doneMatch (re-matches closeParenPat state)]
+ (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
   (cond
    (nil? axFun)
     [(str (get doneMatch 1)(get doneMatch 2)) axioms nil exps expFuns]
@@ -1471,55 +1439,60 @@
     (recur (get doneMatch 2) axioms axFun (list (conj (first (rest exps)) (apply (first expFuns) (first exps)))) (rest expFuns))
    :else
     (recur (get doneMatch 2) axioms axFun (conj (rest (rest exps)) (conj (first (rest exps)) (apply (first expFuns) (first exps)))) (rest expFuns)))
- (if-some [commMatch (re-matches commPat state)]
+ (if-some [commMatch (re-matches (:commPat regexes) state)]
   [(get commMatch 2) axioms axFun exps expFuns]
- (if-some [blankMatch (re-matches blankPat state)]
+ (if-some [blankMatch (re-matches (:blankPat regexes) state)]
   [(str state (get blankMatch 1)) axioms axFun exps expFuns]
- (if-some [numMatch (re-matches numPat state)]
+ (if-some [numMatch (re-matches (:numPat regexes) state)]
     (recur (get numMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (read-string (get numMatch 1)))) expFuns)
- (if-some [fullIRIMatch (re-matches fullIRIPat state)]
+ (if-some [fullIRIMatch (re-matches (:fullIRIPat regexes) state)]
    (recur (get fullIRIMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (IRI (get fullIRIMatch 1)))) expFuns)
- (if-some [prefIRIMatch (re-matches prefIRIPat state)]
+ (if-some [prefIRIMatch (re-matches (:prefIRIPat regexes) state)]
    (recur (get prefIRIMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (parseIRI (get prefIRIMatch 1) prefixes))) expFuns)
- (if-some [literalTypedMatch (re-matches literalTypedPat state)]
+ (if-some [literalTypedMatch (re-matches (:literalTypedPat regexes) state)]
    (recur (get literalTypedMatch 4) axioms axFun (conj (rest exps) (conj (first exps) (typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (dataType (get literalTypedMatch 2)) (apply dataType (assignPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
- (if-some [literalLangMatch (re-matches literalLangPat state)]
+ (if-some [literalLangMatch (re-matches (:literalLangPat regexes) state)]
    (recur (get literalLangMatch 3) axioms axFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
- (if-some [literalQuotedMatch (re-matches literalQuotedPat state)]
+ (if-some [literalQuotedMatch (re-matches (:literalQuotedPat regexes) state)]
    (recur (get literalQuotedMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (stringLiteral (get literalQuotedMatch 1)))) expFuns)
- (if-some [annMatch (re-matches annotationPat state)]
+ (if-some [annMatch (re-matches (:annotationPat regexes) state)]
   (recur (get annMatch 2) axioms axFun (conj exps []) (conj expFuns annotation))
- (if-some [axMatch (re-matches axiomPat state)]
-  (recur (get axMatch 2) axioms (getType (get axMatch 1)) exps expFuns)
- (if-some [exMatch (re-matches expressionPat state)]
-  (recur (get exMatch 2) axioms axFun (conj exps []) (conj expFuns (getType (get exMatch 1))))
+ (if-some [axMatch (re-matches (:axiomPat regexes) state)]
+  (recur (get axMatch 2) axioms (getFunction (get axMatch 1)) exps expFuns)
+ (if-some [exMatch (re-matches (:expressionPat regexes) state)]
+  (recur (get exMatch 2) axioms axFun (conj exps []) (conj expFuns (getFunction (get exMatch 1))))
  [(str state "\n") axioms axFun exps expFuns]))))))))))))))
 
 (defn- parseLines
-  ([lineSeq loopFunction stopCondition prefixes]
+  ([lineSeq loopFunction stopCondition prefixes regexes]
   (loop [state (first lineSeq)
          lines lineSeq
          objects (transient #{})
          function nil
          expressions '([])
          functionList '()]
-  (let [[state objects function expressions functionList] (loopFunction state objects function expressions functionList prefixes)]
+  (let [[state objects function expressions functionList] (loopFunction regexes state objects function expressions functionList prefixes)]
    (if (stopCondition [objects state lines])
     [(persistent! objects) (lazy-seq (cons state (if (some? lines)(rest lines))))]
     (recur (str state (first (rest lines))) (rest lines) objects function expressions functionList))))))
 
-(defn readFunctionalFile 
- "Reads an OWL file written in functional syntax"
- [file]
+(defn- -readFunctionalFile
+ [file regexes]
  (with-open [rdr (io/reader (if (string? file) (io/file file) file))]
   (let [ontFile (line-seq rdr)
-       [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches ontPat (get % 1))) nil)
-       [ontologyIRI ontFile] (firstFromVec (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
-       [versionIRI ontFile] (firstFromVec (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches iriStopPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil))
-       [imports ontFile] (parseLines ontFile parseImportLine #(or (some? (re-matches annotationPat (get % 1)))(or (some? (re-matches axiomPat (get % 1)))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))))) nil)
-       [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (re-find axiomPat (get % 1))(or (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2))))) prefixes)
-       [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches #"^\s*\)\s*$" (get % 1)))(empty? (rest (get % 2)))) prefixes)]
+       [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches (:ontPat regexes) (get % 1))) nil regexes)
+       [ontologyIRI ontFile] (firstFromVec (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
+       [versionIRI ontFile] (firstFromVec (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
+       [imports ontFile] (parseLines ontFile parseImportLine #(or (some? (re-matches (:annotationPat regexes) (get % 1)))(or (some? (re-matches (:axiomPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes)
+       [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (re-find (:axiomPat regexes) (get % 1))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2))))) prefixes regexes)
+       [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))) prefixes regexes)]
        (cond
         (and (some? ontologyIRI)(some? versionIRI))(ontologyFile prefixes (ontology ontologyIRI versionIRI imports annotations axioms))
         (some? ontologyIRI)(ontologyFile prefixes (ontology ontologyIRI imports annotations axioms))
         :else (ontologyFile prefixes (ontology imports annotations axioms))))))
+(defn readFunctionalFile 
+ "Reads an OWL file written in functional syntax. Optional argument allows choice of file type. No option defaults to functional syntax. (Currently only functional syntax defined)"
+ ([file & fileType]
+  (case fileType
+   nil (-readFunctionalFile file reg/functionalSyntax)
+   :functional (-readFunctionalFile file reg/functionalSyntax))))
