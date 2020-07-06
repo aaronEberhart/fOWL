@@ -1,11 +1,9 @@
 (ns ontology.functions
- ;(:refer-clojure :exclude [name])
  (:require [clojure.java.io :as io][clojure.string :as str][clojure.set :as set][clojure.walk :as walk]
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
            [ontology.regexes :as reg]
-           [util.msc :as msc])
- (:use [slingshot.slingshot :only [throw+]]))
+           [util.msc :as msc]))
 
 (def extractParams
  "Separates annotations from other inputs for functions with variable arguments"
