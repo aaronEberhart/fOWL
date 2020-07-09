@@ -246,10 +246,12 @@
   ontology
   (recur (rest stuff) (function ontology (first stuff))))))
 
-(defn- updateOntology [ontology object fun key]
+(defn- updateOntology 
+ [ontology object fun key]
  (update ontology key (fun (key ontology) object)))
 
-(defn- updateOntologyComponents [ontology updateThis? updateFunction]
+(defn- updateOntologyComponents 
+ [ontology updateThis? updateFunction]
  (walk/postwalk (fn [v] (if (updateThis? v) (updateFunction v) v)) ontology))
 
 (defn- updateForDroppedPrefix
@@ -927,12 +929,14 @@
  [dataRole literal]
  (ex/partialDataRole dataRole literal))
 
-(defn- swapPrefixes [iri]
+(defn- swapPrefixes 
+ [iri]
  (if (:prefix iri)
   (str (:prefix iri)":"(:short iri))
   (:iri iri)))
 
-(defn- noPrefixes [iri]
+(defn- noPrefixes 
+ [iri]
  (case (:short iri)
   nil (:iri iri)
   "Thing" "⊤"
@@ -941,7 +945,8 @@
   "bottomObjectProperty" "∅"
   (:short iri)))
 
-(defn- assignPrefix [name prefixes]
+(defn- assignPrefix 
+ [name prefixes]
  (let [splits (re-matches #"([^\:]*?):([\s\S]+)" name)
        key (get splits 1)
        val (get splits 2)
@@ -950,10 +955,12 @@
  (if fullIRI [key val fullIRI][name])))
 
 ;think need to update this fun?
-(defn- parseIRI [name prefixes]
+(defn- parseIRI 
+ [name prefixes]
  (apply co/IRI (assignPrefix name prefixes)))
 
-(defn- getDeclType [type]
+(defn- getDeclType 
+ [type]
  (case type
   :className "Class("
   :dataType "Datatype("
@@ -1207,8 +1214,9 @@
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
 
-(defn- getFunction [type]
- (case type
+(defn- getFunction 
+ [typeString]
+ (case typeString
   "Import" directImport
   "Class" (comp entity className)
   "Datatype" (comp entity dataType)
@@ -1309,7 +1317,8 @@
  [ontology filename]
  (-makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology)))
 
-(defn- parsePrefixLine [regexes state prefixes _ _ _ _]
+(defn- parsePrefixLine 
+ [regexes state prefixes _ _ _ _]
  (loop [state state
         prefixes prefixes]
  (if-some [blankMatch (re-matches (:blankPat regexes) state)]
@@ -1322,7 +1331,8 @@
    (recur (get prefMatch 3) (conj! prefixes (apply prefix [(get prefMatch 1)(get prefMatch 2)])))
  [state prefixes]))))))
 
-(defn- parseOntologyIRILine [regexes state ontologyIRI _ _ _ _]
+(defn- parseOntologyIRILine 
+ [regexes state ontologyIRI _ _ _ _]
  (loop [state state
         ontologyIRI ontologyIRI]
  (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
@@ -1342,7 +1352,8 @@
  (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   [state ontologyIRI]))))))))))
 
-(defn- parseVersionIRILine [regexes state versionIRI _ _ _ _]
+(defn- parseVersionIRILine 
+ [regexes state versionIRI _ _ _ _]
  (loop [state state
         versionIRI versionIRI]
  (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
@@ -1360,10 +1371,8 @@
  (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   [state versionIRI])))))))))
 
-(defn- firstFromVec [[x y]]
- [(first x) y])
-
-(defn- parseImportLine [regexes state imports _ _ _ _]
+(defn- parseImportLine 
+ [regexes state imports _ _ _ _]
  (loop [state state
         imports imports]
  (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
@@ -1379,7 +1388,8 @@
  (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   [state imports]))))))))
 
-(defn- parseAnnotationLine [regexes state annotations annFun exps expFuns prefixes]
+(defn- parseAnnotationLine 
+ [regexes state annotations annFun exps expFuns prefixes]
  (loop [state state
         annotations annotations
         annFun annFun
@@ -1419,7 +1429,8 @@
   [state annotations annFun exps expFuns]
  [(str state "\n") annotations annFun exps expFuns]))))))))))))
 
-(defn- parseAxiomLine [regexes state axioms ax exs funs prefixes]
+(defn- parseAxiomLine 
+ [regexes state axioms ax exs funs prefixes]
  (loop [state state
         axioms axioms
         axFun ax
@@ -1479,8 +1490,8 @@
  (with-open [rdr (io/reader (if (string? file) (io/file file) file))]
   (let [ontFile (line-seq rdr)
        [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches (:ontPat regexes) (get % 1))) nil regexes)
-       [ontologyIRI ontFile] (firstFromVec (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
-       [versionIRI ontFile] (firstFromVec (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
+       [ontologyIRI ontFile] ((fn [[x y]]  [(first x) y]) (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
+       [versionIRI ontFile] ((fn [[x y]]  [(first x) y]) (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
        [imports ontFile] (parseLines ontFile parseImportLine #(or (some? (re-matches (:annotationPat regexes) (get % 1)))(or (some? (re-matches (:axiomPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes)
        [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (re-find (:axiomPat regexes) (get % 1))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2))))) prefixes regexes)
        [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))) prefixes regexes)]

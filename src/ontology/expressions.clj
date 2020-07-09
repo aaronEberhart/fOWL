@@ -85,8 +85,12 @@
    (throw+ {:type ::notClass :class classes})))
 
 (defn and
- ([class1 class2](-class (-and (into #{} [(class class1) (class class2)]))))
- ([class1 class2 & classes](-class (-and (into #{} (map class (flatten [class1 class2 classes])))))))
+ ([class1 class2]
+  (let [classSet (into #{} [(class class1) (class class2)])]
+   (if (= 1 (count classSet))(first classSet)(-class (-and classSet)))))
+ ([class1 class2 & classes]
+  (let [classSet (into #{} (map class (flatten [class1 class2 classes])))]
+   (if (= 1 (count classSet))(first classSet)(-class (-and classSet))))))
 
 (defn- -or 
  "ObjectUnionOf := 'ObjectUnionOf' '(' ClassExpression ClassExpression { ClassExpression } ')'"
@@ -96,8 +100,12 @@
    (throw+ {:type ::notClass :class classes})))
 
 (defn or
- ([class1 class2](-class (-or (into #{} [(class class1) (class class2)]))))
- ([class1 class2 & classes](-class (-or (into #{} (map class (flatten [class1 class2 classes])))))))
+ ([class1 class2]
+  (let [classSet (into #{} [(class class1) (class class2)])]
+   (if (= 1 (count classSet))(first classSet)(-class (-or classSet)))))
+ ([class1 class2 & classes]
+  (let [classSet (into #{} (map class (flatten [class1 class2 classes])))]
+   (if (= 1 (count classSet))(first classSet)(-class (-or classSet))))))
 
 (defn- -not 
  "ObjectComplementOf := 'ObjectComplementOf' '(' ClassExpression ')'"

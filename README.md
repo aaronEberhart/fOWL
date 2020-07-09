@@ -4,7 +4,7 @@ FOWL is a minimalistic functional programming style ontology editor. Ontologies 
 ## Usage
 This program was built with [Leiningen](https://leiningen.org/). If you want to load your own ontology the program can read and write Functional Syntax OWL files, more formats are planned in the future.
 
-To run a program, simply type code in main, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of OWL functions currently available in main can be seen by entering `(dir ontology.IO)`, and `(doc function_name)` will show more detail about each function.
+To run a program, simply type code in main, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of OWL functions currently available in main can be seen by entering `(dir ontology.functions)`, and `(doc function)` will show more detail about each function.
 
 ## Examples
 ```
