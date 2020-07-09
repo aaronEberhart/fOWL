@@ -213,7 +213,8 @@
   {:value  (str \" stri \" )  :type :lexicalForm :innerType :lexicalForm}
   (throw+ {:type ::notString :string stri})))
 
-(defn typedLiteral [lexicalForm datatype]
+(defn typedLiteral 
+ [lexicalForm datatype]
  (-literal (-typedLiteral (-lexicalForm lexicalForm) (dataType datatype))))
 
 (defn- -stringLiteralNoLanguage 
@@ -223,7 +224,8 @@
   {:value (str \" string \" ) :type :stringLiteralNoLanguage :innerType :stringLiteralNoLanguage}
   (throw+ {:type ::notStringLiteral :string string})))
 
-(defn stringLiteralNoLanguage [string]
+(defn stringLiteralNoLanguage 
+ [string]
  (-literal (-stringLiteralNoLanguage string)))
 
 (defn- -stringLiteralWithLanguage 
@@ -233,7 +235,8 @@
   {:value (str \" string \" \@ lang) :type :stringLiteralWithLanguage :innerType :stringLiteralWithLanguage}
   (throw+ {:type ::notStringLiteralWithLang :string string :lang lang})))
 
-(defn stringLiteralWithLanguage [string lang]
+(defn stringLiteralWithLanguage 
+ [string lang]
  (-literal (-stringLiteralWithLanguage string lang)))
 
 (defn- -dataOneOf 
@@ -264,7 +267,8 @@
   (assoc facet :value (:value restriction) :type :restrictedValue :innerType :restrictedValue)
   (throw+ {:type ::notRestrictedValue :facet facet :restriction restriction})))
 
-(defn restrictedValue [facet restriction]
+(defn restrictedValue 
+ [facet restriction]
  (-restrictedValue (-constrainingFacet facet) (-restrictionValue restriction)))
 
 (defn- -datatypeRestriction 
@@ -302,24 +306,30 @@
   (assoc datarange :type :dataRange)
   (throw+ {:type ::notDataRange :dataRange datarange})))
 
-(defn dataRange [dr]
+(defn dataRange 
+ [dr]
  (if (contains? dr :type)
   (-dataRange dr)
   (-dataRange (dataType dr))))
 
 (defn dataAnd 
 	([datarange1 datarange2]
-	 (-dataRange (-dataAnd (into #{} [(dataRange datarange1) (dataRange datarange2)]))))
+	 (let [dataRanges (into #{} [(dataRange datarange1) (dataRange datarange2)])]
+   (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges))))
 	([datarange1 datarange2 & dataranges]
-	 (-dataRange (-dataAnd (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))))))
+  (let [dataRanges (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))]
+	  (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges))))))
 
 (defn dataOr 
 	([datarange1 datarange2]
-	 (-dataRange (-dataOr (into #{} [(dataRange datarange1) (dataRange datarange2)]))))
-	([datarange1 datarange2 & dataranges]
-	 (-dataRange (-dataOr (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))))))
+  (let [dataRanges (into #{} [(dataRange datarange1) (dataRange datarange2)])]
+   (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges))))
+ ([datarange1 datarange2 & dataranges]
+  (let [dataRanges (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))]
+   (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges))))))
 
-(defn dataNot [datarange]
+(defn dataNot 
+ [datarange]
  (-dataRange (-dataNot (dataRange datarange))))
 
 (defn dataOneOf
