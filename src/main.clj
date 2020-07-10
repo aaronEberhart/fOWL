@@ -6,19 +6,6 @@
 
 
 (defn -main [& args]
-       (doseq [x [(implies (exists "r" "a") "b")
-                  (implies (-or "b" "c") (-not (-or "d" "e")))
-                  (implies (roleChain "r" (inverseRole "s")) "t")
-                  (fact (inverseRole "s") "i" "j")
-                  (fact "a" "i")
-                  (fact "d" "i" (stringLiteral "l"))
-                  (implies (<=exists 4 "r" "c") 
-                           (-not (-or (-and "d" "e") 
-                                      (-not (-and "f" "g")))))
-                  (getNNF (implies (<=exists 4 "r" "c") 
-                                   (-not (-or (-and "d" "e") 
-                                              (-not (-and "f" "g"))))))]]
-        (println x))
  )
 
 
