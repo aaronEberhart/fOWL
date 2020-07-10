@@ -78,7 +78,7 @@
 (defn classFact
  ([class individual]
   (-fact (-classFact (ex/class class) (co/individual individual))))
- ([annotations class individual](prn (ex/class class))
+ ([annotations class individual]
   (-fact (-classFact (ann/axiomAnnotations annotations) (ex/class class) (co/individual individual)))))
 
 (defn- -fromIndividual 

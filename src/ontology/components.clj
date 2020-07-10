@@ -157,7 +157,9 @@
  ([iri]
   (if (string? iri)
   	(-individual (-namedIndividual (IRI iri)))
-  	(-individual (if (= (get (:prefix iri) 0) \_)(-anonymousIndividual iri)(-namedIndividual iri)))))
+   (if (contains? iri :type)
+    (throw+ {:type ::notIndividual :iri iri})
+   	(-individual (if (= (get (:prefix iri) 0) \_)(-anonymousIndividual iri)(-namedIndividual iri))))))
  ([prefix iri]
   (-individual (if (= (get prefix 0) \_)(-anonymousIndividual prefix iri)(-namedIndividual prefix iri))))
  ([prefix iri namespace]
@@ -315,7 +317,7 @@
 (defn dataAnd 
 	([datarange1 datarange2]
 	 (let [dataRanges (into #{} [(dataRange datarange1) (dataRange datarange2)])]
-   (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges))))
+   (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges)))))
 	([datarange1 datarange2 & dataranges]
   (let [dataRanges (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))]
 	  (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges))))))
@@ -323,7 +325,7 @@
 (defn dataOr 
 	([datarange1 datarange2]
   (let [dataRanges (into #{} [(dataRange datarange1) (dataRange datarange2)])]
-   (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges))))
+   (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges)))))
  ([datarange1 datarange2 & dataranges]
   (let [dataRanges (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))]
    (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges))))))

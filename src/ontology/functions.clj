@@ -3,7 +3,8 @@
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
            [ontology.regexes :as reg]
-           [util.msc :as msc]))
+           [util.msc :as msc])
+ (:use [slingshot.slingshot :only [throw+]]))
 
 (def extractParams
  "Separates annotations from other inputs for functions with variable arguments"
@@ -700,6 +701,39 @@
  ([iri] (ann/annotationDataType iri))
  ([prefix name](ann/annotationDataType prefix name))
  ([prefix name namespace](ann/annotationDataType prefix name namespace)))
+
+(defn implies
+ "Will attempt to infer a valid implication based on the arguments supplied. If all arguments are string or IRI, it will create a class implication."
+ [& args]
+ (let [args (apply extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
+  (cond
+   (and (or (string? (first args))(nil? (:type (first args)))) (or (string? (first (rest args))) (nil? (:type  (first (rest args)))))) (apply ax/classImplication (cons ann args))
+   (or (= :class (:type (first args))) (= :class (:type (first (rest args))))) (apply ax/classImplication (cons ann args))
+   (or (= :role (:type (first args))) (= :roleChain (:type (first args))) (= :role (:type (first (rest args))))) (apply ax/roleImplication (cons ann args))
+   (or (= :dataRole (:type (first args))) (= :dataRole (:type (first (rest args))))) (apply ax/dataRoleImplication (cons ann args))
+   (or (= :annotationRole (:type (first args))) (= :annotationRole (:type (first (rest args))))) (apply ax/annotationImplication (cons ann args))
+   :else (throw+ {:type ::notImplication :annotations ann :args args}))))
+
+(defn fact
+ "Will attempt to infer a valid fact based on the arguments supplied. If the first argument is string, it will create a class fact when there are 2, role fact when 3."
+ [& args]
+ (let [args (apply extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
+  (cond
+   (= 2 (count args)) (apply fs/classFact (cons ann args))
+   (= :literal (:type (last args))) (apply fs/dataRoleFact (cons ann args))
+   (or (= :role (:type (first args))) (string? (first args))) (apply fs/roleFact (cons ann args))
+   
+   (= :annotationRole (:type (first args))) (apply ax/annotationFact (cons ann args))
+   :else (throw+ {:type ::notFact :annotations ann :args args}))))
+
+(defn notFact
+ "Will attempt to infer a valid negative fact based on the arguments supplied. If the first argument is string, it will create a role fact."
+ [& args]
+ (let [args (apply extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
+  (cond
+   (= :literal (:type (last args))) (apply fs/notDataRoleFact (cons ann args))
+   (or (= :role (:type (first args))) (string? (first args))) (apply fs/notRoleFact (cons ann args))   
+   :else (throw+ {:type ::notNotFact :annotations ann :args args}))))
 
 (def Top
  "owl:Thing"

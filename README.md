@@ -8,44 +8,29 @@ To run a program, simply type code in main, or your own files, then run the comm
 
 ## Examples
 ```
-;show the documentation for a function
+;; show the documentation for a function
 main=> (doc makeOWLFile)
 
-;output
 -------------------------
 ontology.IO/makeOWLFile
 ([ontology filename])
   Writes an owl file of the ontology in functional syntax with the supplied file name
-  
 
-;do some things sequentially
-main=> (doseq [x [(classImplication (exists "r" "a") "b")
-                  (classImplication (-or "b" "c") (-not (-or "d" "e")))
-                  (roleImplication (roleChain "r" (inverseRole "s")) "t")
-                  (roleFact (inverseRole "s") "i" "j")
-                  (classFact "a" "i")
-                  (dataRoleFact "d" "i" (stringLiteral "l"))
-                  (classImplication (<=exists 4 "r" "c") 
-                                    (-not (-or (-and "d" "e") 
-                                               (-not (-and "f" "g")))))
-                  (getNNF (classImplication (<=exists 4 "r" "c") 
-                                            (-not (-or (-and "d" "e") 
-                                                       (-not (-and "f" "g"))))))
-                  
-                  ;Use let to store some values and write a file
-                  (let [ont emptyOntologyFile
-                        ont (setOntologyIRI ont "http://www.test.stuff")
-                        ont (addAnnotations ont (annotation "annotations" "are fun"))
-                        ont (addPrefixes ont (prefix "" "http://www.test.stuff/")
-                                             (prefix "" "http://www.overwriting.test.stuff/")
-                                             (prefix "prefix" "http://www.prefix.stuff/")) 
-                        ont (addAxioms ont (classImplication "a" (IRI "prefix" "b"))
-                                           (classImplication (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
-                                           (classImplication "d" "a"))]
-                  (makeOWLFile ont "test.owl"))]]
-       (println x))
+;; do some things sequentially
+main=> (doseq [x [(implies (exists "r" "a") "b")
+                  (implies (-or "b" "c") (-not (-or "d" "e")))
+                  (implies (roleChain "r" (inverseRole "s")) "t")
+                  (fact (inverseRole "s") "i" "j")
+                  (fact "a" "i")
+                  (fact "d" "i" (stringLiteral "l"))
+                  (implies (<=exists 4 "r" "c") 
+                           (-not (-or (-and "d" "e") 
+                                      (-not (-and "f" "g")))))
+                  (getNNF (implies (<=exists 4 "r" "c") 
+                                   (-not (-or (-and "d" "e") 
+                                              (-not (-and "f" "g"))))))]]
+        (println x))
 
-;output
 SubClassOf(ObjectSomeValuesFrom(r a) b)
 SubClassOf(ObjectUnionOf(c b) ObjectComplementOf(ObjectUnionOf(d e)))
 SubObjectPropertyOf(ObjectPropertyChain(r ObjectInverseOf(s)) t)
@@ -54,23 +39,78 @@ ClassAssertion(a i)
 DataPropertyAssertion(d i "l")
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(d e) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(e) ObjectComplementOf(d)) ObjectIntersectionOf(g f)))
-nil
 
-;use threading to accomplish the same task as the let expression
+;; Use let to store some values to make an ontology
+main=> (let [ont emptyOntologyFile
+             ont (setOntologyIRI ont "http://www.test.stuff")
+             ont (addAnnotations ont (annotation "annotations" "are fun"))
+             ont (addPrefixes ont (prefix "" "http://www.test.stuff/")
+                                  (prefix "" "http://www.overwriting.test.stuff/")
+                                  (prefix "prefix" "http://www.prefix.stuff/")) 
+             ont (addAxioms ont (implies "a" (IRI "prefix" "b"))
+                                (implies (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
+                                (implies "d" "a")
+                                (implies (inverseRole "r") "s")
+                                (fact "a" "i")
+                                (fact "r" "j" "i")
+                                (notFact "d" "i" (stringLiteral "l")))]
+        (println ont))
+
+Prefix(:=<http://www.overwriting.test/stuff#>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+Prefix(prefix:=<http://www.prefix.stuff/>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+
+Ontology(<http://www.test.stuff>
+
+Annotation(:annotations "are fun")
+
+NegativeDataPropertyAssertion(:d :i "l")
+ClassAssertion(:a :i)
+ObjectPropertyAssertion(:r :j :i)
+SubClassOf(:d :a)
+SubObjectPropertyOf(ObjectInverseOf(:r) :s)
+SubClassOf(:a prefix:b)
+SubClassOf(prefix:b :c)
+)
+
+;; use threading to accomplish the same task as the let expression
 main=> (-> emptyOntologyFile
           (setOntologyIRI "http://www.test.stuff")
           (addAnnotations (annotation "annotations" "are fun"))
           (addPrefixes (prefix "" "http://www.test.stuff/")
                        (prefix "" "http://www.overwriting.test/stuff#")
                        (prefix "prefix" "http://www.prefix.stuff/"))
-          (addAxioms (classImplication "a" (IRI "prefix" "b"))
-                     (classImplication (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
-                     (classImplication "d" "a"))
-          (makeOWLFile "test.owl")
+          (addAxioms (implies "a" (IRI "prefix" "b"))
+                     (implies (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
+                     (implies "d" "a")
+                     (implies (inverseRole "r") "s")
+                     (fact "a" "i")
+                     (fact "r" "j" "i")
+                     (notFact "d" "i" (stringLiteral "l")))
           println)
 
-;output
-nil
+Prefix(:=<http://www.overwriting.test/stuff#>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+Prefix(prefix:=<http://www.prefix.stuff/>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+
+Ontology(<http://www.test.stuff>
+
+Annotation(:annotations "are fun")
+
+NegativeDataPropertyAssertion(:d :i "l")
+ClassAssertion(:a :i)
+ObjectPropertyAssertion(:r :j :i)
+SubClassOf(:d :a)
+SubObjectPropertyOf(ObjectInverseOf(:r) :s)
+SubClassOf(:a prefix:b)
+SubClassOf(prefix:b :c)
+)
 ```
 
 ## License
