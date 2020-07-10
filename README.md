@@ -112,7 +112,7 @@ SubClassOf(:a prefix:b)
 SubClassOf(prefix:b :c)
 )
 
-;; Use a loop to add ever other axiom from the vector to the ontology
+;; Use a loop to add every other axiom from the vector to the ontology
 main=>  (loop [counter 0
                ontology emptyOntologyFile
                axioms [(implies (exists "r" "a") "b")
