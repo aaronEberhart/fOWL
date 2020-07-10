@@ -113,7 +113,7 @@ SubClassOf(prefix:b :c)
 )
 
 ;; Use a loop to add even numbered axioms from the list to the ontology
-=> main (loop [counter 0
+main=>  (loop [counter 0
                ontology emptyOntologyFile
                axioms [(implies (exists "r" "a") "b")
                        (implies (-or "b" "c") (-not (-or "d" "e")))
