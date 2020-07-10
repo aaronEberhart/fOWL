@@ -6,23 +6,7 @@
 
 
 (defn -main [& args]
- (loop [counter 0
-        ontology emptyOntologyFile
-        axioms [(implies (exists "r" "a") "b")
-                (implies (-or "b" "c") (-not (-or "d" "e")))
-                (implies (roleChain "r" (inverseRole "s")) "t")
-                (fact (inverseRole "s") "i" "j")
-                (fact "a" "i")
-                (fact "d" "i" (stringLiteral "l"))
-                (implies (<=exists 4 "r" "c") 
-                         (-not (-or (-and "d" "e") 
-                                    (-not (-and "f" "g")))))
-                (getNNF (implies (<=exists 4 "r" "c") 
-                                 (-not (-or (-and "d" "e") 
-                                            (-not (-and "f" "g"))))))]]
- (if (empty? axioms)
-  (prn ontology)
-  (recur (inc counter) (if (= 0 (mod counter 2)) (addAxiom ontology (first axioms)) ontology) (rest axioms)))))
+ )
 
 
 (def printStyle 
