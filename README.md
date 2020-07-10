@@ -126,7 +126,8 @@ main=>  (loop [counter 0
          axiomSet
          (recur (inc counter) (if (= 0 (mod counter 3)) (conj axiomSet (first axioms)) axiomSet) (rest axioms))))
 
-#{ObjectPropertyAssertion(ObjectInverseOf(s) i j) SubClassOf(ObjectSomeValuesFrom(r a) b)
+#{ObjectPropertyAssertion(ObjectInverseOf(s) i j) 
+  SubClassOf(ObjectSomeValuesFrom(r a) b)
   SubObjectPropertyOf(ObjectPropertyChain(s q) t)}
 ```
 
