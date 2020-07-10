@@ -112,38 +112,22 @@ SubClassOf(:a prefix:b)
 SubClassOf(prefix:b :c)
 )
 
-;; Use a tail-recursive loop to add every other axiom from the vector to the ontology
+;; Use a tail-recursive loop to add every third axiom from the vector to the set
 main=>  (loop [counter 0
-               ontology emptyOntologyFile
+               axiomSet #{}
                axioms [(implies (exists "r" "a") "b")
                        (implies (-or "b" "c") (-not (-or "d" "e")))
                        (implies (roleChain "r" (inverseRole "s")) "t")
                        (fact (inverseRole "s") "i" "j")
                        (fact "a" "i")
                        (fact "d" "i" (stringLiteral "l"))
-                       (implies (<=exists 4 "r" "c") 
-                                (-not (-or (-and "d" "e") 
-                                    (-not (-and "f" "g")))))
-                       (getNNF (implies (<=exists 4 "r" "c") 
-                                        (-not (-or (-and "d" "e") 
-                                                   (-not (-and "f" "g"))))))]]
+                       (implies (roleChain "s" "q") "t")]]
         (if (empty? axioms)
-         ontology
-         (recur (inc counter) (if (= 0 (mod counter 2)) (addAxiom ontology (first axioms)) ontology) (rest axioms))))
+         axiomSet
+         (recur (inc counter) (if (= 0 (mod counter 3)) (conj axiomSet (first axioms)) axiomSet) (rest axioms))))
 
-Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
-Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
-Prefix(:=<empty:ontology>)
-Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
-Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
-
-Ontology(<empty:ontology>
-
-SubObjectPropertyOf(ObjectPropertyChain(:r ObjectInverseOf(:s)) :t)
-SubClassOf(ObjectSomeValuesFrom(:r :a) :b)
-ClassAssertion(:a :i)
-SubClassOf(ObjectMaxCardinality(4 :r :c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(:d :e) ObjectComplementOf(ObjectIntersectionOf(:g :f)))))
-)
+#{ObjectPropertyAssertion(ObjectInverseOf(s) i j) SubClassOf(ObjectSomeValuesFrom(r a) b)
+  SubObjectPropertyOf(ObjectPropertyChain(s q) t)}
 ```
 
 ## License
