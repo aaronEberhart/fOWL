@@ -12,11 +12,11 @@ To run a program, simply type code in main, or your own files, then run the comm
 main=> (doc makeOWLFile)
 
 -------------------------
-ontology.IO/makeOWLFile
+ontology.functions/makeOWLFile
 ([ontology filename])
   Writes an owl file of the ontology in functional syntax with the supplied file name
 
-;; do some things sequentially
+;; print some things sequentially
 main=> (doseq [x [(implies (exists "r" "a") "b")
                   (implies (-or "b" "c") (-not (-or "d" "e")))
                   (implies (roleChain "r" (inverseRole "s")) "t")
@@ -39,6 +39,7 @@ ClassAssertion(a i)
 DataPropertyAssertion(d i "l")
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(d e) ObjectComplementOf(ObjectIntersectionOf(g f)))))
 SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(ObjectComplementOf(e) ObjectComplementOf(d)) ObjectIntersectionOf(g f)))
+nil
 
 ;; Use let to store some values to make an ontology
 main=> (let [ont emptyOntologyFile
@@ -54,7 +55,7 @@ main=> (let [ont emptyOntologyFile
                                 (fact "a" "i")
                                 (fact "r" "j" "i")
                                 (notFact "d" "i" (stringLiteral "l")))]
-        (println ont))
+        ont)
 
 Prefix(:=<http://www.overwriting.test/stuff#>)
 Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
@@ -89,8 +90,7 @@ main=> (-> emptyOntologyFile
                      (implies (inverseRole "r") "s")
                      (fact "a" "i")
                      (fact "r" "j" "i")
-                     (notFact "d" "i" (stringLiteral "l")))
-          println)
+                     (notFact "d" "i" (stringLiteral "l"))))
 
 Prefix(:=<http://www.overwriting.test/stuff#>)
 Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
@@ -110,6 +110,39 @@ SubClassOf(:d :a)
 SubObjectPropertyOf(ObjectInverseOf(:r) :s)
 SubClassOf(:a prefix:b)
 SubClassOf(prefix:b :c)
+)
+
+;; Use a loop to add even numbered axioms from the list to the ontology
+=> main (loop [counter 0
+               ontology emptyOntologyFile
+               axioms [(implies (exists "r" "a") "b")
+                       (implies (-or "b" "c") (-not (-or "d" "e")))
+                       (implies (roleChain "r" (inverseRole "s")) "t")
+                       (fact (inverseRole "s") "i" "j")
+                       (fact "a" "i")
+                       (fact "d" "i" (stringLiteral "l"))
+                       (implies (<=exists 4 "r" "c") 
+                                (-not (-or (-and "d" "e") 
+                                    (-not (-and "f" "g")))))
+                       (getNNF (implies (<=exists 4 "r" "c") 
+                                        (-not (-or (-and "d" "e") 
+                                                   (-not (-and "f" "g"))))))]]
+        (if (empty? axioms)
+         ontology
+         (recur (inc counter) (if (= 0 (mod counter 2)) (addAxiom ontology (first axioms)) ontology) (rest axioms))))
+
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+Prefix(:=<empty:ontology>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+
+Ontology(<empty:ontology>
+
+SubObjectPropertyOf(ObjectPropertyChain(:r ObjectInverseOf(:s)) :t)
+SubClassOf(ObjectSomeValuesFrom(:r :a) :b)
+ClassAssertion(:a :i)
+SubClassOf(ObjectMaxCardinality(4 :r :c) ObjectComplementOf(ObjectUnionOf(ObjectIntersectionOf(:d :e) ObjectComplementOf(ObjectIntersectionOf(:g :f)))))
 )
 ```
 
