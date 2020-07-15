@@ -1,4 +1,4 @@
-# fOWL - f(unctional)OWL
+# f(unctional)OWL
 fOWL is a minimalistic functional programming style ontology editor. Ontologies in FOWL are implemented as standalone data structures with internalized types (nested maps containing values and sets of maps \[vectors for role chains\]). FOWL's homogenous Ontology data structure means that functions for single axioms or expressions will often work identically on an entire ontology. The lazy functional style of Clojure also allows for intuitive and simple Ontology modification with a minimal memory footprint.
 
 ## Usage
