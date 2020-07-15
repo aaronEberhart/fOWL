@@ -721,8 +721,7 @@
   (cond
    (= 2 (count args)) (apply fs/classFact (cons ann args))
    (= :literal (:type (last args))) (apply fs/dataRoleFact (cons ann args))
-   (or (= :role (:type (first args))) (string? (first args))) (apply fs/roleFact (cons ann args))
-   
+   (or (= :role (:type (first args))) (string? (first args))) (apply fs/roleFact (cons ann args))   
    (= :annotationRole (:type (first args))) (apply ax/annotationFact (cons ann args))
    :else (throw+ {:type ::notFact :annotations ann :args args}))))
 

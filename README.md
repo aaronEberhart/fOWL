@@ -113,7 +113,7 @@ SubClassOf(prefix:b :c)
 )
 
 ;; Use a tail-recursive loop to add every third axiom from the vector to the set
-main=>  (loop [counter 0
+main=> (loop [counter 0
                axiomSet #{}
                axioms [(implies (exists "r" "a") "b")
                        (implies (-or "b" "c") (-not (-or "d" "e")))
