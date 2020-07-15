@@ -1,8 +1,7 @@
 (ns ontology.normalize
   (:require [ontology.axioms :as ax][ontology.expressions :as ex][ontology.components :as co]
             [util.msc :as msc]
-            [clojure.string :as str])
-  (:use [slingshot.slingshot :only [throw+]]))
+            [clojure.string :as str]))
 
 (def one
   (constantly 1))
@@ -89,7 +88,7 @@
               (ex/or (update (update class :nat inc) :innerType >=exists)
                      (update (update class :nat dec) :innerType <=exists)))
               (update (update class :nat one) :innerType >=exists))
-  (throw+ {:type ::notNormalizable :class class})))
+  (throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
 (defn- getClassNNF 
  "Gets the NNF for a class"
@@ -116,7 +115,7 @@
   :not (if (= :not (:innerType (:class class)))
         (getClassNNF (:class (:class class)))
         (deMorgan class getClassNNF))
-  (throw+ {:type ::notNormalizable :class class})))
+  (throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
 (defn- classesPermutations [classes]
   (cons (cons (peek classes) (cons (first classes) nil)) (if (> (count classes) 2) (partition 2 1 classes))))
@@ -135,7 +134,7 @@
 
 (defn- disjOrToImp
   ([class classes](reduce disjToImp #{} classes))
-  ([classes class1 class2](throw+ {:type ::notNormalizable :class class})))
+  ([classes class1 class2](throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
 (defn toClassImplications 
  "Converts an axiom to an equivalent axiom or set of axioms that are class implications"
@@ -144,8 +143,8 @@
   :classImplication axiom
   :disjClasses (disjToImp (classesPermutations (into [] (:classes axiom))))
   :=Classes (equivToImp (classesPermutations (into [] (:classes axiom))))
-  :disjOr (throw+ {:type ::notNormalizableYet :axiom axiom})
-  (throw+ {:type ::incompatibleClassAxiom :axiom axiom})))
+  :disjOr (throw (Exception. (str  {:type ::notNormalizableYet :axiom axiom})))
+  (throw (Exception. (str  {:type ::incompatibleClassAxiom :axiom axiom})))))
 
 (defn- getClassAxiomNNF 
  "Gets the NNF of a class axiom"
@@ -194,7 +193,7 @@
         :=exists (let [class (negate (update class :class getClassDSNF)) _ (prn "D" class)] class)
         :=dataExists (update class :class getClassDSNF)
         (deMorgan class getClassDSNF))
-  (throw+ {:type ::notNormalizable :class class})))
+  (throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
 (defn- getClassAxiomDSNF [axiom]
   (if (= (:innerType axiom) :classImplication)
@@ -237,7 +236,7 @@
         :=exists (let [class (update class :class getClassCSNF) _ (prn "C" class)] class)
         :=dataExists (update class :class getClassCSNF)
         (deMorgan class getClassCSNF))
-  (throw+ {:type ::notNormalizable :class class})))
+  (throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
 (defn- getClassAxiomCSNF [axiom]
   (if (= (:innerType axiom) :classImplication)

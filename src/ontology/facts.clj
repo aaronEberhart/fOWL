@@ -1,5 +1,4 @@
 (ns ontology.facts
-  (:use [slingshot.slingshot :only [throw+]])
   (:require [ontology.components :as co][ontology.axioms :as ax][ontology.annotations :as ann][ontology.expressions :as ex]))
 
 (def factTypes
@@ -10,7 +9,7 @@
   [fact]
   (if (contains? factTypes (:type fact))
     (assoc fact :type :axiom :outerType :fact)
-    (throw+ {:type ::notAssertion :fact fact})))
+    (throw (Exception. (str  {:type ::notAssertion :fact fact})))))
 
 (defn- -=individuals
   "SameIndividual := 'SameIndividual' '(' axiomAnnotations Individual Individual { Individual } ')'"
@@ -18,16 +17,16 @@
     (if (< 1 (count individuals))
       (if (every? (fn [x] (= (:type x) :individual)) individuals)
         {:individuals individuals :type :=individuals :innerType :=individuals :outerType :=individuals}
-        (throw+ {:type ::notIndividuals :individuals individuals}))
-      (throw+ {:type ::notEnoughIndividuals :individuals individuals})))
+        (throw (Exception. (str  {:type ::notIndividuals :individuals individuals}))))
+      (throw (Exception. (str  {:type ::notEnoughIndividuals :individuals individuals})))))
   ([annotations individuals]
     (if (< 1 (count individuals))
       (if (every? (fn [x] (= (:type x) :individual)) individuals)
         (if (= (:type annotations) :axiomAnnotations)
           {:individuals individuals :annotations (:annotations annotations) :type :=individuals :innerType :=individuals :outerType :=individuals}
-          (throw+ {:type ::notAnnotations :annotations annotations}))
-        (throw+ {:type ::notIndividuals :individuals individuals}))
-      (throw+ {:type ::notEnoughIndividuals :individuals individuals}))))
+          (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+        (throw (Exception. (str  {:type ::notIndividuals :individuals individuals}))))
+      (throw (Exception. (str  {:type ::notEnoughIndividuals :individuals individuals}))))))
 
 (defn =individuals
   ([individuals]
@@ -41,16 +40,16 @@
     (if (< 1 (count individuals))
       (if (every? (fn [x] (= (:type x) :individual)) individuals)
         {:individuals individuals :type :!=individuals :innerType :!=individuals :outerType :!=individuals}
-        (throw+ {:type ::notIndividuals :individuals individuals}))
-      (throw+ {:type ::notEnoughIndividuals :individuals individuals})))
+        (throw (Exception. (str  {:type ::notIndividuals :individuals individuals}))))
+      (throw (Exception. (str  {:type ::notEnoughIndividuals :individuals individuals})))))
   ([annotations individuals]
     (if (< 1 (count individuals))
       (if (every? (fn [x] (= (:type x) :individual)) individuals)
         (if (= (:type annotations) :axiomAnnotations)
           {:individuals individuals :annotations (:annotations annotations) :type :!=individuals :innerType :!=individuals :outerType :!=individuals}
-          (throw+ {:type ::notAnnotations :annotations annotations}))
-        (throw+ {:type ::notIndividuals :individuals individuals}))
-      (throw+ {:type ::notEnoughIndividuals :individuals individuals}))))
+          (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+        (throw (Exception. (str  {:type ::notIndividuals :individuals individuals}))))
+      (throw (Exception. (str  {:type ::notEnoughIndividuals :individuals individuals}))))))
 
 (defn !=individuals
   ([individuals]
@@ -64,16 +63,16 @@
     (if (= (:type individual) :individual)
       (if (= (:type class) :class)
         {:class class :individual individual :type :classFact :innerType :classFact :outerType :classFact}
-        (throw+ {:type ::notClass :class class}))
-      (throw+ {:type ::notIndividual :individual individual})))
+        (throw (Exception. (str  {:type ::notClass :class class}))))
+      (throw (Exception. (str  {:type ::notIndividual :individual individual})))))
   ([annotations class individual]
     (if (= (:type individual) :individual)
       (if (= (:type class) :class)
         (if (= (:type annotations) :axiomAnnotations)
           {:class class :individual individual :annotations (:annotations annotations) :type :classFact :innerType :classFact :outerType :classFact}
-          (throw+ {:type ::notAnnotations :annotations annotations}))
-        (throw+ {:type ::notClass :class class}))
-      (throw+ {:type ::notIndividual :individual individual}))))
+          (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+        (throw (Exception. (str  {:type ::notClass :class class}))))
+      (throw (Exception. (str  {:type ::notIndividual :individual individual}))))))
 
 (defn classFact
  ([class individual]
@@ -86,34 +85,34 @@
   [individual]
   (if (= (:type individual) :individual)
     individual
-    (throw+ {:type ::notIndividual :individual individual})))
+    (throw (Exception. (str  {:type ::notIndividual :individual individual})))))
 
 (defn- -toIndividual 
   "targetIndividual := Individual"
   [individual]
   (if (= (:type individual) :individual)
     individual
-    (throw+ {:type ::notIndividual :individual individual})))
+    (throw (Exception. (str  {:type ::notIndividual :individual individual})))))
 
 (defn- -toLiteral 
   "targetValue := Literal"
   [literal]
   (if (= (:type literal) :literal)
     literal
-    (throw+ {:type ::notLiteral :literal literal})))
+    (throw (Exception. (str  {:type ::notLiteral :literal literal})))))
 
 (defn- -roleFact
   "ObjectPropertyAssertion := 'ObjectPropertyAssertion' '(' axiomAnnotations ObjectPropertyExpression sourceIndividual targetIndividual ')'"
   ([role fromIndividual toIndividual]
     (if (and (and (= (:type role) :role)(= (:type fromIndividual) :individual))(= (:type toIndividual) :individual))
       {:role role :fromIndividual fromIndividual :toIndividual toIndividual :type :roleFact :innerType :roleFact :outerType :roleFact}
-    (throw+ {:type ::notRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual})))
+    (throw (Exception. (str  {:type ::notRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual})))))
   ([annotations role fromIndividual toIndividual]
     (if (and (and (= (:type role) :role)(= (:type fromIndividual) :individual))(= (:type toIndividual) :individual))
       (if (= (:type annotations) :axiomAnnotations)
         {:role role :fromIndividual fromIndividual :toIndividual toIndividual :annotations (:annotations annotations) :type :roleFact :innerType :roleFact :outerType :roleFact}
-        (throw+ {:type ::notAnnotations :annotations annotations}))
-    (throw+ {:type ::notRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual}))))
+        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+    (throw (Exception. (str  {:type ::notRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual}))))))
 
 (defn roleFact
   ([role fromIndividual toIndividual]
@@ -126,13 +125,13 @@
   ([role fromIndividual toIndividual]
     (if (and (and (= (:type role) :role)(= (:type fromIndividual) :individual))(= (:type toIndividual) :individual))
       {:role role :fromIndividual fromIndividual :toIndividual toIndividual :type :notRoleFact :innerType :notRoleFact :outerType :notRoleFact}
-    (throw+ {:type ::notNotRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual})))
+    (throw (Exception. (str  {:type ::notNotRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual})))))
   ([annotations role fromIndividual toIndividual]
     (if (and (and (= (:type role) :role)(= (:type fromIndividual) :individual))(= (:type toIndividual) :individual))
       (if (= (:type annotations) :axiomAnnotations)
         {:role role :fromIndividual fromIndividual :toIndividual toIndividual :annotations (:annotations annotations) :type :notRoleFact :innerType :notRoleFact :outerType :notRoleFact}
-        (throw+ {:type ::notAnnotations :annotations annotations}))
-    (throw+ {:type ::notNotRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual}))))
+        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+    (throw (Exception. (str  {:type ::notNotRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual}))))))
 
 (defn notRoleFact
   ([role fromIndividual toIndividual]
@@ -145,13 +144,13 @@
   ([dataRole fromIndividual toLiteral]
     (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :individual))(= (:type toLiteral) :literal))
       {:dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral :type :dataRoleFact :innerType :dataRoleFact :outerType :dataRoleFact}
-      (throw+ {:type ::notDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral})))
+      (throw (Exception. (str  {:type ::notDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral})))))
   ([annotations dataRole fromIndividual toLiteral]
     (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :individual))(= (:type toLiteral) :literal))
       (if (= (:type annotations) :axiomAnnotations)
         {:dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral :annotations (:annotations annotations) :type :dataRoleFact :innerType :dataRoleFact :outerType :dataRoleFact}
-        (throw+ {:type ::notAnnotations :annotations annotations}))
-      (throw+ {:type ::notDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral}))))
+        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+      (throw (Exception. (str  {:type ::notDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral}))))))
 
 (defn dataRoleFact
   ([dataRole fromIndividual toLiteral]
@@ -164,13 +163,13 @@
   ([dataRole fromIndividual toLiteral]
     (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :individual))(= (:type toLiteral) :literal))
       {:dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral :type :notDataRoleFact :innerType :notDataRoleFact :outerType :notDataRoleFact}
-      (throw+ {:type ::notNotDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral})))
+      (throw (Exception. (str  {:type ::notNotDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral})))))
   ([annotations dataRole fromIndividual toLiteral]
     (if (and (and (= (:type dataRole) :dataRole)(= (:type fromIndividual) :individual))(= (:type toLiteral) :literal))
       (if (= (:type annotations) :axiomAnnotations)
         {:dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral :annotations (:annotations annotations) :type :notDataRoleFact :innerType :notDataRoleFact :outerType :notDataRoleFact}
-        (throw+ {:type ::notAnnotations :annotations annotations}))
-      (throw+ {:type ::notNotDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral}))))
+        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+      (throw (Exception. (str  {:type ::notNotDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral}))))))
 
 (defn notDataRoleFact
   ([dataRole fromIndividual toLiteral]

@@ -1,7 +1,6 @@
 (ns ontology.expressions
  (:require [ontology.components :as co])
- (:refer-clojure :exclude [class and or not])
- (:use [slingshot.slingshot :only [throw+]]))
+ (:refer-clojure :exclude [class and or not]))
 
 (def classTypes
  #{:className :class :and :or :not :nominal :exists :all :partialRole :Self :>=exists :<=exists :=exists :dataExists :dataAll :partialDataRole :>=dataExists :<=dataExists :=dataExists})
@@ -13,7 +12,7 @@
   (assoc role :type :role)
   (if (= (:type role) :role)
    (assoc role :type :role)
-  	(throw+ {:type ::notRole :roleName role}))))
+  	(throw (Exception. (str  {:type ::notRole :roleName role}))))))
 
 (defn role
  ([iri]
@@ -34,7 +33,7 @@
     (if (contains? iri :type)
       (if (= (:innerType iri) :inverseRole)
         iri
-        (throw+ {:type ::notInverseRole :roleName iri}))
+        (throw (Exception. (str  {:type ::notInverseRole :roleName iri}))))
       (-role (co/inverseRoleName iri)))))
  ([prefix iri](-role (co/inverseRoleName prefix iri)))
  ([prefix iri namespace](-role (co/inverseRoleName prefix iri namespace))))
@@ -46,7 +45,7 @@
   dataRole
   (if (= (:type dataRole) :dataRoleName)
    (assoc dataRole :type :dataRole)
-   (throw+ {:type ::notDataRole :dataRole dataRole}))))
+   (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))))
 
 (defn dataRole
  ([iri]
@@ -65,7 +64,7 @@
  [class]
  (if (contains? classTypes (:type class))
      (assoc class :type :class)
-     (throw+ {:type ::notClass :class class})))
+     (throw (Exception. (str  {:type ::notClass :class class})))))
 
 (defn class
  ([iri]
@@ -82,7 +81,7 @@
  [classes]
  (if (every? (fn [x] (= (:type x) :class)) classes)
    {:classes classes :type :and :innerType :and}
-   (throw+ {:type ::notClass :class classes})))
+   (throw (Exception. (str  {:type ::notClass :class classes})))))
 
 (defn and
  ([class1 class2]
@@ -97,7 +96,7 @@
  [classes]
  (if (every? (fn [x] (= (:type x) :class)) classes)
    {:classes classes :type :or :innerType :or}
-   (throw+ {:type ::notClass :class classes})))
+   (throw (Exception. (str  {:type ::notClass :class classes})))))
 
 (defn or
  ([class1 class2]
@@ -112,7 +111,7 @@
  [class]
  (if (= (:type class) :class)
    {:class class :innerType :not :type :not}
-   (throw+ {:type ::notClass :class class})))
+   (throw (Exception. (str  {:type ::notClass :class class})))))
 
 (defn not [c]
  (class (-not (class c))))
@@ -122,7 +121,7 @@
  [individuals]
  (if (every? (fn [x] (= (:type x) :individual)) individuals)
    {:individuals individuals :type :nominal :innerType :nominal}
-   (throw+ {:type ::notIndividuals :individuals individuals})))
+   (throw (Exception. (str  {:type ::notIndividuals :individuals individuals})))))
 
 (defn nominal
  ([individual](-class (-nominal (into #{} [(co/individual individual)]))))
@@ -134,8 +133,8 @@
  (if (= (:type role) :role)
    (if (= (:type class) :class)
    {:class class :role role :type :exists :innerType :exists}
-     (throw+ {:type ::notClass :class class}))
- (throw+ {:type ::notRole :role role})))
+     (throw (Exception. (str  {:type ::notClass :class class}))))
+ (throw (Exception. (str  {:type ::notRole :role role})))))
 
 (defn exists [r c]
  (-class (-exists (role r)(class c))))
@@ -146,8 +145,8 @@
  (if (= (:type role) :role)
    (if (= (:type class) :class)
    {:class class :role role :type :all :innerType :all}
-     (throw+ {:type ::notClass :role role :class class}))
- (throw+ {:type ::notRole :role role})))
+     (throw (Exception. (str  {:type ::notClass :role role :class class}))))
+ (throw (Exception. (str  {:type ::notRole :role role})))))
 
 (defn all [r c]
  (-class (-all (role r)(class c))))
@@ -158,8 +157,8 @@
  (if (= (:type role) :role)
    (if (= (:type individual) :individual)
    {:individual individual :role role :type :partialRole :innerType :partialRole}
-     (throw+ {:type ::notIndividual :individual individual}))
- (throw+ {:type ::notRole :role role})))
+     (throw (Exception. (str  {:type ::notIndividual :individual individual}))))
+ (throw (Exception. (str  {:type ::notRole :role role})))))
 
 (defn partialRole [r i]
  (-class (-partialRole (role r) (co/individual i))))
@@ -169,7 +168,7 @@
 [role]
 (if (= (:type role) :role)
  {:role role :type :Self :innerType :Self}
- (throw+ {:type ::notRole :role role})))
+ (throw (Exception. (str  {:type ::notRole :role role})))))
 
 (defn Self
  ([iri](class (-Self (role iri))))
@@ -181,16 +180,16 @@
    (if (<= 0 nat)
      (if (= (:type role) :role)
        {:role role :nat nat :type :>=exists :innerType :>=exists}
-       (throw+ {:type ::notRole :role role}))
-     (throw+ {:type ::notNaturalNumber :nat nat})))
+       (throw (Exception. (str  {:type ::notRole :role role}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat})))))
  ([nat role class]
    (if (<= 0 nat)
      (if (= (:type role) :role)
        (if (= (:type class) :class)
          {:role role :class class :nat nat :type :>=exists :innerType :>=exists}
-         (throw+ {:type ::notClass :class class}))
-       (throw+ {:type ::notRole :role role}))
-     (throw+ {:type ::notNaturalNumber :nat nat}))))
+         (throw (Exception. (str  {:type ::notClass :class class}))))
+       (throw (Exception. (str  {:type ::notRole :role role}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn >=exists
  ([nat r](-class (->=exists nat (role r))))
@@ -202,16 +201,16 @@
    (if (<= 0 nat)
      (if (= (:type role) :role)
        {:role role :nat nat :type :<=exists :innerType :<=exists}
-       (throw+ {:type ::notRole :role role}))
-     (throw+ {:type ::notNaturalNumber :nat nat})))
+       (throw (Exception. (str  {:type ::notRole :role role}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat})))))
  ([nat role class]
    (if (<= 0 nat)
      (if (= (:type role) :role)
        (if (= (:type class) :class)
          {:role role :class class :nat nat :type :<=exists :innerType :<=exists}
-         (throw+ {:type ::notClass :class class}))
-       (throw+ {:type ::notRole :role role}))
-     (throw+ {:type ::notNaturalNumber :nat nat}))))
+         (throw (Exception. (str  {:type ::notClass :class class}))))
+       (throw (Exception. (str  {:type ::notRole :role role}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn <=exists
  ([nat r](-class (-<=exists nat (role r))))
@@ -223,16 +222,16 @@
    (if (<= 0 nat)
      (if (= (:type role) :role)
        {:role role :nat nat :type :=exists :innerType :=exists}
-       (throw+ {:type ::notRole :role role}))
-     (throw+ {:type ::notNaturalNumber :nat nat})))
+       (throw (Exception. (str  {:type ::notRole :role role}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat})))))
  ([nat role class]
    (if (<= 0 nat)
      (if (= (:type role) :role)
        (if (= (:type class) :class)
          {:role role :class class :nat nat :type :=exists :innerType :=exists}
-         (throw+ {:type ::notClass :class class}))
-       (throw+ {:type ::notRole :role role}))
-     (throw+ {:type ::notNaturalNumber :nat nat}))))
+         (throw (Exception. (str  {:type ::notClass :class class}))))
+       (throw (Exception. (str  {:type ::notRole :role role}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn =exists
  ([nat r](-class (-=exists nat (role r))))
@@ -245,9 +244,9 @@
    (if (= (:type dataRange) :dataRange)
     (if (= (:arity dataRange) (count dataRoles))
      {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataExists :innerType :dataExists}
-     (throw+ {:type ::incorrectArity :dataRange dataRange}))
-    (throw+ {:type ::notDataRange :dataRange dataRange}))
-   (throw+ {:type ::notDataRoles :role role})))
+     (throw (Exception. (str  {:type ::incorrectArity :dataRange dataRange}))))
+    (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
+   (throw (Exception. (str  {:type ::notDataRoles :role role})))))
 
 (defn dataExists [dataRoles dataRange]
 (-class (-dataExists (into #{} (if (map? dataRoles) [(dataRole dataRoles)] (map dataRole dataRoles))) (co/dataRange dataRange))))
@@ -259,9 +258,9 @@
    (if (= (:type dataRange) :dataRange)
      (if (= (:arity dataRange) (count dataRoles))
      {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataAll :innerType :dataAll}
-       (throw+ {:type ::incorrectArity :dataRange dataRange}))
-     (throw+ {:type ::notDataRange :dataRange dataRange}))
- (throw+ {:type ::notDataRoles :role role})))
+       (throw (Exception. (str  {:type ::incorrectArity :dataRange dataRange}))))
+     (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
+ (throw (Exception. (str  {:type ::notDataRoles :role role})))))
 
 (defn dataAll [dataRoles dataRange]
  (-class (-dataAll (if (map? dataRoles) #{(dataRole dataRoles)} (into #{} (map dataRole dataRoles))) (co/dataRange dataRange))))
@@ -272,16 +271,16 @@
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        {:dataRole dataRole :nat nat :type :>=dataExists :innerType :>=dataExists}
-       (throw+ {:type ::notDataRole :dataRole dataRole}))
-     (throw+ {:type ::notNaturalNumber :nat nat})))
+       (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat})))))
  ([nat dataRole dataRange]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        (if (= (:type dataRange) :dataRange)
          {:dataRole dataRole :dataRange dataRange :nat nat :type :>=dataExists :innerType :>=dataExists}
-         (throw+ {:type ::notDataRange :dataRange dataRange}))
-       (throw+ {:type ::notDataRole :dataRole dataRole}))
-     (throw+ {:type ::notNaturalNumber :nat nat}))))
+         (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
+       (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn >=dataExists
  ([nat dr]
@@ -295,16 +294,16 @@
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        {:dataRole dataRole :nat nat :type :<=dataExists :innerType :<=dataExists}
-       (throw+ {:type ::notDataRole :dataRole dataRole}))
-     (throw+ {:type ::notNaturalNumber :nat nat})))
+       (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat})))))
  ([nat dataRole dataRange]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        (if (= (:type dataRange) :dataRange)
          {:dataRole dataRole :dataRange dataRange :nat nat :type :<=dataExists :innerType :<=dataExists}
-         (throw+ {:type ::notDataRange :dataRange dataRange}))
-       (throw+ {:type ::notDataRole :dataRole dataRole}))
-     (throw+ {:type ::notNaturalNumber :nat nat}))))
+         (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
+       (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn <=dataExists
  ([nat dr](-class (-<=dataExists nat (dataRole dr))))
@@ -316,16 +315,16 @@
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        {:dataRole dataRole :nat nat :type :=dataExists :innerType :=dataExists}
-       (throw+ {:type ::notDataRole :dataRole dataRole}))
-     (throw+ {:type ::notNaturalNumber :nat nat})))
+       (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat})))))
  ([nat dataRole dataRange]
    (if (<= 0 nat)
      (if (= (:type dataRole) :dataRole)
        (if (= (:type dataRange) :dataRange)
          {:dataRole dataRole :dataRange dataRange :nat nat :type :=dataExists :innerType :=dataExists}
-         (throw+ {:type ::notDataRange :dataRange dataRange}))
-       (throw+ {:type ::notDataRole :dataRole dataRole}))
-     (throw+ {:type ::notNaturalNumber :nat nat}))))
+         (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
+       (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))
+     (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn =dataExists
  ([nat dr](-class (-=dataExists nat (dataRole dr))))
@@ -337,8 +336,8 @@
  (if (= (:type dataRole) :dataRole)
    (if (= (:type literal) :literal)
    {:literal literal :dataRole dataRole :type :partialDataRole :innerType :partialDataRole}
-     (throw+ {:type ::notLiteral :literal literal}))
- (throw+ {:type ::notDataRole :dataRole dataRole})))
+     (throw (Exception. (str  {:type ::notLiteral :literal literal}))))
+ (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole})))))
 
 (defn partialDataRole [dr literal]
  (-class (-partialDataRole (dataRole dr) literal)))

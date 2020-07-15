@@ -3,8 +3,7 @@
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
            [ontology.regexes :as reg]
-           [util.msc :as msc])
- (:use [slingshot.slingshot :only [throw+]]))
+           [util.msc :as msc]))
 
 (def extractParams
  "Separates annotations from other inputs for functions with variable arguments"
@@ -712,7 +711,7 @@
    (or (= :role (:type (first args))) (= :roleChain (:type (first args))) (= :role (:type (first (rest args))))) (apply ax/roleImplication (cons ann args))
    (or (= :dataRole (:type (first args))) (= :dataRole (:type (first (rest args))))) (apply ax/dataRoleImplication (cons ann args))
    (or (= :annotationRole (:type (first args))) (= :annotationRole (:type (first (rest args))))) (apply ax/annotationImplication (cons ann args))
-   :else (throw+ {:type ::notImplication :annotations ann :args args}))))
+   :else (throw (Exception. (str {:type ::notImplication :annotations ann :args args}))))))
 
 (defn fact
  "Will attempt to infer a valid fact based on the arguments supplied. If the first argument is string, it will create a class fact when there are 2, role fact when 3."
@@ -723,7 +722,7 @@
    (= :literal (:type (last args))) (apply fs/dataRoleFact (cons ann args))
    (or (= :role (:type (first args))) (string? (first args))) (apply fs/roleFact (cons ann args))   
    (= :annotationRole (:type (first args))) (apply ax/annotationFact (cons ann args))
-   :else (throw+ {:type ::notFact :annotations ann :args args}))))
+   :else (throw (Exception. (str {:type ::notFact :annotations ann :args args}))))))
 
 (defn notFact
  "Will attempt to infer a valid negative fact based on the arguments supplied. If the first argument is string, it will create a role fact."
@@ -732,7 +731,7 @@
   (cond
    (= :literal (:type (last args))) (apply fs/notDataRoleFact (cons ann args))
    (or (= :role (:type (first args))) (string? (first args))) (apply fs/notRoleFact (cons ann args))   
-   :else (throw+ {:type ::notNotFact :annotations ann :args args}))))
+   :else (throw (Exception. (str {:type ::notNotFact :annotations ann :args args}))))))
 
 (def Top
  "owl:Thing"

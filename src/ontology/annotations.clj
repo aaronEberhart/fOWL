@@ -1,6 +1,5 @@
 (ns ontology.annotations
-  (:require [ontology.components :as co])
-  (:use [slingshot.slingshot :only [throw+]]))
+  (:require [ontology.components :as co]))
 
 (def annotationRoles
  #{"rdfs:label" "rdfs:comment" "rdfs:seeAlso" "rdfs:isDefinedBy" "owl:versionInfo" "owl:deprecated" "owl:backwardCompatibleWith" "owl:incompatibleWith" "owl:priorVersion"})
@@ -9,21 +8,20 @@
  "AnnotationProperty := IRI"
  ([iri]
  (if (string? iri)
-      {:reserved (co/isReservedIRI? iri) :iri iri :type :annotationRole :innerType :annotationRole}
+    {:reserved (co/isReservedIRI? iri) :iri iri :type :annotationRole :innerType :annotationRole}
     (if (:iri iri)
      (assoc iri :type :annotationRole :innerType :annotationRole)
-     
-      (throw+ {:type ::notStringIRI :iri iri}))))
+     (throw (Exception. (str  {:type ::notStringIRI :iri iri}))))))
  ([prefix iri]
    (if (and (string? iri)(string? prefix))
     (let [check (str prefix iri)]
      {:reserved (co/isReservedIRI? (str prefix ":" iri)) :short iri :prefix prefix :iri (str prefix ":" iri )}))
-     (throw+ {:type ::notStringIRI :iri iri}))
+     (throw (Exception. (str  {:type ::notStringIRI :iri iri}))))
   ([prefix iri namespace]
    (if (and (and (string? iri)(string? namespace))(string? prefix))
     (let [check (str prefix iri)]
      {:reserved (co/isReservedIRI? (str prefix ":" iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}))
-     (throw+ {:type ::notStringIRI :iri iri})))
+     (throw (Exception. (str  {:type ::notStringIRI :iri iri})))))
 
 (defn annotationValue 
  "AnnotationValue := AnonymousIndividual | IRI | Literal"
@@ -36,14 +34,14 @@
       (assoc value :type :annotationValue)
       (if (:iri value)
         (assoc value :innerType :annotationValue :type :annotationValue)
-        (throw+ {:type ::notAnnotationValue :value value}))))))
+        (throw (Exception. (str  {:type ::notAnnotationValue :value value}))))))))
 
 (defn- -metaAnnotations 
   "annotationAnnotations := { Annotation }"
   [annotations]
   (if (every? (fn [x] (= (:type x) :annotation)) annotations)
     {:annotations annotations :type :metaAnnotations :innerType :metaAnnotations}
-    (throw+ {:type ::notAnnotations :annotations annotations})))
+    (throw (Exception. (str  {:type ::notAnnotations :annotations annotations})))))
 
 (defn metaAnnotations [annotations]
   (-metaAnnotations annotations))
@@ -53,13 +51,13 @@
   ([annotationRole annotationValue]
     (if (and (= (:type annotationRole) :annotationRole)(= (:type annotationValue) :annotationValue))
       {:annotationRole annotationRole :annotationValue annotationValue :type :annotation :innerType :annotation}
-      (throw+ {:type ::notAnnotationRoleAndValue :annotationRole annotationRole :annotationValue annotationValue})))
+      (throw (Exception. (str  {:type ::notAnnotationRoleAndValue :annotationRole annotationRole :annotationValue annotationValue})))))
   ([annotations annotationRole annotationValue]
     (if (and (= (:type annotationRole) :annotationRole)(= (:type annotationValue) :annotationValue))
       (if (= (:type annotations) :metaAnnotations)
         {:annotations (:annotations annotations) :annotationRole annotationRole :annotationValue annotationValue :type :annotation :innerType :annotation}
-        (throw+ {:type ::notAnnotations :annotations annotations}))
-      (throw+ {:type ::notAnnotationRoleAndValue :annotationRole annotationRole :annotationValue annotationValue :annotations annotations}))))
+        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+      (throw (Exception. (str  {:type ::notAnnotationRoleAndValue :annotationRole annotationRole :annotationValue annotationValue :annotations annotations}))))))
 
 (defn annotation
   ([role value]
@@ -74,14 +72,14 @@
       (assoc subject :innerType :annotationSubject :type :annotationSubject)
       (if (= (:innerType subject) :anonymousIndividual)
         (assoc subject :type :annotationSubject)
-        (throw+ {:type ::notAnnotationSubject :subject subject}))))
+        (throw (Exception. (str  {:type ::notAnnotationSubject :subject subject}))))))
 
 (defn- -axiomAnnotations
   "axiomAnnotations := { Annotation }"
   [annotations]
   (if (every? (fn [x] (= (:type x) :annotation)) annotations)
     {:annotations annotations :type :axiomAnnotations :innerType :axiomAnnotations}
-    (throw+ {:type ::notAnnotations :annotations annotations})))
+    (throw (Exception. (str  {:type ::notAnnotations :annotations annotations})))))
 
 (defn axiomAnnotations [annotations]
   (-axiomAnnotations annotations))
