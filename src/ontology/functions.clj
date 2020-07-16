@@ -1538,7 +1538,7 @@
         (some? ontologyIRI)(ontologyFile prefixes (ontology ontologyIRI imports annotations axioms))
         :else (ontologyFile prefixes (ontology imports annotations axioms))))))
 (defn readFunctionalFile 
- "Reads an OWL file written in functional syntax.
+ "Reads an OWL file.
   Optional argument allows choice of file type. No option defaults to functional syntax. 
   (Currently only functional syntax defined)"
  ([file & fileType]
