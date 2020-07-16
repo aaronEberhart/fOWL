@@ -1347,9 +1347,13 @@
    (doseq [axiom axioms](.write wrt (str (toString axiom) "\n")))
    (.write wrt ")"))))
 (defn makeOWLFile
- "Writes an owl file of the ontology in functional syntax with the supplied file name"
- [ontology filename]
- (-makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology)))
+ "Writes an owl file of the ontology in functional syntax with the supplied file name. 
+  Optional argument allows choice of file type. No option defaults to functional syntax. 
+  (Currently only functional syntax defined)"
+ [ontology filename & fileType]
+ (case fileType
+  nil (-makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology))
+  :functional (-makeOWLFile filename (:prefixes ontology) (:ontologyIRI ontology) (:versionIRI ontology) (:imports ontology) (:annotations ontology) (:axioms ontology))))
 
 (defn- parsePrefixLine 
  [regexes state prefixes _ _ _ _]
@@ -1534,7 +1538,9 @@
         (some? ontologyIRI)(ontologyFile prefixes (ontology ontologyIRI imports annotations axioms))
         :else (ontologyFile prefixes (ontology imports annotations axioms))))))
 (defn readFunctionalFile 
- "Reads an OWL file written in functional syntax. Optional argument allows choice of file type. No option defaults to functional syntax. (Currently only functional syntax defined)"
+ "Reads an OWL file written in functional syntax.
+  Optional argument allows choice of file type. No option defaults to functional syntax. 
+  (Currently only functional syntax defined)"
  ([file & fileType]
   (case fileType
    nil (-readFunctionalFile file reg/functionalSyntax)

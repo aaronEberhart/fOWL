@@ -15,8 +15,10 @@ main=> (doc makeOWLFile)
 
 -------------------------
 ontology.functions/makeOWLFile
-([ontology filename])
-  Writes an owl file of the ontology in functional syntax with the supplied file name
+([ontology filename & fileType])
+  Writes an owl file of the ontology in functional syntax with the supplied file name. 
+  Optional argument allows choice of file type. No option defaults to functional syntax. 
+  (Currently only functional syntax defined)
 
 ;; print some things sequentially
 main=> (doseq [x [(implies (exists "r" "a") "b")
