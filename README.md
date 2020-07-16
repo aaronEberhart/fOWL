@@ -16,7 +16,7 @@ main=> (doc makeOWLFile)
 -------------------------
 ontology.functions/makeOWLFile
 ([ontology filename & fileType])
-  Writes an owl file of the ontology in functional syntax with the supplied file name. 
+  Writes an owl file of the ontology with the supplied file name. 
   Optional argument allows choice of file type. No option defaults to functional syntax. 
   (Currently only functional syntax defined)
 
