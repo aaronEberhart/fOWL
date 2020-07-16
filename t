@@ -1,0 +1,3 @@
+Ontology(
+SubClassOf(a b)
+)

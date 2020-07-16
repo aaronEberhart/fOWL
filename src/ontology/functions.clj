@@ -62,11 +62,11 @@
     acc)))
 
 (def emptyOntology
- "Returns an empty ontology"
+ "Returns an empty ontology with no prefixes"
  (onf/ontology #{} #{} #{}))
 
 (def emptyOntologyFile
- "Returns an empty ontology file"
+ "Returns an empty ontology file with the default OWL prefixes."
  (onf/ontologyFile 
   #{{:prefix "" :iri "empty:ontology" :type :prefix :innerType :prefix}{:prefix "owl" :iri co/owlNS :type :prefix :innerType :prefix}{:prefix "rdf" :iri co/rdfNS :type :prefix :innerType :prefix}{:prefix "rdfs" :iri co/rdfsNS :type :prefix :innerType :prefix}{:prefix "xsd" :iri co/xsdNS :type :prefix :innerType :prefix}} 
   (update emptyOntology :ontologyIRI (constantly (onf/ontologyIRI "empty:ontology")))))
@@ -400,9 +400,11 @@
  (update ontology :ontologyIRI (constantly (ontologyIRI iri))))
 
 (defn setVersionIRI
- "Sets the Version IRI of the ontology to the input IRI"
+ "Sets the Version IRI of the ontology to the input IRI. Throws an exception if there is no Ontology IRI for the ontology."
  [ontology iri]
- (update ontology :versionIRI (constantly (versionIRI iri))))
+ (if (:ontologyIRI ontology)
+  (update ontology :versionIRI (constantly (versionIRI iri)))
+  (throw (Exception. (str {:type ::noOntologyIRI :ontology ontology})))))
 
 (defn negate 
  "same as not, but doesn't make double negations"
@@ -1153,7 +1155,7 @@
   :annotationValue (swapPrefixes thing)
 
   ;filestuff
-  :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (str/join "\n" (map (fn [x] (toString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toString (:versionIRI thing)) "\n")) "\n")) (if (not (empty? (:imports thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:imports thing))) "\n\n")) (if (not (empty? (:annotations thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:annotations thing))) "\n\n")) (if (not (empty? (:axioms thing))) (str/join "\n" (map (fn [x] (toString x)) (:axioms thing)))) "\n)")
+  :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (str/join "\n" (map (fn [x] (toString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toString (:versionIRI thing)) "\n")) "\n") "\n") (if (not (empty? (:imports thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:imports thing))) "\n\n")) (if (not (empty? (:annotations thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:annotations thing))) "\n\n")) (if (not (empty? (:axioms thing))) (str/join "\n" (map (fn [x] (toString x)) (:axioms thing)))) "\n)")
   :ontologyIRI (:iri thing)
   :versionIRI (:iri thing)
   :prefix (str "Prefix(" (:prefix thing) ":=<" (:iri thing) ">)")
