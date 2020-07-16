@@ -2,7 +2,7 @@
 (f OWL) is a minimalistic functional programming style ontology editor. Ontologies in (f OWL) are implemented as standalone data structures with internalized types: nested maps containing values and collections of additional maps. This homogeneous data structure means that functions for single axioms or expressions usually work identically on any part of an Ontology, or even the entire Ontology itself. The lazy functional style of Clojure also allows for intuitive and simple Ontology modification with a minimal memory footprint.
 
 ## Usage
-This program was built and tested with [Leiningen](https://leiningen.org/). Though not yet supported, initial tests also indicate that with a few modifications it could be run with [ClojureScript](https://clojurescript.org/). 
+This program was built and tested with [Leiningen](https://leiningen.org/). 
 
 If you want to load your own ontology the program can read and write Functional Syntax OWL files, more formats are planned in the future.
 
