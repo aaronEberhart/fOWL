@@ -1,3 +1,0 @@
-Ontology(
-SubClassOf(a b)
-)

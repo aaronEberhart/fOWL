@@ -1,11 +1,10 @@
 (ns main
- (:use [clojure.repl])
+ ;(:use [clojure.repl])
  (:require [ontology.functions :refer :all]
            [clojure.string :as str][clojure.java.io :as io]))
 
-
-
 (defn -main [& args]
+
  )
 
 
