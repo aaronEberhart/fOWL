@@ -1,7 +1,10 @@
-(defproject onto.aaroneberhart/fOWL "0.0.1-SNAPSHOT"
+(defproject onto.aaroneberhart/fowl "0.0.1-SNAPSHOT"
  :description "(f OWL) is a minimalistic functional programming style ontology editor"
  :url "https://github.com/aaronEberhart/fOWL.git"
  :license {:name "Don't steal my stuff"}
  :dependencies [[org.clojure/clojure "1.10.1"]]
- :main main 
+ :main fowl
+ :aot [fowl]
+ :deploy-repositories [["clojars" {:name "Clojars" :url "https://clojars.org/repo/fOWL" }]]
+ :repositories [["clojars" {:name "Clojars" :url "https://clojars.org/repo/"}]]
  :profiles {:uberjar {:aot :all}})

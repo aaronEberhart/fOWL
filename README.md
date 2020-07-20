@@ -6,12 +6,14 @@ This program was built and tested with [Leiningen](https://leiningen.org/).
 
 If you want to load your own ontology the program can read and write Functional Syntax OWL files. More formats are planned in the future.
 
-To run a program, simply type code in main, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of all OWL functions currently available in main can be seen by entering `(dir ontology.functions)`, and `(doc function)` will show more detail about each function.
+This program can be used by itelf or you can import (f OWL) into your own project. To run a program with a copy of this repository, simply type code in fowl.clj, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of all OWL functions currently available in main can be seen by entering `(dir ontology.functions)`, and `(doc function)` will show more detail about each function.
+
+Importing (f OWL) into your own project is also extremely easy. Just make sure your project.clj file contains `[onto.aaroneberhart/fowl "0.0.1-SNAPSHOT"]` in the project `:dependencies`, and then add `[ontology.functions :as fowl]` to the `:require` entry in any file's namespace. Then you can access any of the (f OWL) functions by prefixing them with your alias, in this case `(fowl/function args)`.
 
 ## Examples
 ```
 ;; show the documentation for a function
-main=> (doc makeOWLFile)
+fowl=> (doc makeOWLFile)
 
 -------------------------
 ontology.functions/makeOWLFile
@@ -21,7 +23,7 @@ ontology.functions/makeOWLFile
   (Currently only functional syntax defined)
 
 ;; print some things sequentially
-main=> (doseq [x [(implies (exists "r" "a") "b")
+fowl=> (doseq [x [(implies (exists "r" "a") "b")
                   (implies (-or "b" "c") (-not (-or "d" "e")))
                   (implies (roleChain "r" (inverseRole "s")) "t")
                   (fact (inverseRole "s") "i" "j")
@@ -46,7 +48,7 @@ SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(Object
 nil
 
 ;; Use let to store some values to make an ontology
-main=> (let [ont emptyOntologyFile
+fowl=> (let [ont emptyOntologyFile
              ont (setOntologyIRI ont "http://www.test.stuff")
              ont (addAnnotations ont (annotation "annotations" "are fun"))
              ont (addPrefixes ont (prefix "" "http://www.test.stuff/")
@@ -82,7 +84,7 @@ SubClassOf(prefix:b :c)
 )
 
 ;; use threading to accomplish the same task as the let expression
-main=> (-> emptyOntologyFile
+fowl=> (-> emptyOntologyFile
           (setOntologyIRI "http://www.test.stuff")
           (addAnnotations (annotation "annotations" "are fun"))
           (addPrefixes (prefix "" "http://www.test.stuff/")
@@ -117,7 +119,7 @@ SubClassOf(prefix:b :c)
 )
 
 ;; Use a tail-recursive loop to add every third axiom from the vector to the set
-main=> (loop [counter 0
+fowl=> (loop [counter 0
               axiomSet #{}
               axioms [(implies (exists "r" "a") "b")
                       (implies (-or "b" "c") (-not (-or "d" "e")))
