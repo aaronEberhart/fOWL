@@ -1,5 +1,6 @@
 (ns ontology.annotations
-  (:require [ontology.components :as co]))
+ "Functions that represent OWL annotations"
+ (:require [ontology.components :as co]))
 
 (def annotationRoles
  #{"rdfs:label" "rdfs:comment" "rdfs:seeAlso" "rdfs:isDefinedBy" "owl:versionInfo" "owl:deprecated" "owl:backwardCompatibleWith" "owl:incompatibleWith" "owl:priorVersion"})

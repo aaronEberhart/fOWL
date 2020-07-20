@@ -6,7 +6,7 @@ This program was built and tested with [Leiningen](https://leiningen.org/).
 
 (f OWL) can be used by itelf or you can import it into your own project. To run a copy of this repository, simply type code in fowl.clj, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of all OWL functions currently available from fowl.clj can be seen by entering `(dir ontology.functions)`, and `(doc function)` will show more detail about each function.
 
-Importing (f OWL) into your own project is also extremely easy. Just make sure your project.clj file contains `[onto.aaroneberhart/fowl "0.0.1-SNAPSHOT"]` in the project `:dependencies`, and then add `[ontology.functions :as fowl]` to the `:require` entry in any file's namespace. Then you can access any of the (f OWL) functions by prefixing them with your alias, in this case `(fowl/function args)`.
+Importing (f OWL) from [Clojars](https://clojars.org/onto.aaroneberhart/fowl) as a library into your own project is also extremely easy. Just make sure your project.clj file contains `[onto.aaroneberhart/fowl "0.0.1-SNAPSHOT"]` in the project `:dependencies`, and then add `[ontology.functions :as fowl]` to the `:require` entry in any file's namespace. Then you can access any of the (f OWL) functions by prefixing them with your alias, in this case `(fowl/function args)`.
 
 
 If you want to load your own ontology the program can read and write Functional Syntax OWL files. More formats are planned in the future.

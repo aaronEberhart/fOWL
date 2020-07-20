@@ -1,5 +1,6 @@
 (ns ontology.axioms
-  (:require [ontology.annotations :as ann][ontology.components :as co][ontology.expressions :as ex][ontology.SWRL :as swrl]))
+ "Functions that represent OWL axioms"
+ (:require [ontology.annotations :as ann][ontology.components :as co][ontology.expressions :as ex][ontology.SWRL :as swrl]))
 
 (def axiomTypes
   #{:declaration :classAxiom :roleAxiom :dataRoleAxiom :newDataType :hasKey :fact :annotationAxiom :rule :dgAxiom})

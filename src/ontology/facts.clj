@@ -1,5 +1,6 @@
 (ns ontology.facts
-  (:require [ontology.components :as co][ontology.axioms :as ax][ontology.annotations :as ann][ontology.expressions :as ex]))
+ "Functions that represent OWL assertions"
+ (:require [ontology.components :as co][ontology.axioms :as ax][ontology.annotations :as ann][ontology.expressions :as ex]))
 
 (def factTypes
    #{:=individuals :!=individuals :classFact :roleFact :notRoleFact :dataRoleFact :notDataRoleFact})

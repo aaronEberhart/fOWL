@@ -1,4 +1,5 @@
 (ns ontology.functions
+ "Wrapper to easily handle all OWL functions"
  (:require [clojure.java.io :as io][clojure.string :as str][clojure.set :as set][clojure.walk :as walk]
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]

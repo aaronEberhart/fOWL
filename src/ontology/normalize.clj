@@ -1,7 +1,8 @@
 (ns ontology.normalize
-  (:require [ontology.axioms :as ax][ontology.expressions :as ex][ontology.components :as co]
-            [util.msc :as msc]
-            [clojure.string :as str]))
+ "Functions that normalize ontology classes"
+ (:require [ontology.axioms :as ax][ontology.expressions :as ex][ontology.components :as co]
+           [util.msc :as msc]
+           [clojure.string :as str]))
 
 (def one
   (constantly 1))

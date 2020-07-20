@@ -1,5 +1,6 @@
 (ns ontology.SWRL
-  (:require [ontology.expressions :as ex][ontology.components :as co]))
+ "Functions that represent SWRL components"
+ (:require [ontology.expressions :as ex][ontology.components :as co]))
 
 (def atomTypes
   #{:classAtom :roleAtom :dataRoleAtom :dataRangeAtom :builtInAtom :=individualsAtom :!=individualsAtom})

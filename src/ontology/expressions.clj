@@ -1,4 +1,5 @@
 (ns ontology.expressions
+ "Functions that represent OWL expressionss"
  (:require [ontology.components :as co])
  (:refer-clojure :exclude [class and or not]))
 

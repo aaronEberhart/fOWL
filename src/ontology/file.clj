@@ -1,5 +1,6 @@
 (ns ontology.file
-  (:require [ontology.components :as co]))
+ "Functions that represent OWL ontology documents"
+ (:require [ontology.components :as co]))
 
 (defn- -ontologyFile
  "ontologyDocument := { prefixDeclaration } Ontology"

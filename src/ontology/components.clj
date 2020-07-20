@@ -1,4 +1,5 @@
 (ns ontology.components
+ "Functions that represent IRI components and datatypes"
  (:require [clojure.string :as str][clojure.set :as set]))
 
 (def xsdNS
