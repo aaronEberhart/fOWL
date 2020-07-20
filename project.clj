@@ -1,4 +1,4 @@
-(defproject onto.aaroneberhart/fowl "0.0.0.2-SNAPSHOT"
+(defproject onto.aaroneberhart/fowl "0.0.1-SNAPSHOT"
  :description "(f OWL) is a minimalistic functional programming style ontology editor"
  :url "https://github.com/aaronEberhart/fOWL.git"
  :license {:name "Don't steal my stuff"}
