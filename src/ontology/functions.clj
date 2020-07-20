@@ -1127,13 +1127,13 @@
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")))
 
-(defn toFSString 
- "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is __*not*__ the same as java toFSString."
+(defn toString 
+ "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is __*not*__ the same as java toString."
  [thing]
  (case (:innerType thing)
 
   ;Not an OWL map
-  nil (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toFSString (% thing)) (% thing)) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))
+  nil (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toString (% thing)) (% thing)) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))
 
   ;atoms
   :typedLiteral (:value thing)
@@ -1156,98 +1156,98 @@
   :annotationValue (swapPrefixes thing)
 
   ;filestuff
-  :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (str/join "\n" (map (fn [x] (toFSString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toFSString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toFSString (:versionIRI thing)) "\n")) "\n") "\n") (if (not (empty? (:imports thing))) (str (str/join "\n" (map (fn [x] (toFSString x)) (:imports thing))) "\n\n")) (if (not (empty? (:annotations thing))) (str (str/join "\n" (map (fn [x] (toFSString x)) (:annotations thing))) "\n\n")) (if (not (empty? (:axioms thing))) (str/join "\n" (map (fn [x] (toFSString x)) (:axioms thing)))) "\n)")
+  :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (str/join "\n" (map (fn [x] (toString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toString (:versionIRI thing)) "\n")) "\n") "\n") (if (not (empty? (:imports thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:imports thing))) "\n\n")) (if (not (empty? (:annotations thing))) (str (str/join "\n" (map (fn [x] (toString x)) (:annotations thing))) "\n\n")) (if (not (empty? (:axioms thing))) (str/join "\n" (map (fn [x] (toString x)) (:axioms thing)))) "\n)")
   :ontologyIRI (:iri thing)
   :versionIRI (:iri thing)
   :prefix (str "Prefix(" (:prefix thing) ":=<" (:iri thing) ">)")
-  :prefixes (str (str/join "\n" (map toFSString (:prefixes thing))))
+  :prefixes (str (str/join "\n" (map toString (:prefixes thing))))
   :import (str "Import(" (:iri thing) ")")
-  :declaration (str "Declaration(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toFSString (:name thing) ) "))")
+  :declaration (str "Declaration(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toString (:name thing) ) "))")
 
   ;data roles
-  :partialDataRole (str "DataHasValue(" (toFSString (:dataRole thing)) " " (:value (:literal thing)) ")")
-  :=dataExists (str "DataExactCardinality(" (:nat thing) " " (toFSString (:dataRole thing)) (if (:dataRange thing) (str " " (toFSString (:dataRange thing)))) ")")
-  :<=dataExists (str "DataMaxCardinality(" (:nat thing) " " (toFSString (:dataRole thing) ) (if (:dataRange thing) (str " " (toFSString (:dataRange thing))))")")
-  :>=dataExists (str "DataMinCardinality(" (:nat thing) " " (toFSString (:dataRole thing) ) (if (:dataRange thing) (str " " (toFSString (:dataRange thing))))")")
-  :dataExists (str "DataSomeValuesFrom(" (str/join " " (map (fn [x] (toFSString x )) (:dataRoles thing))) " " (toFSString (:dataRange thing) ) ")")
-  :dataAll (str "DataAllValuesFrom(" (str/join " " (map (fn [x] (toFSString x )) (:dataRoles thing))) " " (toFSString (:dataRange thing) ) ")")
+  :partialDataRole (str "DataHasValue(" (toString (:dataRole thing)) " " (:value (:literal thing)) ")")
+  :=dataExists (str "DataExactCardinality(" (:nat thing) " " (toString (:dataRole thing)) (if (:dataRange thing) (str " " (toString (:dataRange thing)))) ")")
+  :<=dataExists (str "DataMaxCardinality(" (:nat thing) " " (toString (:dataRole thing) ) (if (:dataRange thing) (str " " (toString (:dataRange thing))))")")
+  :>=dataExists (str "DataMinCardinality(" (:nat thing) " " (toString (:dataRole thing) ) (if (:dataRange thing) (str " " (toString (:dataRange thing))))")")
+  :dataExists (str "DataSomeValuesFrom(" (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) " " (toString (:dataRange thing) ) ")")
+  :dataAll (str "DataAllValuesFrom(" (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) " " (toString (:dataRange thing) ) ")")
 
   ;roles
-  :roleChain (str "ObjectPropertyChain(" (str/join " " (map (fn [x] (toFSString x )) (:roles thing))) ")")
-  :partialRole (str "ObjectHasValue(" (toFSString (:role thing) ) " " (toFSString (:individual thing)) ")")
-  :=exists (str "ObjectExactCardinality(" (:nat thing) " " (toFSString (:role thing)) (if (:class thing) (str " " (toFSString (:class thing))))")")
-  :<=exists (str "ObjectMaxCardinality(" (:nat thing) " " (toFSString (:role thing)) (if (:class thing) (str " " (toFSString (:class thing))))")")
-  :>=exists (str "ObjectMinCardinality(" (:nat thing) " " (toFSString (:role thing)) (if (:class thing) (str " " (toFSString (:class thing))))")")
-  :exists (str "ObjectSomeValuesFrom(" (toFSString (:role thing) ) " " (toFSString (:class thing) ) ")")
-  :all (str "ObjectAllValuesFrom(" (toFSString (:role thing) ) " " (toFSString (:class thing) ) ")")
+  :roleChain (str "ObjectPropertyChain(" (str/join " " (map (fn [x] (toString x )) (:roles thing))) ")")
+  :partialRole (str "ObjectHasValue(" (toString (:role thing) ) " " (toString (:individual thing)) ")")
+  :=exists (str "ObjectExactCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
+  :<=exists (str "ObjectMaxCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
+  :>=exists (str "ObjectMinCardinality(" (:nat thing) " " (toString (:role thing)) (if (:class thing) (str " " (toString (:class thing))))")")
+  :exists (str "ObjectSomeValuesFrom(" (toString (:role thing) ) " " (toString (:class thing) ) ")")
+  :all (str "ObjectAllValuesFrom(" (toString (:role thing) ) " " (toString (:class thing) ) ")")
 
   ;classes
-  :not (str "ObjectComplementOf(" (toFSString (:class thing) ) ")")
-  :or (str "ObjectUnionOf(" (str/join " " (map (fn [x] (toFSString x )) (:classes thing))) ")")
-  :and (str "ObjectIntersectionOf(" (str/join " " (map (fn [x] (toFSString x )) (:classes thing))) ")")
-  :dataNot (str "DataComplementOf(" (toFSString (:dataRange thing) ) ")")
-  :dataOr (str "DataUnionOf(" (str/join " " (map (fn [x] (toFSString x )) (:dataRanges thing))) ")")
-  :dataAnd (str "DataIntersectionOf(" (str/join " " (map (fn [x] (toFSString x )) (:dataRanges thing))) ")")
+  :not (str "ObjectComplementOf(" (toString (:class thing) ) ")")
+  :or (str "ObjectUnionOf(" (str/join " " (map (fn [x] (toString x )) (:classes thing))) ")")
+  :and (str "ObjectIntersectionOf(" (str/join " " (map (fn [x] (toString x )) (:classes thing))) ")")
+  :dataNot (str "DataComplementOf(" (toString (:dataRange thing) ) ")")
+  :dataOr (str "DataUnionOf(" (str/join " " (map (fn [x] (toString x )) (:dataRanges thing))) ")")
+  :dataAnd (str "DataIntersectionOf(" (str/join " " (map (fn [x] (toString x )) (:dataRanges thing))) ")")
   :dataOneOf (str "DataOneOf(" (str/join " " (map (fn [x] (:value x)) (:literals thing))) ")")
-  :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) ":" (:short thing) " " (str/join " " (map toFSString (:restrictedValues thing))) ")")
-  :Self (str "ObjectHasSelf(" (toFSString (:role thing)) ")")
-  :nominal (str "ObjectOneOf("(str/join " " (map (fn [x] (toFSString x)) (:individuals thing))) ")")
+  :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) ":" (:short thing) " " (str/join " " (map toString (:restrictedValues thing))) ")")
+  :Self (str "ObjectHasSelf(" (toString (:role thing)) ")")
+  :nominal (str "ObjectOneOf("(str/join " " (map (fn [x] (toString x)) (:individuals thing))) ")")
 
   ;annotation
-  :annotation (str "Annotation(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:annotationRole thing)) " "  (toFSString (:annotationValue thing) ) ")")
-  :axiomAnnotations (str (str/join " " (map (fn [x] (toFSString x )) (:annotations thing))) " ")
-  :metaAnnotations (str (str/join " " (map (fn [x] (toFSString x )) (:annotations thing))) " ")
-  :annotationFact (str "AnnotationAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:annotationRole thing)) " " (toFSString (:annotationSubject thing)) " "  (toFSString (:annotationValue thing)) ")")
-  :annotationImplication (str "SubAnnotationPropertyOf(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:antecedent thing) ) " " (toFSString (:consequent thing) )")")
+  :annotation (str "Annotation(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:annotationRole thing)) " "  (toString (:annotationValue thing) ) ")")
+  :axiomAnnotations (str (str/join " " (map (fn [x] (toString x )) (:annotations thing))) " ")
+  :metaAnnotations (str (str/join " " (map (fn [x] (toString x )) (:annotations thing))) " ")
+  :annotationFact (str "AnnotationAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:annotationRole thing)) " " (toString (:annotationSubject thing)) " "  (toString (:annotationValue thing)) ")")
+  :annotationImplication (str "SubAnnotationPropertyOf(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:antecedent thing) ) " " (toString (:consequent thing) )")")
 
   ;assertions
-  :=individuals (str "SameIndividual(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toFSString x )) (:individuals thing))) ")")
-  :!=individuals  (str "DifferentIndividuals(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toFSString x )) (:individuals thing))) ")")
-  :classFact (str "ClassAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:class thing) ) " " (toFSString (:individual thing) ) ")")
-  :roleFact (str "ObjectPropertyAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) " " (toFSString (:fromIndividual thing) ) " " (toFSString (:toIndividual thing) ) ")")
-  :notRoleFact (str "NegativeObjectPropertyAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing)) " " (toFSString (:fromIndividual thing) ) " " (toFSString (:toIndividual thing) ) ")")
-  :dataRoleFact (str "DataPropertyAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:dataRole thing) ) " " (toFSString (:fromIndividual thing) ) " " (toFSString (:toLiteral thing) ) ")")
-  :notDataRoleFact (str "NegativeDataPropertyAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:dataRole thing) ) " " (toFSString (:fromIndividual thing) ) " " (toFSString (:toLiteral thing) ) ")")
+  :=individuals (str "SameIndividual(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toString x )) (:individuals thing))) ")")
+  :!=individuals  (str "DifferentIndividuals(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toString x )) (:individuals thing))) ")")
+  :classFact (str "ClassAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:class thing) ) " " (toString (:individual thing) ) ")")
+  :roleFact (str "ObjectPropertyAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) " " (toString (:fromIndividual thing) ) " " (toString (:toIndividual thing) ) ")")
+  :notRoleFact (str "NegativeObjectPropertyAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing)) " " (toString (:fromIndividual thing) ) " " (toString (:toIndividual thing) ) ")")
+  :dataRoleFact (str "DataPropertyAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:dataRole thing) ) " " (toString (:fromIndividual thing) ) " " (toString (:toLiteral thing) ) ")")
+  :notDataRoleFact (str "NegativeDataPropertyAssertion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:dataRole thing) ) " " (toString (:fromIndividual thing) ) " " (toString (:toLiteral thing) ) ")")
 
   ;axioms
-  :hasKey (str "HasKey(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:class thing) ) " (" (str/join " " (map (fn [x] (toFSString x )) (:roles thing))) ") (" (str/join " " (map (fn [x] (toFSString x )) (:dataRoles thing))) ") )")
-  :annotationDomain (str "AnnotationPropertyDomain(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:annotationRole thing) ) " " (swapPrefixes (:iri thing) ) ")")
-  :annotationRange (str "AnnotationPropertyRange(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:annotationRole thing) ) " " (swapPrefixes (:iri thing) ) ")")
-  :classImplication (str "SubClassOf(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:antecedentClass thing) ) " " (toFSString (:consequentClass thing) ) ")")
-  :=classes (str "EquivalentClasses(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toFSString x )) (:classes thing))) ")")
-  :disjClasses (str "DisjointClasses(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toFSString x )) (:classes thing))) ")")
-  :disjOr (str "DisjointUnion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:class thing) ) " " (str/join " " (map (fn [x] (toFSString x )) (:classes thing))) ")")
-  :roleImplication  (str "SubObjectPropertyOf(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:antecedentRole thing) ) " " (toFSString (:consequentRole thing) ) ")")
-  :=roles (str "EquivalentObjectProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toFSString x )) (:roles thing))) ")")
-  :disjRoles (str "DisjointObjectProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toFSString x )) (:roles thing))) ")")
-  :inverseRoles (str "InverseObjectProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) " " (toFSString (:inverse thing) ) ")")
-  :roleDomain (str "ObjectPropertyDomain(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) " " (toFSString (:class thing) ) ")")
-  :roleRange (str "ObjectPropertyRange(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) " " (toFSString (:class thing) ) ")")
-  :functionalRole (str "FunctionalObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) ")")
-  :functionalInverseRole (str "InverseFunctionalObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) ")")
-  :reflexiveRole (str "ReflexiveObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) ")")
-  :irreflexiveRole (str "IrreflexiveObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) ")")
-  :symmetricRole (str "SymmetricObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) ")")
-  :asymmetricRole (str "AsymmetricObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) ")")
-  :transitiveRole (str "TransitiveObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:role thing) ) ")")
-  :dataRoleImplication (str "SubDataPropertyOf(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:antecedentDataRole thing) ) " " (toFSString (:consequentDataRole thing) ) ")")
-  :=DataRoles (str "EquivalentDataProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toFSString x )) (:dataRoles thing))) ")")
-  :disjDataRoles (str "DisjointDataProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toFSString x )) (:dataRoles thing))) ")")
-  :dataRoleDomain (str "DataPropertyDomain(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:dataRole thing) ) " " (toFSString (:class thing) ) ")")
-  :dataRoleRange (str "DataPropertyRange(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:dataRole thing) ) " " (toFSString (:dataRange thing) ) ")")
-  :functionalDataRole (str "FunctionalDataProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:dataRole thing) ) ")")
-  :newDataType (str "DatatypeDefinition(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") (toFSString (:dataType thing) ) " " (toFSString (:dataRange thing) ) ")")
+  :hasKey (str "HasKey(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:class thing) ) " (" (str/join " " (map (fn [x] (toString x )) (:roles thing))) ") (" (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) ") )")
+  :annotationDomain (str "AnnotationPropertyDomain(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:annotationRole thing) ) " " (swapPrefixes (:iri thing) ) ")")
+  :annotationRange (str "AnnotationPropertyRange(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:annotationRole thing) ) " " (swapPrefixes (:iri thing) ) ")")
+  :classImplication (str "SubClassOf(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:antecedentClass thing) ) " " (toString (:consequentClass thing) ) ")")
+  :=classes (str "EquivalentClasses(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toString x )) (:classes thing))) ")")
+  :disjClasses (str "DisjointClasses(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toString x )) (:classes thing))) ")")
+  :disjOr (str "DisjointUnion(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:class thing) ) " " (str/join " " (map (fn [x] (toString x )) (:classes thing))) ")")
+  :roleImplication  (str "SubObjectPropertyOf(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:antecedentRole thing) ) " " (toString (:consequentRole thing) ) ")")
+  :=roles (str "EquivalentObjectProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toString x )) (:roles thing))) ")")
+  :disjRoles (str "DisjointObjectProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toString x )) (:roles thing))) ")")
+  :inverseRoles (str "InverseObjectProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) " " (toString (:inverse thing) ) ")")
+  :roleDomain (str "ObjectPropertyDomain(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) " " (toString (:class thing) ) ")")
+  :roleRange (str "ObjectPropertyRange(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) " " (toString (:class thing) ) ")")
+  :functionalRole (str "FunctionalObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) ")")
+  :functionalInverseRole (str "InverseFunctionalObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) ")")
+  :reflexiveRole (str "ReflexiveObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) ")")
+  :irreflexiveRole (str "IrreflexiveObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) ")")
+  :symmetricRole (str "SymmetricObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) ")")
+  :asymmetricRole (str "AsymmetricObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) ")")
+  :transitiveRole (str "TransitiveObjectProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) ")")
+  :dataRoleImplication (str "SubDataPropertyOf(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:antecedentDataRole thing) ) " " (toString (:consequentDataRole thing) ) ")")
+  :=DataRoles (str "EquivalentDataProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) ")")
+  :disjDataRoles (str "DisjointDataProperties(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (str/join " " (map (fn [x] (toString x )) (:dataRoles thing))) ")")
+  :dataRoleDomain (str "DataPropertyDomain(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:dataRole thing) ) " " (toString (:class thing) ) ")")
+  :dataRoleRange (str "DataPropertyRange(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:dataRole thing) ) " " (toString (:dataRange thing) ) ")")
+  :functionalDataRole (str "FunctionalDataProperty(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:dataRole thing) ) ")")
+  :newDataType (str "DatatypeDefinition(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:dataType thing) ) " " (toString (:dataRange thing) ) ")")
 
   ;swrl
-  :classAtom (str "ClassAtom(" (toFSString (:class thing)) " " (toFSString (:iarg thing)) ")")
-  :dataRangeAtom (str "DataRangeAtom(" (toFSString (:dataRange thing)) " " (toFSString (:darg thing)) ")")
-  :roleAtom (str "ObjectPropertyAtom(" (toFSString (:role thing)) " " (toFSString (:iarg1 thing)) " " (toFSString (:iarg2 thing)) ")")
-  :dataRoleAtom (str "DataPropertyAtom(" (toFSString (:dataRole thing)) " " (toFSString (:iarg thing)) " " (toFSString (:darg thing)) ")")
-  :builtInAtom (str "BuiltInAtom(" (toFSString (:iri thing)) " " (str/join " " (map (fn [x] (toFSString x)) (:dargs thing))) ")")
-  :=individualsAtom (str "SameIndividualAtom(" (toFSString (:iarg1 thing)) (toFSString (:iarg2 thing)) ")")
-  :!=individualsAtom (str "DifferentIndividualsAtom(" (toFSString (:iarg1 thing)) (toFSString (:iarg2 thing)) ")")
+  :classAtom (str "ClassAtom(" (toString (:class thing)) " " (toString (:iarg thing)) ")")
+  :dataRangeAtom (str "DataRangeAtom(" (toString (:dataRange thing)) " " (toString (:darg thing)) ")")
+  :roleAtom (str "ObjectPropertyAtom(" (toString (:role thing)) " " (toString (:iarg1 thing)) " " (toString (:iarg2 thing)) ")")
+  :dataRoleAtom (str "DataPropertyAtom(" (toString (:dataRole thing)) " " (toString (:iarg thing)) " " (toString (:darg thing)) ")")
+  :builtInAtom (str "BuiltInAtom(" (toString (:iri thing)) " " (str/join " " (map (fn [x] (toString x)) (:dargs thing))) ")")
+  :=individualsAtom (str "SameIndividualAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
+  :!=individualsAtom (str "DifferentIndividualsAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")
-  :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toFSString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toFSString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toFSString x)) (:head thing))) "))")))
+  :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
 
 (defn- getFunction 
  [typeString]
@@ -1337,15 +1337,15 @@
  [filename prefixes ontologyIRI versionIRI imports annotations axioms]
  (with-open [wrt (io/writer filename)]
   (do 
-   (doseq [prefix prefixes] (.write wrt (str (toFSString prefix) "\n")))
+   (doseq [prefix prefixes] (.write wrt (str (toString prefix) "\n")))
    (if (not (empty? prefixes)) (.write wrt "\n\n"))
    (.write wrt "Ontology(")
-   (.write wrt (if ontologyIRI (str (toFSString ontologyIRI) "\n" (if versionIRI (str (toFSString versionIRI) "\n")) "\n")"\n"))
-   (doseq [im imports] (.write wrt (str (toFSString im) "\n")))
+   (.write wrt (if ontologyIRI (str (toString ontologyIRI) "\n" (if versionIRI (str (toString versionIRI) "\n")) "\n")"\n"))
+   (doseq [im imports] (.write wrt (str (toString im) "\n")))
    (if (not (empty? imports)) (.write wrt "\n"))
-   (doseq [ann annotations] (.write wrt (str (toFSString ann) "\n")))
+   (doseq [ann annotations] (.write wrt (str (toString ann) "\n")))
    (if (not (empty? annotations)) (.write wrt "\n"))
-   (doseq [axiom axioms](.write wrt (str (toFSString axiom) "\n")))
+   (doseq [axiom axioms](.write wrt (str (toString axiom) "\n")))
    (.write wrt ")"))))
 (defn makeOWLFile
  "Writes an owl file of the ontology with the supplied file name. 
@@ -1550,7 +1550,7 @@
 (def printStyle 
  "Change printStyle to modify how the terminal output looks (files will still output in functional syntax)
  
-  toFSString - standard Functional syntax
+  toString - standard Functional syntax
   toDLString - DL instead of functional"
- toFSString) 
+ toString) 
 (defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))
