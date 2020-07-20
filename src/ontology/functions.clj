@@ -1010,9 +1010,6 @@
  [thing]
  (case (:innerType thing)
 
-  ;not an OWL map
-  nil (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toDLString (% thing))(% thing)) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))
-
   ;atoms
   :top "⊤"
   :bot "⊥"
@@ -1125,15 +1122,15 @@
   :builtInAtom (str "BuiltInAtom(" (toDLString (:iri thing)) " " (str/join " " (map (fn [x] (toDLString x)) (:dargs thing))) ")")
   :=individualsAtom (str "SameIndividualAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
-  :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")))
+  :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")
+
+  ;Not an OWL map
+  (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toDLString (% thing)) (% thing)) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))))
 
 (defn toString 
  "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is __*not*__ the same as java toString."
  [thing]
  (case (:innerType thing)
-
-  ;Not an OWL map
-  nil (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toString (% thing)) (% thing)) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))
 
   ;atoms
   :typedLiteral (:value thing)
@@ -1247,7 +1244,10 @@
   :=individualsAtom (str "SameIndividualAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")
-  :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
+  :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (str/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (str/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (str/join " " (map (fn [x] (toString x)) (:head thing))) "))")
+  
+  ;Not an OWL map
+  (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toString (% thing)) (% thing)) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))))
 
 (defn- getFunction 
  [typeString]
