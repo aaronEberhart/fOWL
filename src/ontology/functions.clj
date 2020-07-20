@@ -1011,7 +1011,7 @@
  (case (:innerType thing)
 
   ;not an OWL map
-  nil (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toDLString (% thing))(% thing)) "nil")) (keys thing))) "}") (str thing))
+  nil (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toDLString (% thing))(% thing)) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))
 
   ;atoms
   :top "⊤"
@@ -1133,7 +1133,7 @@
  (case (:innerType thing)
 
   ;Not an OWL map
-  nil (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toString (% thing)) (% thing)) "nil")) (keys thing))) "}") (str thing))
+  nil (if (= clojure.lang.PersistentArrayMap (type thing)) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (= clojure.lang.PersistentArrayMap (type (% thing))) (toString (% thing)) (% thing)) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))
 
   ;atoms
   :typedLiteral (:value thing)
