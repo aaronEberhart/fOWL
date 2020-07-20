@@ -4,7 +4,7 @@
 ## Usage
 This program was built and tested with [Leiningen](https://leiningen.org/). 
 
-This program can be used by itelf or you can import (f OWL) into your own project. To run a program with a copy of this repository, simply type code in fowl.clj, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of all OWL functions currently available in main can be seen by entering `(dir ontology.functions)`, and `(doc function)` will show more detail about each function.
+This program can be used by itelf or you can import (f OWL) into your own project. To run a copy of this repository, simply type code in fowl.clj, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of all OWL functions currently available in main can be seen by entering `(dir ontology.functions)`, and `(doc function)` will show more detail about each function.
 
 Importing (f OWL) into your own project is also extremely easy. Just make sure your project.clj file contains `[onto.aaroneberhart/fowl "0.0.1-SNAPSHOT"]` in the project `:dependencies`, and then add `[ontology.functions :as fowl]` to the `:require` entry in any file's namespace. Then you can access any of the (f OWL) functions by prefixing them with your alias, in this case `(fowl/function args)`.
 
