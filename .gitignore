@@ -22,4 +22,3 @@ err
 /src/main.clj
 *.log
 *.txt
-*config.yml
