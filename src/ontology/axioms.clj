@@ -56,35 +56,38 @@
      (throw (Exception. (str  {:type ::notBody :body body}))))))
 
 (defn dlSafeRule
-  ([body head]
-    (-axiom (-rule (-dlSafeRule body head))))
-  ([annotations body head]
-    (-axiom (-rule (-dlSafeRule (ann/axiomAnnotations annotations) body head)))))
+ "DLSafeRule ::= DLSafeRule ‘(’ {Annotation} ‘Body’ ‘(’ {Atom} ‘)’ ‘Head’ ‘(’ {Atom} ‘)’ ‘)’"
+ ([body head]
+   (-axiom (-rule (-dlSafeRule body head))))
+ ([annotations body head]
+   (-axiom (-rule (-dlSafeRule (ann/axiomAnnotations annotations) body head)))))
 
-(defn dgAxiom 
+(defn ^:no-doc dgAxiom 
   "DGAxiom ::= ‘DescriptionGraph’ ‘(’ {Annotation} DGName DGNodes DGEdges MainClasses ‘)’"
   []
   ;TODO
+  nil
   )
 
 (defn- -declaration
-  "Declaration := 'Declaration' '(' axiomAnnotations Entity ')'"
-  ([name]
-    (if (= (:type name) :name)
-      {:name name :type :declaration :innerType :declaration  :outerType :declaration}
-      (throw (Exception. (str  {:type ::notName :name name})))))
-  ([annotations name]
-    (if (= (:type name) :name)
-      (if (= (:type annotations) :axiomAnnotations)
-        {:name name :annotations (:annotations annotations) :type :declaration :innerType :declaration :outerType :declaration}
-        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-      (throw (Exception. (str  {:type ::notName :name name}))))))
+ "Declaration := 'Declaration' '(' axiomAnnotations Entity ')'"
+ ([name]
+   (if (= (:type name) :name)
+     {:name name :type :declaration :innerType :declaration  :outerType :declaration}
+     (throw (Exception. (str  {:type ::notName :name name})))))
+ ([annotations name]
+   (if (= (:type name) :name)
+     (if (= (:type annotations) :axiomAnnotations)
+       {:name name :annotations (:annotations annotations) :type :declaration :innerType :declaration :outerType :declaration}
+       (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+     (throw (Exception. (str  {:type ::notName :name name}))))))
 
 (defn declaration
-  ([name]
-    (-axiom (-declaration name)))
-  ([annotations name]
-    (-axiom (-declaration annotations name))))
+ "Declaration := 'Declaration' '(' axiomAnnotations Entity ')'"
+ ([name]
+   (-axiom (-declaration name)))
+ ([annotations name]
+   (-axiom (-declaration annotations name))))
 
 (defn- -classAxiom 
   "ClassAxiom := SubClassOf | EquivalentClasses | DisjointClasses | DisjointUnion"
@@ -121,10 +124,11 @@
   (throw (Exception. (str  {:type ::notAntecedentConsequentClasses :antecedentClass antecedent :consequentClass consequent}))))))
 
 (defn classImplication
-  ([antecedent consequent]
-    (-axiom (-classAxiom (-classImplication (ex/class antecedent)(ex/class consequent)))))
-  ([annotations antecedent consequent]
-    (-axiom (-classAxiom (-classImplication (ann/axiomAnnotations annotations)(ex/class antecedent)(ex/class consequent))))))
+ "SubClassOf := 'SubClassOf' '(' axiomAnnotations subClassExpression superClassExpression ')'"
+ ([antecedent consequent]
+   (-axiom (-classAxiom (-classImplication (ex/class antecedent)(ex/class consequent)))))
+ ([annotations antecedent consequent]
+   (-axiom (-classAxiom (-classImplication (ann/axiomAnnotations annotations)(ex/class antecedent)(ex/class consequent))))))
 
 (defn- -=classes
  "EquivalentClasses := 'EquivalentClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
@@ -144,50 +148,52 @@
       (throw (Exception. (str  {:type ::notEnoughClasses :classes classes}))))))
 
 (defn =classes
-  ([classes]
-    (-axiom (-classAxiom (-=classes (into #{} (map ex/class classes))))))
-  ([annotations classes]
-    (-axiom (-classAxiom (-=classes (ann/axiomAnnotations annotations) (into #{} (map ex/class classes)))))))
+ "EquivalentClasses := 'EquivalentClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
+ ([classes]
+   (-axiom (-classAxiom (-=classes (into #{} (map ex/class classes))))))
+ ([annotations classes]
+   (-axiom (-classAxiom (-=classes (ann/axiomAnnotations annotations) (into #{} (map ex/class classes)))))))
 
 (defn- -disjClasses
  "DisjointClasses := 'DisjointClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
-  ([classes]
-    (if (< 1 (count classes))
-      (if (every? (fn [x] (= (:type x) :class)) classes)
-        {:classes classes :type :disjClasses :innerType :disjClasses :outerType :disjClasses}
-        (throw (Exception. (str  {:type ::notClasses :classes classes}))))
-      (throw (Exception. (str  {:type ::notEnoughClasses :classes classes})))))
-  ([annotations classes]
-    (if (< 1 (count classes))
-      (if (every? (fn [x] (= (:type x) :class)) classes)
-        (if (= (:type annotations) :axiomAnnotations)
-          {:classes classes :annotations (:annotations annotations) :type :disjClasses :innerType :disjClasses :outerType :disjClasses}
-          (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-        (throw (Exception. (str  {:type ::notClasses :classes classes}))))
-      (throw (Exception. (str  {:type ::notEnoughClasses :classes classes}))))))
+ ([classes]
+   (if (< 1 (count classes))
+     (if (every? (fn [x] (= (:type x) :class)) classes)
+       {:classes classes :type :disjClasses :innerType :disjClasses :outerType :disjClasses}
+       (throw (Exception. (str  {:type ::notClasses :classes classes}))))
+     (throw (Exception. (str  {:type ::notEnoughClasses :classes classes})))))
+ ([annotations classes]
+   (if (< 1 (count classes))
+     (if (every? (fn [x] (= (:type x) :class)) classes)
+       (if (= (:type annotations) :axiomAnnotations)
+         {:classes classes :annotations (:annotations annotations) :type :disjClasses :innerType :disjClasses :outerType :disjClasses}
+         (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+       (throw (Exception. (str  {:type ::notClasses :classes classes}))))
+     (throw (Exception. (str  {:type ::notEnoughClasses :classes classes}))))))
 
 (defn disjClasses
-  ([classes]
-    (-axiom (-classAxiom (-disjClasses (into #{} (map ex/class classes))))))
-  ([annotations classes]
-    (-axiom (-classAxiom (-disjClasses (ann/axiomAnnotations annotations) (into #{} (map ex/class classes)))))))
+ "DisjointClasses := 'DisjointClasses' '(' axiomAnnotations ClassExpression ClassExpression { ClassExpression } ')'"
+ ([classes]
+   (-axiom (-classAxiom (-disjClasses (into #{} (map ex/class classes))))))
+ ([annotations classes]
+   (-axiom (-classAxiom (-disjClasses (ann/axiomAnnotations annotations) (into #{} (map ex/class classes)))))))
 
 (defn- -disjOr
  "DisjointUnion := 'DisjointUnion' '(' axiomAnnotations Class disjointClassExpressions ')'"
-  ([class classes]
-    (if (or (= (:type classes) :disjClassesNoAnn)(= (:type classes) :disjClasses))
-      (if (= (:type class) :class)
-        {:class class :classes (:classes classes) :type :disjOr :innerType :disjOr :outerType :disjOr}
-        (throw (Exception. (str  {:type ::notClasses :classes classes}))))
-      (throw (Exception. (str  {:type ::notEnoughClasses :classes classes})))))
-  ([annotations class classes]
-    (if (= (:type classes) :disjClassesNoAnn)
-      (if (= (:type class) :class)
-        (if (= (:type annotations) :axiomAnnotations)
-          {:classes (:classes classes) :class class :annotations (:annotations annotations) :type :disjOr :innerType :disjOr :outerType :disjOr}
-          (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-        (throw (Exception. (str  {:type ::notClasses :classes classes}))))
-      (throw (Exception. (str  {:type ::notEnoughClasses :classes classes}))))))
+ ([class classes]
+   (if (or (= (:type classes) :disjClassesNoAnn)(= (:type classes) :disjClasses))
+     (if (= (:type class) :class)
+       {:class class :classes (:classes classes) :type :disjOr :innerType :disjOr :outerType :disjOr}
+       (throw (Exception. (str  {:type ::notClasses :classes classes}))))
+     (throw (Exception. (str  {:type ::notEnoughClasses :classes classes})))))
+ ([annotations class classes]
+   (if (= (:type classes) :disjClassesNoAnn)
+     (if (= (:type class) :class)
+       (if (= (:type annotations) :axiomAnnotations)
+         {:classes (:classes classes) :class class :annotations (:annotations annotations) :type :disjOr :innerType :disjOr :outerType :disjOr}
+         (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+       (throw (Exception. (str  {:type ::notClasses :classes classes}))))
+     (throw (Exception. (str  {:type ::notEnoughClasses :classes classes}))))))
 
 (defn- -disjClassesNoAnn
  "disjointClassExpressions := ClassExpression ClassExpression { ClassExpression }"
@@ -199,10 +205,11 @@
     (throw (Exception. (str  {:type ::notEnoughClasses :classes classes})))))
 
 (defn disjOr
-  ([class classes]
-    (-axiom (-classAxiom (-disjOr (ex/class class) (-disjClassesNoAnn (into #{} (map ex/class classes)))))))
-  ([annotations class classes]
-    (-axiom (-classAxiom (-disjOr (ann/axiomAnnotations annotations) (ex/class class) (-disjClassesNoAnn (into #{} (map ex/class classes))))))))
+ "DisjointUnion := 'DisjointUnion' '(' axiomAnnotations Class disjointClassExpressions ')'"
+ ([class classes]
+   (-axiom (-classAxiom (-disjOr (ex/class class) (-disjClassesNoAnn (into #{} (map ex/class classes)))))))
+ ([annotations class classes]
+   (-axiom (-classAxiom (-disjOr (ann/axiomAnnotations annotations) (ex/class class) (-disjClassesNoAnn (into #{} (map ex/class classes))))))))
 
 (defn- -roleAxiom 
  "ObjectPropertyAxiom := SubObjectPropertyOf | EquivalentObjectProperties | DisjointObjectProperties | InverseObjectProperties | ObjectPropertyDomain | ObjectPropertyRange | FunctionalObjectProperty | InverseFunctionalObjectProperty | ReflexiveObjectProperty | IrreflexiveObjectProperty | SymmetricObjectProperty | AsymmetricObjectProperty | TransitiveObjectProperty"
@@ -228,10 +235,11 @@
     (throw (Exception. (str  {:type ::notEnoughRoles :roles roles})))))
 
 (defn roleChain
-  ([role1 role2 & roles]
-    (-roleChain (into [] (map ex/role (flatten [role1 role2 roles])))))
-  ([role1 role2]
-    (-roleChain [(ex/role role1) (ex/role role2)])))
+ "propertyExpressionChain := 'ObjectPropertyChain' '(' ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ ([role1 role2 & roles]
+   (-roleChain (into [] (map ex/role (flatten [role1 role2 roles])))))
+ ([role1 role2]
+   (-roleChain [(ex/role role1) (ex/role role2)])))
 
 (defn- -consequentRole
   "superObjectPropertyExpression := ObjectPropertyExpression"
@@ -242,87 +250,91 @@
 
 (defn- -roleImplication
  "SubObjectPropertyOf := 'SubObjectPropertyOf' '(' axiomAnnotations subObjectPropertyExpression superObjectPropertyExpression ')'"
-  ([antecedent consequent]
-    (if (and (or (= (:type antecedent) :role)(= (:type antecedent) :roleChain))(= (:type consequent) :role))
-      {:antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
-      (throw (Exception. (str  {:type ::notAntecedentConsequentRoles :antecedentRole antecedent :consequentRole consequent})))))
-  ([annotations antecedent consequent]
-    (if (and (or (= (:type antecedent) :role)(= (:type antecedent) :roleChain))(= (:type consequent) :role))
-      (if (= (:type annotations) :axiomAnnotations)
-        {:annotations (:annotations annotations) :antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
-        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-      (throw (Exception. (str  {:type ::notAntecedentConsequentRoles :antecedentRole antecedent :consequentRole consequent}))))))
+ ([antecedent consequent]
+   (if (and (or (= (:type antecedent) :role)(= (:type antecedent) :roleChain))(= (:type consequent) :role))
+     {:antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
+     (throw (Exception. (str  {:type ::notAntecedentConsequentRoles :antecedentRole antecedent :consequentRole consequent})))))
+ ([annotations antecedent consequent]
+   (if (and (or (= (:type antecedent) :role)(= (:type antecedent) :roleChain))(= (:type consequent) :role))
+     (if (= (:type annotations) :axiomAnnotations)
+       {:annotations (:annotations annotations) :antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
+       (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+     (throw (Exception. (str  {:type ::notAntecedentConsequentRoles :antecedentRole antecedent :consequentRole consequent}))))))
 
 (defn roleImplication
-  ([antecedent consequent]
-    (-axiom (-roleAxiom (-roleImplication (ex/role antecedent) (ex/role consequent)))))
-  ([annotations antecedent consequent]
-    (-axiom (-roleAxiom (-roleImplication (ann/axiomAnnotations annotations)(ex/role antecedent)(ex/role consequent))))))
+ "SubObjectPropertyOf := 'SubObjectPropertyOf' '(' axiomAnnotations subObjectPropertyExpression superObjectPropertyExpression ')'"
+ ([antecedent consequent]
+   (-axiom (-roleAxiom (-roleImplication (ex/role antecedent) (ex/role consequent)))))
+ ([annotations antecedent consequent]
+   (-axiom (-roleAxiom (-roleImplication (ann/axiomAnnotations annotations)(ex/role antecedent)(ex/role consequent))))))
 
 (defn- -=roles
  "EquivalentObjectProperties := 'EquivalentObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
-  ([roles]
-    (if (< 1 (count roles))
-      (if (every? (fn [x] (= (:type x) :role)) roles)
-        {:roles roles :type :=roles :innerType :=roles :outerType :=roles}
-        (throw (Exception. (str  {:type ::notRoles :roles roles}))))
-      (throw (Exception. (str  {:type ::notEnoughRoles :roles roles})))))
-  ([annotations roles]
-    (if (< 1 (count roles))
-      (if (every? (fn [x] (= (:type x) :role)) roles)
-        (if (= (:type annotations) :axiomAnnotations)
-          {:roles roles :annotations (:annotations annotations) :type :=roles :innerType :=roles :outerType :=roles}
-          (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-        (throw (Exception. (str  {:type ::notRoles :roles roles}))))
-      (throw (Exception. (str  {:type ::notEnoughRoles :roles roles}))))))
+ ([roles]
+   (if (< 1 (count roles))
+     (if (every? (fn [x] (= (:type x) :role)) roles)
+       {:roles roles :type :=roles :innerType :=roles :outerType :=roles}
+       (throw (Exception. (str  {:type ::notRoles :roles roles}))))
+     (throw (Exception. (str  {:type ::notEnoughRoles :roles roles})))))
+ ([annotations roles]
+   (if (< 1 (count roles))
+     (if (every? (fn [x] (= (:type x) :role)) roles)
+       (if (= (:type annotations) :axiomAnnotations)
+         {:roles roles :annotations (:annotations annotations) :type :=roles :innerType :=roles :outerType :=roles}
+         (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+       (throw (Exception. (str  {:type ::notRoles :roles roles}))))
+     (throw (Exception. (str  {:type ::notEnoughRoles :roles roles}))))))
 
 (defn =roles
-  ([roles]
-    (-axiom (-roleAxiom (-=roles (into #{} (map ex/role roles))))))
-  ([annotations roles]
-    (-axiom (-roleAxiom (-=roles (ann/axiomAnnotations annotations) (into #{} (map ex/role roles)))))))
+ "EquivalentObjectProperties := 'EquivalentObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ ([roles]
+   (-axiom (-roleAxiom (-=roles (into #{} (map ex/role roles))))))
+ ([annotations roles]
+   (-axiom (-roleAxiom (-=roles (ann/axiomAnnotations annotations) (into #{} (map ex/role roles)))))))
 
 (defn- -disjRoles
  "DisjointObjectProperties := 'DisjointObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
-  ([roles]
-    (if (< 1 (count roles))
-      (if (every? (fn [x] (= (:type x) :role)) roles)
-        {:roles roles :type :disjRoles :innerType :disjRoles :outerType :disjRoles}
-        (throw (Exception. (str  {:type ::notRoles :roles roles}))))
-      (throw (Exception. (str  {:type ::notEnoughRoles :roles roles})))))
-  ([annotations roles]
-    (if (< 1 (count roles))
-      (if (every? (fn [x] (= (:type x) :role)) roles)
-        (if (= (:type annotations) :axiomAnnotations)
-          {:roles roles :annotations (:annotations annotations) :type :disjRoles :innerType :disjRoles :outerType :disjRoles}
-          (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-        (throw (Exception. (str  {:type ::notRoles :roles roles}))))
-      (throw (Exception. (str  {:type ::notEnoughRoles :roles roles}))))))
+ ([roles]
+   (if (< 1 (count roles))
+     (if (every? (fn [x] (= (:type x) :role)) roles)
+       {:roles roles :type :disjRoles :innerType :disjRoles :outerType :disjRoles}
+       (throw (Exception. (str  {:type ::notRoles :roles roles}))))
+     (throw (Exception. (str  {:type ::notEnoughRoles :roles roles})))))
+ ([annotations roles]
+   (if (< 1 (count roles))
+     (if (every? (fn [x] (= (:type x) :role)) roles)
+       (if (= (:type annotations) :axiomAnnotations)
+         {:roles roles :annotations (:annotations annotations) :type :disjRoles :innerType :disjRoles :outerType :disjRoles}
+         (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+       (throw (Exception. (str  {:type ::notRoles :roles roles}))))
+     (throw (Exception. (str  {:type ::notEnoughRoles :roles roles}))))))
 
 (defn disjRoles
-  ([roles]
-    (-axiom (-roleAxiom (-disjRoles (into #{} (map ex/role roles))))))
-  ([annotations roles]
-    (-axiom (-roleAxiom (-disjRoles (ann/axiomAnnotations annotations) (into #{} (map ex/role roles)))))))
+ "DisjointObjectProperties := 'DisjointObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression { ObjectPropertyExpression } ')'"
+ ([roles]
+   (-axiom (-roleAxiom (-disjRoles (into #{} (map ex/role roles))))))
+ ([annotations roles]
+   (-axiom (-roleAxiom (-disjRoles (ann/axiomAnnotations annotations) (into #{} (map ex/role roles)))))))
 
 (defn- -roleDomain
  "ObjectPropertyDomain := 'ObjectPropertyDomain' '(' axiomAnnotations ObjectPropertyExpression ClassExpression ')'"
-  ([role class]
-    (if (and (= (:type role) :role)(= (:type class) :class))
-      {:role role :class class :type :roleDomain :innerType :roleDomain :outerType :roleDomain}
-      (throw (Exception. (str  {:type ::notClassAndRole :role role :class class})))))
-  ([annotations role class]
-    (if (and (= (:type role) :role)(= (:type class) :class))
-      (if (= (:type annotations) :axiomAnnotations)
-        {:role role :class class :annotations (:annotations annotations) :type :roleDomain :innerType :roleDomain :outerType :roleDomain}
-        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-      (throw (Exception. (str  {:type ::notClassAndRole :role role :class class}))))))
+ ([role class]
+   (if (and (= (:type role) :role)(= (:type class) :class))
+     {:role role :class class :type :roleDomain :innerType :roleDomain :outerType :roleDomain}
+     (throw (Exception. (str  {:type ::notClassAndRole :role role :class class})))))
+ ([annotations role class]
+   (if (and (= (:type role) :role)(= (:type class) :class))
+     (if (= (:type annotations) :axiomAnnotations)
+       {:role role :class class :annotations (:annotations annotations) :type :roleDomain :innerType :roleDomain :outerType :roleDomain}
+       (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
+     (throw (Exception. (str  {:type ::notClassAndRole :role role :class class}))))))
 
 (defn roleDomain
-  ([role class]
-    (-axiom (-roleAxiom (-roleDomain (ex/role role)(ex/class class)))))
-  ([annotations role class]
-    (-axiom (-roleAxiom (-roleDomain (ann/axiomAnnotations annotations) (ex/role role)(ex/class class))))))
+ "ObjectPropertyDomain := 'ObjectPropertyDomain' '(' axiomAnnotations ObjectPropertyExpression ClassExpression ')'"
+ ([role class]
+   (-axiom (-roleAxiom (-roleDomain (ex/role role)(ex/class class)))))
+ ([annotations role class]
+   (-axiom (-roleAxiom (-roleDomain (ann/axiomAnnotations annotations) (ex/role role)(ex/class class))))))
 
 (defn- -roleRange
  "ObjectPropertyRange := 'ObjectPropertyRange' '(' axiomAnnotations ObjectPropertyExpression ClassExpression ')'"
@@ -338,6 +350,7 @@
       (throw (Exception. (str  {:type ::notClassAndRole :role role :class class}))))))
 
 (defn roleRange
+ "ObjectPropertyRange := 'ObjectPropertyRange' '(' axiomAnnotations ObjectPropertyExpression ClassExpression ')'"
   ([role class]
     (-axiom (-roleAxiom (-roleRange (ex/role role)(ex/class class)))))
   ([annotations role class]
@@ -357,6 +370,7 @@
       (throw (Exception. (str  {:type ::notRoles :role role :inverse otherRole}))))))
 
 (defn inverseRoles
+ "InverseObjectProperties := 'InverseObjectProperties' '(' axiomAnnotations ObjectPropertyExpression ObjectPropertyExpression ')'"
   ([role otherRole]
     (-axiom (-roleAxiom (-inverseRoles (ex/role role)(ex/role otherRole) ))) )
   ([annotations role otherRole]
@@ -376,6 +390,7 @@
       (throw (Exception. (str  {:type ::notRole :role role}))))))
 
 (defn functionalRole
+ "FunctionalObjectProperty := 'FunctionalObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (-axiom (-roleAxiom (-functionalRole (ex/role role)))))
   ([annotations role]
@@ -395,6 +410,7 @@
       (throw (Exception. (str  {:type ::notRole :role role}))))))
 
 (defn functionalInverseRole
+ "InverseFunctionalObjectProperty := 'InverseFunctionalObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (-axiom (-roleAxiom (-functionalInverseRole (ex/role role)))))
   ([annotations role]
@@ -414,6 +430,7 @@
       (throw (Exception. (str  {:type ::notRole :role role}))))))
 
 (defn reflexiveRole
+  "ReflexiveObjectProperty := 'ReflexiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (-axiom (-roleAxiom (-reflexiveRole (ex/role role)))))
   ([annotations role]
@@ -433,6 +450,7 @@
       (throw (Exception. (str  {:type ::notRole :role role}))))))
 
 (defn irreflexiveRole
+ "IrreflexiveObjectProperty := 'IrreflexiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (-axiom (-roleAxiom (-irreflexiveRole (ex/role role)))))
   ([annotations role]
@@ -452,6 +470,7 @@
       (throw (Exception. (str  {:type ::notRole :role role}))))))
 
 (defn symmetricRole
+ "SymmetricObjectProperty := 'SymmetricObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (-axiom (-roleAxiom (-symmetricRole (ex/role role)))))
   ([annotations role]
@@ -471,6 +490,7 @@
       (throw (Exception. (str  {:type ::notRole :role role}))))))
 
 (defn asymmetricRole
+ "AsymmetricObjectProperty := 'AsymmetricObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (-axiom (-roleAxiom (-asymmetricRole (ex/role role)))))
   ([annotations role]
@@ -490,6 +510,7 @@
       (throw (Exception. (str  {:type ::notRole :role role}))))))
 
 (defn transitiveRole
+ "TransitiveObjectProperty := 'TransitiveObjectProperty' '(' axiomAnnotations ObjectPropertyExpression ')'"
   ([role]
     (-axiom (-roleAxiom (-transitiveRole (ex/role role)))))
   ([annotations role]
@@ -530,6 +551,7 @@
       (throw (Exception. (str  {:type ::notAntecedentConsequentDataRoles :antecedentDataRole antecedent :consequentDataRole consequent}))))))
 
 (defn dataRoleImplication
+ "SubDataPropertyOf := 'SubDataPropertyOf' '(' axiomAnnotations subDataPropertyExpression superDataPropertyExpression ')'"
   ([antecedent consequent]
     (-axiom (-dataRoleAxiom (-dataRoleImplication (ex/dataRole antecedent) (ex/dataRole consequent)))))
   ([annotations antecedent consequent]
@@ -553,6 +575,7 @@
       (throw (Exception. (str  {:type ::notEnoughDataRoles :dataRoles dataRoles}))))))
 
 (defn =dataRoles
+ "EquivalentDataProperties := 'EquivalentDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
   ([dataRoles]
     (-axiom (-dataRoleAxiom (-=dataRoles (into #{} (map ex/dataRole dataRoles))))))
   ([annotations dataRoles]
@@ -576,6 +599,7 @@
       (throw (Exception. (str  {:type ::notEnoughDataRoles :dataRoles dataRoles}))))))
 
 (defn disjDataRoles
+ "DisjointDataProperties := 'DisjointDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
   ([dataRoles]
     (-axiom (-dataRoleAxiom (-disjDataRoles (into #{} (map ex/dataRole dataRoles))))))
   ([annotations dataRoles]
@@ -595,6 +619,7 @@
       (throw (Exception. (str  {:type ::notDataRoleDataRange :dataRole dataRole :class class}))))))
 
 (defn dataRoleDomain
+ "DataPropertyDomain := 'DataPropertyDomain' '(' axiomAnnotations DataPropertyExpression ClassExpression ')'"
   ([dataRole class]
     (-axiom (-dataRoleAxiom (-dataRoleDomain (ex/dataRole dataRole) (ex/class class)))))
   ([annotations dataRole class]
@@ -614,6 +639,7 @@
       (throw (Exception. (str  {:type ::notDataRoleDataRange :dataRole dataRole :dataRange dataRange}))))))
 
 (defn dataRoleRange
+ "DataPropertyRange := 'DataPropertyRange' '(' axiomAnnotations DataPropertyExpression DataRange ')'"
   ([dataRole dataRange](-axiom (-dataRoleAxiom (-dataRoleRange (ex/dataRole dataRole) (co/dataRange dataRange)))))
   ([annotations dataRole dataRange](-axiom (-dataRoleAxiom (-dataRoleRange (ann/axiomAnnotations annotations) (ex/dataRole dataRole) (co/dataRange dataRange))))))
 
@@ -631,6 +657,7 @@
       (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))))
 
 (defn functionalDataRole
+ "FunctionalDataProperty := 'FunctionalDataProperty' '(' axiomAnnotations DataPropertyExpression ')'"
   ([dataRole]
     (-axiom (-dataRoleAxiom (-functionalDataRole (ex/dataRole dataRole)))))
   ([annotations dataRole]
@@ -658,6 +685,7 @@
       (throw (Exception. (str  {:type ::notClass :class class}))))))
 
 (defn hasKey
+ "HasKey := 'HasKey' '(' axiomAnnotations ClassExpression '(' { ObjectPropertyExpression } ')' '(' { DataPropertyExpression } ')' ')'"
   ([class roles dataRoles]
     (-axiom (-hasKey (ex/class class) (into #{} (map ex/role roles)) dataRoles)))
   ([annotations class roles dataRoles]
@@ -677,6 +705,7 @@
       (throw (Exception. (str  {:type ::notDataTypeDef :dataType dataType :dataRange dataRange}))))))
 
 (defn dataTypeDefinition
+ "DatatypeDefinition := 'DatatypeDefinition' '(' axiomAnnotations Datatype DataRange ')'"
   ([datatype datarange]
     (-axiom (-dataTypeDefinition (co/dataType datatype) (co/dataRange datarange))))
   ([annotations datatype datarange]
@@ -703,6 +732,7 @@
      (throw (Exception. (str  {:type ::notAnnotationSubjectRoleAndValue :annotationSubject annotationSubject :annotationRole annotationRole :annotationValue annotationValue :annotations annotations}))))))
 
 (defn annotationFact
+  "AnnotationAssertion := 'AnnotationAssertion' '(' axiomAnnotations AnnotationProperty AnnotationSubject AnnotationValue ')'"
   ([annotationRole annotationSubject annotationValue]
     (-axiom (-annotationAxiom (-annotationFact (ann/annotationRole annotationRole) (ann/annotationSubject annotationSubject) (ann/annotationValue annotationValue)))))
   ([annotations annotationRole annotationSubject annotationValue]
@@ -736,6 +766,7 @@
       (throw (Exception. (str  {:type ::notAnnotationRoles :antecedent antecedent :consequent consequent}))))))
 
 (defn annotationImplication
+  "SubAnnotationPropertyOf := 'SubAnnotationPropertyOf' '(' axiomAnnotations subAnnotationProperty superAnnotationProperty ')'"
   ([antecedent consequent]
     (-axiom (-annotationAxiom (-annotationImplication (ann/annotationRole antecedent) (ann/annotationRole consequent)))))
   ([annotations antecedent consequent]
@@ -755,6 +786,7 @@
       (throw (Exception. (str  {:type ::notAnnotationDomain :annotationRole annotationRole :iri IRI}))))))
 
 (defn annotationDomain
+  "AnnotationPropertyDomain := 'AnnotationPropertyDomain' '(' axiomAnnotations AnnotationProperty IRI ')'"
   ([annotationRole IRI]
     (-axiom (-annotationAxiom (-annotationDomain (ann/annotationRole annotationRole) IRI))))
   ([annotations annotationRole IRI]
@@ -774,7 +806,8 @@
       (throw (Exception. (str  {:type ::notAnnotationRange :annotationRole annotationRole :iri IRI}))))))
 
 (defn annotationRange
-  ([annotationRole IRI]
-    (-axiom (-annotationAxiom (-annotationRange (ann/annotationRole annotationRole) IRI))))
-  ([annotations annotationRole IRI]
-    (-axiom (-annotationAxiom (-annotationRange (ann/axiomAnnotations annotations) (ann/annotationRole annotationRole) IRI)))))
+ "AnnotationPropertyRange := 'AnnotationPropertyRange' '(' axiomAnnotations AnnotationProperty IRI ')'"
+ ([annotationRole IRI]
+   (-axiom (-annotationAxiom (-annotationRange (ann/annotationRole annotationRole) IRI))))
+ ([annotations annotationRole IRI]
+   (-axiom (-annotationAxiom (-annotationRange (ann/axiomAnnotations annotations) (ann/annotationRole annotationRole) IRI)))))

@@ -22,7 +22,9 @@
   {:prefix prefixName :iri longIRI :type :prefix :innerType :prefix}
   (throw (Exception. (str  {:type ::notIRIs :prefixName prefixName :longIRI longIRI})))))
 
-(defn prefixes [prefixes]
+(defn prefixes 
+ "{ prefixDeclaration }" 
+ [prefixes]
  (if (every? (fn [x] (= (:type x) :prefix)) prefixes)
    {:prefixes prefixes :type :prefixes :innerType :prefixes}
    (throw (Exception. (str  {:type ::notPrefixes :prefixes prefixes})))))
@@ -115,10 +117,12 @@
     (throw (Exception. (str  {:type ::notAxioms :Axioms axioms})))))
 
 (defn ontologyFile
+ "ontologyDocument := { prefixDeclaration } Ontology"
   ([ontology](-ontologyFile ontology))
   ([pref ontology](-ontologyFile (prefixes pref) ontology)))
 
 (defn ontology
+ "Ontology := 'Ontology' '(' [ ontologyIRI [ versionIRI ] ] directlyImportsDocuments ontologyAnnotations axioms ')'"
  ([imports annotations axiom](-ontology (directImports imports) (ontologyAnnotations annotations) (axioms axiom)))
  ([onto imports annotations axiom](-ontology (ontologyIRI onto) (directImports imports) (ontologyAnnotations annotations) (axioms axiom)))
  ([onto vers imports annotations axiom](-ontology (ontologyIRI onto) (versionIRI vers) (directImports imports) (ontologyAnnotations annotations) (axioms axiom))))

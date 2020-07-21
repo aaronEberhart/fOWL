@@ -3,27 +3,38 @@
  (:require [clojure.string :as str][clojure.set :as set]))
 
 (def xsdNS
-  "http://www.w3.org/2001/XMLSchema#")
+ "The XML namespace"
+ "http://www.w3.org/2001/XMLSchema#")
 (def rdfNS
-  "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+ "The RDF namespace"
+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 (def rdfsNS
-  "http://www.w3.org/2000/01/rdf-schema#")
+ "The RDFS namespace"
+ "http://www.w3.org/2000/01/rdf-schema#")
 (def owlNS
+ "The OWL namespace"
  "http://www.w3.org/2002/07/owl#")
 
 (def Top
+ "owl:Thing"
  {:namespace owlNS :short "Thing" :prefix "owl:" :iri (str "<" owlNS "Thing" ">") :type :class :innerType :top})
 (def Bot
+ "owl:Nothing"
  {:namespace owlNS :short "Nothing" :prefix "owl:" :iri (str "<" owlNS "Nothing" ">") :type :class :innerType :bot})
 (def RDFSLiteral
+ "rdfs:Literal"
  {:namespace rdfsNS :short "Literal" :prefix "rdfs:" :iri (str "<" rdfsNS "Literal" ">") :arity 1 :type :dataType :innerType :dataType})
 (def TopRole
+ "owl:topObjectProperty"
  {:namespace owlNS :short "topObjectProperty" :prefix "owl:" :iri (str "<" owlNS "topObjectProperty" ">") :type :role :innerType :roleTop})
 (def BotRole
+ "owl:bottomObjectProperty"
  {:namespace owlNS :short "bottomObjectProperty" :prefix "owl:" :iri (str "<" owlNS "bottomObjectProperty" ">") :type :role :innerType :roleBot})
 (def TopData
+ "owl:topDataProperty"
  {:namespace owlNS :short "topDataProperty" :prefix "owl:" :iri (str "<" owlNS "topDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 (def BotData
+ "owl:bottomDataProperty"
  {:namespace owlNS :short "bottomDataProperty" :prefix "owl:" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 (def ^:no-doc dataRangeTypes
  #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
@@ -31,6 +42,7 @@
  #{:className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
 
 (def reservedIRIs
+"The set of reserved IRIs"
  #{"owl:backwardCompatibleWith" "owl:deprecated" "owl:incompatibleWith" "owl:priorVersion" "owl:rational"
   "owl:real" "owl:versionInfo" "rdf:langRange" "rdf:PlainLiteral" "rdf:XMLLiteral" "rdfs:comment" "rdfs:isDefinedBy"
   "rdfs:label" "rdfs:seeAlso" "xsd:anyURI" "xsd:base64Binary" "xsd:boolean" "xsd:byte" "xsd:dateTime" "xsd:dateTimeStamp" "xsd:decimal" "xsd:double" "xsd:float"
@@ -38,11 +50,14 @@
   "xsd:minLength" "xsd:Name" "xsd:NCName" "xsd:negativeInteger" "xsd:NMTOKEN" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger" "xsd:normalizedString" "xsd:pattern"
   "xsd:positiveInteger" "xsd:short" "xsd:string" "xsd:token" "xsd:unsignedByte" "xsd:unsignedInt" "xsd:unsignedLong" "xsd:unsignedShort"})
 (def dataTypeMaps
+"The set of data type maps"
  #{"rdfs:Literal" "owl:rational" "owl:real" "xsd:double" "xsd:float" "xsd:decimal" "xsd:integer" "xsd:long" "xsd:int" "xsd:short" "xsd:byte" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger"
  "xsd:positiveInteger" "xsd:negativeInteger" "xsd:unsignedLong" "xsd:unsignedInt" "xsd:unsignedShort" "xsd:unsignedByte" "rdf:PlainLiteral" "xsd:string" "xsd:NCName" "xsd:Name"
  "xsd:NMTOKEN" "xsd:token" "xsd:language" "xsd:normalizedString" "xsd:boolean" "xsd:base64Binary" "xsd:hexBinary" "xsd:anyURI" "xsd:dateTime" "xsd:dateTimeStamp" "rdf:XMLLiteral"})
 
-(defn isReservedIRI? [iri]
+(defn isReservedIRI?
+ "Is the IRI in the set of reserved IRIs?"
+ [iri]
  (contains? reservedIRIs iri))
 
 (defn XSDDatatype
@@ -111,6 +126,7 @@
   (throw (Exception. (str  {:type ::notRole :roleName role})))))
 
 (defn inverseRoleName
+ "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
  ([iri]
   (-inverseRoleName (roleName iri)))
  ([prefix iri]
@@ -153,6 +169,7 @@
   (throw (Exception. (str  {:type ::notIndividual :individual anyIndividual})))))
 
 (defn individual
+ "Individual := AnonymousIndividual | NamedIndividual"
  ([iri]
   (if (string? iri)
   	(-individual (-namedIndividual (IRI iri)))
@@ -180,6 +197,7 @@
    (throw (Exception. (str  {:type ::notdataType :iri iri :namespace namespace}))))))
 
 (defn dataType
+ "Datatype := IRI"
  ([iri]
   (if (string? iri)
    (-dataType (IRI iri))
@@ -214,7 +232,8 @@
   {:value  (str \" stri \" )  :type :lexicalForm :innerType :lexicalForm}
   (throw (Exception. (str  {:type ::notString :string stri})))))
 
-(defn typedLiteral 
+(defn typedLiteral
+ "typedLiteral := lexicalForm '^^' Datatype"
  [lexicalForm datatype]
  (-literal (-typedLiteral (-lexicalForm lexicalForm) (dataType datatype))))
 
@@ -225,7 +244,8 @@
   {:value (str \" string \" ) :type :stringLiteralNoLanguage :innerType :stringLiteralNoLanguage}
   (throw (Exception. (str  {:type ::notStringLiteral :string string})))))
 
-(defn stringLiteralNoLanguage 
+(defn stringLiteralNoLanguage
+ "stringLiteralNoLanguage := quotedString"
  [string]
  (-literal (-stringLiteralNoLanguage string)))
 
@@ -236,7 +256,8 @@
   {:value (str \" string \" \@ lang) :type :stringLiteralWithLanguage :innerType :stringLiteralWithLanguage}
   (throw (Exception. (str  {:type ::notStringLiteralWithLang :string string :lang lang})))))
 
-(defn stringLiteralWithLanguage 
+(defn stringLiteralWithLanguage
+ "stringLiteralWithLanguage := quotedString languageTag"
  [string lang]
  (-literal (-stringLiteralWithLanguage string lang)))
 
@@ -268,7 +289,8 @@
   (assoc facet :value (:value restriction) :type :restrictedValue :innerType :restrictedValue)
   (throw (Exception. (str  {:type ::notRestrictedValue :facet facet :restriction restriction})))))
 
-(defn restrictedValue 
+(defn restrictedValue
+ "RestrictedFacet := constrainingFacet restrictionValue" 
  [facet restriction]
  (-restrictedValue (-constrainingFacet facet) (-restrictionValue restriction)))
 
@@ -307,7 +329,8 @@
   (assoc datarange :type :dataRange)
   (throw (Exception. (str  {:type ::notDataRange :dataRange datarange})))))
 
-(defn dataRange 
+(defn dataRange
+ "DataRange := Datatype | DataIntersectionOf | DataUnionOf | DataComplementOf | DataOneOf | DatatypeRestriction"
  [dr]
  (if (string? dr)
   (-dataRange (dataType dr))
@@ -315,7 +338,8 @@
    (-dataRange dr)
    (-dataRange (dataType dr)))))
 
-(defn dataAnd 
+(defn dataAnd
+ "DataIntersectionOf := 'DataIntersectionOf' '(' DataRange DataRange { DataRange } ')'"
 	([datarange1 datarange2]
 	 (let [dataRanges (into #{} [(dataRange datarange1) (dataRange datarange2)])]
    (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges)))))
@@ -324,6 +348,7 @@
 	  (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges))))))
 
 (defn dataOr 
+ "DataUnionOf := 'DataUnionOf' '(' DataRange DataRange { DataRange } ')'"
 	([datarange1 datarange2]
   (let [dataRanges (into #{} [(dataRange datarange1) (dataRange datarange2)])]
    (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges)))))
@@ -332,18 +357,21 @@
    (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges))))))
 
 (defn dataNot 
+ "DataComplementOf := 'DataComplementOf' '(' DataRange ')'"
  [datarange]
  (-dataRange (-dataNot (dataRange datarange))))
 
 (defn dataOneOf
+ "DataOneOf := 'DataOneOf' '(' Literal { Literal } ')'"
 	([literal]
 	 (-dataRange (-dataOneOf #{literal})))
 	([literal & literals]
 	 (-dataRange (-dataOneOf (into #{} (flatten [literal literals]))))))
 
 (defn datatypeRestriction
+ "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"
  [datatype restrictedvalues]
-  (-dataRange (-datatypeRestriction (dataType datatype) (into #{} (map restrictedValue (filter #(nil? (:type %)) restrictedvalues) (filter #(= (:type %) :literal) restrictedvalues))))))
+ (-dataRange (-datatypeRestriction (dataType datatype) (into #{} (map restrictedValue (filter #(nil? (:type %)) restrictedvalues) (filter #(= (:type %) :literal) restrictedvalues))))))
 
 (defn entity 
  "Entity := 'Class' '(' Class ')' | 'Datatype' '(' Datatype ')' | 'ObjectProperty' '(' ObjectProperty ')' | 'DataProperty' '(' DataProperty ')' | 'AnnotationProperty' '(' AnnotationProperty ')' | 'NamedIndividual' '(' NamedIndividual ')'"

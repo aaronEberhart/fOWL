@@ -16,6 +16,7 @@
   	(throw (Exception. (str  {:type ::notRole :roleName role}))))))
 
 (defn role
+ "ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
  ([iri]
    (if (string? iri)
      (-role (co/roleName (co/IRI iri)))
@@ -28,6 +29,7 @@
  ([prefix iri namespace](-role (co/roleName prefix iri namespace))))
 
 (defn inverseRole
+ "ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
  ([iri]
   (if (string? iri)
     (-role (co/inverseRoleName (co/IRI iri)))
@@ -49,6 +51,7 @@
    (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole}))))))
 
 (defn dataRole
+ "DataPropertyExpression := DataProperty"
  ([iri]
   (if (string? iri)
     (-dataRole (co/dataRoleName (co/IRI iri)))
@@ -68,6 +71,9 @@
      (throw (Exception. (str  {:type ::notClass :class class})))))
 
 (defn class
+ "ClassExpression := Class | ObjectIntersectionOf | ObjectUnionOf | ObjectComplementOf | ObjectOneOf | ObjectSomeValuesFrom | ObjectAllValuesFrom |
+                     ObjectHasValue | ObjectHasSelf | ObjectMinCardinality | ObjectMaxCardinality | ObjectExactCardinality | DataSomeValuesFrom |
+                     DataAllValuesFrom | DataHasValue | DataMinCardinality | DataMaxCardinality | DataExactCardinality"
  ([iri]
    (if (string? iri)
     (-class (co/className (co/IRI iri)))
@@ -85,6 +91,7 @@
    (throw (Exception. (str  {:type ::notClass :class classes})))))
 
 (defn and
+ "ObjectIntersectionOf := 'ObjectIntersectionOf' '(' ClassExpression ClassExpression { ClassExpression } ')'"
  ([class1 class2]
   (let [classSet (into #{} [(class class1) (class class2)])]
    (if (= 1 (count classSet))(first classSet)(-class (-and classSet)))))
@@ -100,6 +107,7 @@
    (throw (Exception. (str  {:type ::notClass :class classes})))))
 
 (defn or
+ "ObjectUnionOf := 'ObjectUnionOf' '(' ClassExpression ClassExpression { ClassExpression } ')'"
  ([class1 class2]
   (let [classSet (into #{} [(class class1) (class class2)])]
    (if (= 1 (count classSet))(first classSet)(-class (-or classSet)))))
@@ -114,7 +122,9 @@
    {:class class :innerType :not :type :not}
    (throw (Exception. (str  {:type ::notClass :class class})))))
 
-(defn not [c]
+(defn not 
+ "ObjectComplementOf := 'ObjectComplementOf' '(' ClassExpression ')'"
+ [c]
  (class (-not (class c))))
 
 (defn- -nominal 
@@ -125,6 +135,7 @@
    (throw (Exception. (str  {:type ::notIndividuals :individuals individuals})))))
 
 (defn nominal
+ "ObjectOneOf := 'ObjectOneOf' '(' Individual { Individual }')'"
  ([individual](-class (-nominal (into #{} [(co/individual individual)]))))
  ([individual & individuals](-class (-nominal (into #{} (map co/individual (flatten [individual individuals])))))))
 
@@ -137,7 +148,9 @@
      (throw (Exception. (str  {:type ::notClass :class class}))))
  (throw (Exception. (str  {:type ::notRole :role role})))))
 
-(defn exists [r c]
+(defn exists 
+ "ObjectSomeValuesFrom := 'ObjectSomeValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
+ [r c]
  (-class (-exists (role r)(class c))))
 
 (defn- -all 
@@ -149,7 +162,9 @@
      (throw (Exception. (str  {:type ::notClass :role role :class class}))))
  (throw (Exception. (str  {:type ::notRole :role role})))))
 
-(defn all [r c]
+(defn all 
+ "ObjectAllValuesFrom := 'ObjectAllValuesFrom' '(' ObjectPropertyExpression ClassExpression ')'"
+ [r c]
  (-class (-all (role r)(class c))))
 
 (defn- -partialRole 
@@ -161,7 +176,9 @@
      (throw (Exception. (str  {:type ::notIndividual :individual individual}))))
  (throw (Exception. (str  {:type ::notRole :role role})))))
 
-(defn partialRole [r i]
+(defn partialRole 
+ "ObjectHasValue := 'ObjectHasValue' '(' ObjectPropertyExpression Individual ')'"
+ [r i]
  (-class (-partialRole (role r) (co/individual i))))
 
 (defn- -Self 
@@ -172,6 +189,7 @@
   (throw (Exception. (str  {:type ::notRole :role role})))))
 
 (defn Self
+ "ObjectHasSelf := 'ObjectHasSelf' '(' ObjectPropertyExpression ')'"
  ([iri](class (-Self (role iri))))
  ([prefix iri](-class (-Self (role prefix iri))))
  ([prefix iri namespace](-class (-Self (role prefix iri namespace)))))
@@ -194,6 +212,7 @@
      (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn >=exists
+ "ObjectMinCardinality := 'ObjectMinCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
  ([nat r](-class (->=exists nat (role r))))
  ([nat r c](-class (->=exists nat (role r)(class c)))))
 
@@ -215,6 +234,7 @@
      (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn <=exists
+ "ObjectMaxCardinality := 'ObjectMaxCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
  ([nat r](-class (-<=exists nat (role r))))
  ([nat r c](-class (-<=exists nat (role r)(class c)))))
 
@@ -236,6 +256,7 @@
      (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn =exists
+ "ObjectExactCardinality := 'ObjectExactCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"
  ([nat r](-class (-=exists nat (role r))))
  ([nat r c](-class (-=exists nat (role r)(class c)))))
 
@@ -250,12 +271,14 @@
     (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
    (throw (Exception. (str  {:type ::notDataRoles :role role})))))
 
-(defn dataExists [drs dra]
- (if (string? drs)
-  (-class (-dataExists #{(dataRole drs)} (co/dataRange dra)))
-  (if (map? drs)
-   (-class (-dataExists #{(dataRole drs)} (co/dataRange dra)))
-   (-class (-dataExists (into #{} (map dataRole drs)) (co/dataRange dra))))))
+(defn dataExists 
+ "DataSomeValuesFrom := 'DataSomeValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
+ [dataRoles dataRange]
+ (if (string? dataRoles)
+  (-class (-dataExists #{(dataRole dataRoles)} (co/dataRange dataRange)))
+  (if (map? dataRoles)
+   (-class (-dataExists #{(dataRole dataRoles)} (co/dataRange dataRange)))
+   (-class (-dataExists (into #{} (map dataRole dataRoles)) (co/dataRange dataRange))))))
 
 (defn- -dataAll 
  "DataAllValuesFrom := 'DataAllValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
@@ -268,12 +291,14 @@
      (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
  (throw (Exception. (str  {:type ::notDataRoles :role role})))))
 
-(defn dataAll [drs dra]
- (if (string? drs)
-  (-class (-dataAll #{(dataRole drs)} (co/dataRange dra)))
-  (if (map? drs)
-   (-class (-dataAll #{(dataRole drs)} (co/dataRange dra)))
-   (-class (-dataAll (into #{} (map dataRole drs)) (co/dataRange dra))))))
+(defn dataAll 
+ "DataAllValuesFrom := 'DataAllValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
+ [dataRoles dataRange]
+ (if (string? dataRoles)
+  (-class (-dataAll #{(dataRole dataRoles)} (co/dataRange dataRange)))
+  (if (map? dataRoles)
+   (-class (-dataAll #{(dataRole dataRoles)} (co/dataRange dataRange)))
+   (-class (-dataAll (into #{} (map dataRole dataRoles)) (co/dataRange dataRange))))))
 
 (defn- ->=dataExists
  "DataMinCardinality := 'DataMinCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
@@ -293,6 +318,7 @@
      (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn >=dataExists
+ "DataMinCardinality := 'DataMinCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
  ([nat dr]
    (-class (->=dataExists nat (dataRole dr))))
  ([nat dr dataRange]
@@ -316,6 +342,7 @@
      (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn <=dataExists
+ "DataMaxCardinality := 'DataMaxCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
  ([nat dr](-class (-<=dataExists nat (dataRole dr))))
  ([nat dr dataRange](-class (-<=dataExists nat (dataRole dr) (co/dataRange dataRange)))))
 
@@ -337,6 +364,7 @@
      (throw (Exception. (str  {:type ::notNaturalNumber :nat nat}))))))
 
 (defn =dataExists
+ "DataExactCardinality := 'DataExactCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"
  ([nat dr](-class (-=dataExists nat (dataRole dr))))
  ([nat dr dataRange](-class (-=dataExists nat (dataRole dr) (co/dataRange dataRange)))))
 
@@ -350,4 +378,5 @@
  (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole})))))
 
 (defn partialDataRole [dr literal]
+ "DataHasValue := 'DataHasValue' '(' DataPropertyExpression Literal ')'"
  (-class (-partialDataRole (dataRole dr) literal)))

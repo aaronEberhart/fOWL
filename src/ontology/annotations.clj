@@ -2,7 +2,7 @@
  "Functions that represent OWL annotations"
  (:require [ontology.components :as co]))
 
-(def annotationRoles
+(def ^:no-doc annotationRoles
  #{"rdfs:label" "rdfs:comment" "rdfs:seeAlso" "rdfs:isDefinedBy" "owl:versionInfo" "owl:deprecated" "owl:backwardCompatibleWith" "owl:incompatibleWith" "owl:priorVersion"})
 
 (defn annotationRole
@@ -44,8 +44,10 @@
     {:annotations annotations :type :metaAnnotations :innerType :metaAnnotations}
     (throw (Exception. (str  {:type ::notAnnotations :annotations annotations})))))
 
-(defn metaAnnotations [annotations]
-  (-metaAnnotations annotations))
+(defn metaAnnotations 
+ "annotationAnnotations := { Annotation }"
+ [annotations]
+ (-metaAnnotations annotations))
 
 (defn- -annotation
   "Annotation := 'Annotation' '(' annotationAnnotations AnnotationProperty AnnotationValue ')'"
@@ -61,19 +63,20 @@
       (throw (Exception. (str  {:type ::notAnnotationRoleAndValue :annotationRole annotationRole :annotationValue annotationValue :annotations annotations}))))))
 
 (defn annotation
+ "Annotation := 'Annotation' '(' annotationAnnotations AnnotationProperty AnnotationValue ')'"
   ([role value]
     (-annotation (annotationRole role) (annotationValue value)))
   ([annotations role value]
     (-annotation (metaAnnotations annotations) (annotationRole role) (annotationValue value))))
 
 (defn annotationSubject
-    "AnnotationSubject := IRI | AnonymousIndividual"
-    [subject]
-    (if (:iri subject)
-      (assoc subject :innerType :annotationSubject :type :annotationSubject)
-      (if (= (:innerType subject) :anonymousIndividual)
-        (assoc subject :type :annotationSubject)
-        (throw (Exception. (str  {:type ::notAnnotationSubject :subject subject}))))))
+ "AnnotationSubject := IRI | AnonymousIndividual"
+ [subject]
+ (if (:iri subject)
+   (assoc subject :innerType :annotationSubject :type :annotationSubject)
+   (if (= (:innerType subject) :anonymousIndividual)
+     (assoc subject :type :annotationSubject)
+     (throw (Exception. (str  {:type ::notAnnotationSubject :subject subject}))))))
 
 (defn- -axiomAnnotations
   "axiomAnnotations := { Annotation }"
@@ -82,8 +85,10 @@
     {:annotations annotations :type :axiomAnnotations :innerType :axiomAnnotations}
     (throw (Exception. (str  {:type ::notAnnotations :annotations annotations})))))
 
-(defn axiomAnnotations [annotations]
-  (-axiomAnnotations annotations))
+(defn axiomAnnotations 
+ "axiomAnnotations := { Annotation }"
+ [annotations]
+ (-axiomAnnotations annotations))
 
 (defn annotationDataType
  "Datatype := IRI"

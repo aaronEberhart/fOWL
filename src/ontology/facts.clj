@@ -30,6 +30,7 @@
       (throw (Exception. (str  {:type ::notEnoughIndividuals :individuals individuals}))))))
 
 (defn =individuals
+ "SameIndividual := 'SameIndividual' '(' axiomAnnotations Individual Individual { Individual } ')'"
   ([individuals]
     (-fact (-=individuals (into #{} (map co/individual individuals)))))
   ([annotations individuals]
@@ -53,6 +54,7 @@
       (throw (Exception. (str  {:type ::notEnoughIndividuals :individuals individuals}))))))
 
 (defn !=individuals
+ "DifferentIndividuals := 'DifferentIndividuals' '(' axiomAnnotations Individual Individual { Individual } ')'"
   ([individuals]
     (-fact (-!=individuals (into #{} (map co/individual individuals)))))
   ([annotations individuals]
@@ -76,6 +78,7 @@
       (throw (Exception. (str  {:type ::notIndividual :individual individual}))))))
 
 (defn classFact
+ "ClassAssertion := 'ClassAssertion' '(' axiomAnnotations ClassExpression Individual ')'"
  ([class individual]
   (-fact (-classFact (ex/class class) (co/individual individual))))
  ([annotations class individual]
@@ -116,6 +119,7 @@
     (throw (Exception. (str  {:type ::notRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual}))))))
 
 (defn roleFact
+ "ObjectPropertyAssertion := 'ObjectPropertyAssertion' '(' axiomAnnotations ObjectPropertyExpression sourceIndividual targetIndividual ')'"
   ([role fromIndividual toIndividual]
     (-fact (-roleFact (ex/role role) (co/individual fromIndividual) (co/individual toIndividual))))
   ([annotations role fromIndividual toIndividual]
@@ -135,6 +139,7 @@
     (throw (Exception. (str  {:type ::notNotRoleFact :role role :fromIndividual fromIndividual :toIndividual toIndividual}))))))
 
 (defn notRoleFact
+ "NegativeObjectPropertyAssertion := 'NegativeObjectPropertyAssertion' '(' axiomAnnotations ObjectPropertyExpression sourceIndividual targetIndividual ')'"
   ([role fromIndividual toIndividual]
     (-fact (-notRoleFact (ex/role role) (co/individual fromIndividual) (co/individual toIndividual))))
   ([annotations role fromIndividual toIndividual]
@@ -154,6 +159,7 @@
       (throw (Exception. (str  {:type ::notDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral}))))))
 
 (defn dataRoleFact
+ "DataPropertyAssertion := 'DataPropertyAssertion' '(' axiomAnnotations DataPropertyExpression sourceIndividual targetValue ')'"
   ([dataRole fromIndividual toLiteral]
     (-fact (-dataRoleFact (ex/dataRole dataRole) (co/individual fromIndividual) toLiteral)))
   ([annotations dataRole fromIndividual toLiteral]
@@ -173,6 +179,7 @@
       (throw (Exception. (str  {:type ::notNotDataRoleFact :dataRole dataRole :fromIndividual fromIndividual :toLiteral toLiteral}))))))
 
 (defn notDataRoleFact
+ "NegativeDataPropertyAssertion := 'NegativeDataPropertyAssertion' '(' axiomAnnotations DataPropertyExpression sourceIndividual targetValue ')'"
   ([dataRole fromIndividual toLiteral]
     (-fact (-notDataRoleFact  (ex/dataRole dataRole) (co/individual fromIndividual) toLiteral)))
   ([annotations dataRole fromIndividual toLiteral]

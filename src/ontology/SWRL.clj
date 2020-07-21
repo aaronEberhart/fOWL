@@ -5,15 +5,19 @@
 (def ^:no-doc atomTypes
   #{:classAtom :roleAtom :dataRoleAtom :dataRangeAtom :builtInAtom :=individualsAtom :!=individualsAtom})
 
-(defn body [atoms]
-  (if (every? (fn [x] (= (:type x) :atom)) atoms)
-    {:atoms atoms :type :body :innerType :body}
-    (throw (Exception. (str  {:type ::notAtoms :atoms atoms})))))
+(defn body
+ "‘Body’ ‘(’ {Atom} ‘)’"
+ [atoms]
+ (if (every? (fn [x] (= (:type x) :atom)) atoms)
+   {:atoms atoms :type :body :innerType :body}
+   (throw (Exception. (str  {:type ::notAtoms :atoms atoms})))))
 
-(defn head [atoms]
-  (if (every? (fn [x] (= (:type x) :atom)) atoms)
-    {:atoms atoms :type :head :innerType :head}
-    (throw (Exception. (str  {:type ::notAtoms :atoms atoms})))))
+(defn head
+"‘Head‘ ‘(’ {Atom} ‘)’"
+[atoms]
+(if (every? (fn [x] (= (:type x) :atom)) atoms)
+  {:atoms atoms :type :head :innerType :head}
+  (throw (Exception. (str  {:type ::notAtoms :atoms atoms})))))
 
 (defn- -atom 
  "Atom ::= ClassAtom | DataRangeAtom | ObjectPropertyAtom | DataPropertyAtom | BuiltInAtom | SameIndividualAtom | DifferentIndividualsAtom" 
@@ -36,10 +40,12 @@
    (assoc arg :type :iarg)
    (throw (Exception. (str  {:type ::notIArg :IArg arg})))))
 
-(defn iArg [arg]
-  (if (= (:type arg) :variable)
-    (-iArg arg)
-    (-iArg (co/individual arg))))
+(defn iArg
+ "IArg ::= IndividualID | Variable"
+ [arg]
+ (if (= (:type arg) :variable)
+   (-iArg arg)
+   (-iArg (co/individual arg))))
 
 (defn dArg
  "DArg ::= Literal | Variable"
@@ -64,7 +70,9 @@
      (throw (Exception. (str  {:type ::notIarg :iarg iarg}))))
    (throw (Exception. (str  {:type ::notClass :class class})))))
 
-(defn classAtom [class iarg]
+(defn classAtom
+ "ClassAtom := ‘ClassAtom’ ‘(’ ClassExpression IArg ‘)’"
+ [class iarg]
  (-atom (-classAtom (ex/class class) (iArg iarg))))
 
 (defn- -dataRangeAtom
@@ -76,8 +84,10 @@
      (throw (Exception. (str  {:type ::notDarg :darg darg}))))
    (throw (Exception. (str  {:type ::notDataRole :dataRange dataRange})))))
 
-(defn dataRangeAtom [dataRange darg]
-  (-atom (-dataRangeAtom (co/dataRange dataRange) (dArg darg))))
+(defn dataRangeAtom
+ "DataRangeAtom := ‘DataRangeAtom’ ‘(’ DataRange DArg ‘)’"
+ [dataRange darg]
+ (-atom (-dataRangeAtom (co/dataRange dataRange) (dArg darg))))
 
 (defn- -roleAtom
  "ObjectPropertyAtom := ‘ObjectPropertyAtom’ ‘(’ ObjectPropertyExpression IArg IArg ‘)’"
@@ -90,8 +100,10 @@
      (throw (Exception. (str  {:type ::notIarg :iarg iarg1}))))
    (throw (Exception. (str  {:type ::notRole :role role})))))
 
-(defn roleAtom [role iarg1 iarg2]
-  (-atom (-roleAtom (ex/role role) (iArg iarg1) (iArg iarg2))))
+(defn roleAtom
+ "ObjectPropertyAtom := ‘ObjectPropertyAtom’ ‘(’ ObjectPropertyExpression IArg IArg ‘)’"
+ [role iarg1 iarg2]
+ (-atom (-roleAtom (ex/role role) (iArg iarg1) (iArg iarg2))))
 
 (defn- -dataRoleAtom
  "DataPropertyAtom := ‘DataPropertyAtom’ ‘(’ DataProperty IArg DArg ‘)’"
@@ -104,8 +116,10 @@
      (throw (Exception. (str  {:type ::notDarg :darg darg}))))
    (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole})))))
 
-(defn dataRoleAtom [dataRole iarg darg]
-  (-atom (-dataRoleAtom (ex/dataRole dataRole) (iArg iarg) (dArg darg))))
+(defn dataRoleAtom
+ "DataPropertyAtom := ‘DataPropertyAtom’ ‘(’ DataProperty IArg DArg ‘)’"
+ [dataRole iarg darg]
+ (-atom (-dataRoleAtom (ex/dataRole dataRole) (iArg iarg) (dArg darg))))
 
 (defn- -builtInAtom
  "BuiltInAtom := ‘BuiltInAtom’ ‘(’ IRI DArg { DArg } ‘)’"
@@ -118,8 +132,10 @@
      (throw (Exception. (str  {:type ::notDargs :dargs dargs}))))
    (throw (Exception. (str  {:type ::notEnoughDargs :dargs dargs})))))
 
-(defn builtInAtom [iri dargs]
-  (-atom (-builtInAtom (co/IRI iri) (into #{} (map dArg dargs)))))
+(defn builtInAtom
+ "BuiltInAtom := ‘BuiltInAtom’ ‘(’ IRI DArg { DArg } ‘)’"
+ [iri dargs]
+ (-atom (-builtInAtom (co/IRI iri) (into #{} (map dArg dargs)))))
 
 (defn- -=individualsAtom
  "SameIndividualAtom := ‘SameIndividualAtom’ ‘(’ IArg IArg ‘)’"
@@ -130,8 +146,10 @@
      (throw (Exception. (str  {:type ::notIArg :iarg iarg2}))))
    (throw (Exception. (str  {:type ::notIArg :iarg iarg1})))))
 
-(defn =individualsAtom [iarg1 iarg2]
-  (-atom (-=individualsAtom (iArg iarg1) (iArg iarg2))))
+(defn =individualsAtom
+ "SameIndividualAtom := ‘SameIndividualAtom’ ‘(’ IArg IArg ‘)’"
+ [iarg1 iarg2]
+ (-atom (-=individualsAtom (iArg iarg1) (iArg iarg2))))
 
 (defn- -!=individualsAtom
  "DifferentIndividualsAtom := ‘DifferentIndividualsAtom’ ‘(’ IArg IArg ‘)’"
@@ -142,10 +160,12 @@
      (throw (Exception. (str  {:type ::notIArg :iarg iarg2}))))
    (throw (Exception. (str  {:type ::notIArg :iarg iarg1})))))
 
-(defn !=individualsAtom [iarg1 iarg2]
-  (-atom (-!=individualsAtom (iArg iarg1) (iArg iarg2))))
+(defn !=individualsAtom 
+ "DifferentIndividualsAtom := ‘DifferentIndividualsAtom’ ‘(’ IArg IArg ‘)’"
+ [iarg1 iarg2]
+ (-atom (-!=individualsAtom (iArg iarg1) (iArg iarg2))))
 
-(defn dgName
+(defn ^:no-doc dgName
  "DGName ::= IRI"
  [iri]
  (if (contains? iri :type)
@@ -161,14 +181,14 @@
      (throw (Exception. (str  {:type ::notNodes :nodes nodes}))))
    (throw (Exception. (str  {:type ::notEnoughNodes :nodes nodes})))))
 
-(defn dgNode
+(defn ^:no-doc dgNode
  "DGNode ::= IRI"
  [iri]
  (if (contains? iri :type)
    (throw (Exception. (str  {:type ::notDGNode :iri iri})))
    (assoc iri :type :dgNode :innerType :dgNode)))
 
-(defn dgNodes [nodes]
+(defn ^:no-doc dgNodes [nodes]
   (-dgNodes (map dgNode nodes)))
 
 (defn- -nodeFact
@@ -180,7 +200,7 @@
      (throw (Exception. (str  {:type ::notDGNode :node node}))))
    (throw (Exception. (str  {:type ::notClass :class class})))))
 
-(defn nodeFact [class node]
+(defn ^:no-doc nodeFact [class node]
   (-nodeFact (ex/class class) (dgNode node)))
 
 (defn- -dgEdges
@@ -203,10 +223,10 @@
      (throw (Exception. (str  {:type ::notDGNode :node node1}))))
    (throw (Exception. (str  {:type ::notRole :role role})))))
 
-(defn edgeFact [role node1 node2]
+(defn ^:no-doc edgeFact [role node1 node2]
   (-edgeFact (ex/role role) (dgNode node1) (dgNode node2)))
 
-(defn dgEdges [edges]
+(defn ^:no-doc dgEdges [edges]
   (-dgEdges (map edgeFact edges)))
 
 (defn- -mainClasses
@@ -218,5 +238,5 @@
      (throw (Exception. (str  {:type ::notClasses :classes classes}))))
    (throw (Exception. (str  {:type ::notEnoughClasses :classes classes})))))
 
-(defn mainClasses [classes]
+(defn ^:no-doc mainClasses [classes]
   (-mainClasses (map ex/class classes)))

@@ -201,7 +201,7 @@
     (ex/or (getClassDSNF (negate (:antecedentClass axiom))) (getClassDSNF (:consequentClass axiom)))
     (map getClassAxiomDSNF (toClassImplications axiom))))
 
-(defn getDSNF 
+(defn ^:no-doc getDSNF 
  "Gets the Disjunctive Syntactic Normal Form for an axiom or class. Unfinished"
  [thing]
  (case (:type thing)
@@ -244,7 +244,7 @@
    (negate (ex/and (getClassCSNF (:antecedentClass axiom)) (getClassCSNF (negate (:consequentClass axiom)))))
    (map getClassAxiomCSNF (toClassImplications axiom))))
 
-(defn getCSNF 
+(defn ^:no-doc getCSNF 
  "Gets the Conjunctive Syntactic Normal Form for an axiom or class. Unfinished"
  [thing]
  (case (:type thing)
