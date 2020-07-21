@@ -377,6 +377,7 @@
      (throw (Exception. (str  {:type ::notLiteral :literal literal}))))
  (throw (Exception. (str  {:type ::notDataRole :dataRole dataRole})))))
 
-(defn partialDataRole [dr literal]
+(defn partialDataRole 
  "DataHasValue := 'DataHasValue' '(' DataPropertyExpression Literal ')'"
+ [dr literal]
  (-class (-partialDataRole (dataRole dr) literal)))
