@@ -1005,7 +1005,7 @@
   :namedIndividual "NamedIndividual("
   "Undefined("))
 
-(defn ^:no-doc toDLString 
+(defn toDLString 
  "Returns a DL syntax string representation of the map object used to store the OWL object, or the default representation if there is no OWL type contained in the map."
  [thing]
  (case (:innerType thing)
@@ -1127,8 +1127,8 @@
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")))
 
-(defn ^:no-doc toString 
- "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is __*not*__ the same as java toString."
+(defn toString 
+ "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is NOT the same as java toString."
  [thing]
  (case (:innerType thing)
 
@@ -1547,10 +1547,10 @@
    nil (-readFunctionalFile file reg/functionalSyntax)
    :functional (-readFunctionalFile file reg/functionalSyntax))))
 
-(def ^:no-doc printStyle 
+(def printStyle 
  "Change printStyle to modify how the terminal output looks (files will still output in functional syntax)
  
   toString - standard Functional syntax
   toDLString - DL instead of functional"
  toString) 
-(defmethod ^:no-doc print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))
+(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))
