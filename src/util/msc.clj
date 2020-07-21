@@ -22,6 +22,6 @@
    ((fn [coll filteringPredicateg mapFunction]
     (when-let [coll (seq coll)]
      (if (filteringPredicate (first coll))
-      (cons (mapFunction (first coll)) (lazer (rest coll) filteringPredicate))
+      (cons (mapFunction (first coll)) (lazer (rest coll) filteringPredicate mapFunction))
       (recur (rest coll) filteringPredicate mapFunction))))
    coll filteringPredicate mapFunction))))
