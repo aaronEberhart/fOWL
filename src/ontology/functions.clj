@@ -1547,7 +1547,7 @@
    nil (-readFunctionalFile file reg/functionalSyntax)
    :functional (-readFunctionalFile file reg/functionalSyntax))))
 
-(def printStyle 
+(def ^:no-doc printStyle 
  "Change printStyle to modify how the terminal output looks (files will still output in functional syntax)
  
   toString - standard Functional syntax
