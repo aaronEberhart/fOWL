@@ -25,9 +25,9 @@
  {:namespace owlNS :short "topDataProperty" :prefix "owl:" :iri (str "<" owlNS "topDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 (def BotData
  {:namespace owlNS :short "bottomDataProperty" :prefix "owl:" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
-(def dataRangeTypes
+(def ^:no-doc dataRangeTypes
  #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
-(def nameTypes
+(def ^:no-doc nameTypes
  #{:className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
 
 (def reservedIRIs

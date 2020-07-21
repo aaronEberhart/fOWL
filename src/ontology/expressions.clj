@@ -3,7 +3,7 @@
  (:require [ontology.components :as co])
  (:refer-clojure :exclude [class and or not]))
 
-(def classTypes
+(def ^:no-doc classTypes
  #{:className :class :and :or :not :nominal :exists :all :partialRole :Self :>=exists :<=exists :=exists :dataExists :dataAll :partialDataRole :>=dataExists :<=dataExists :=dataExists})
 
 (defn- -role

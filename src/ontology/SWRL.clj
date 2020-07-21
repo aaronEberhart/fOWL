@@ -2,7 +2,7 @@
  "Functions that represent SWRL components"
  (:require [ontology.expressions :as ex][ontology.components :as co]))
 
-(def atomTypes
+(def ^:no-doc atomTypes
   #{:classAtom :roleAtom :dataRoleAtom :dataRangeAtom :builtInAtom :=individualsAtom :!=individualsAtom})
 
 (defn body [atoms]

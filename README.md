@@ -2,9 +2,9 @@
 (f OWL) is a minimalistic functional programming style ontology editor. Ontologies in (f OWL) are implemented as standalone data structures with internalized types: nested maps containing values and collections of additional maps. This homogeneous data structure means that functions for single axioms or expressions usually work identically on any part of an Ontology, or even the entire Ontology itself. The lazy functional style of Clojure also allows for intuitive and simple Ontology modification with a minimal memory footprint.
 
 ## Usage
-This program was built and tested with [Leiningen](https://leiningen.org/). 
+This program was built and tested with [Leiningen](https://leiningen.org/).
 
-(f OWL) can be used by itelf or you can import it into your own project. To run a copy of this repository, simply type code in fowl.clj, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of all OWL functions currently available from fowl.clj can be seen by entering `(dir ontology.functions)`, and `(doc function)` will show more detail about each function.
+(f OWL) can be used by itelf or you can import it into your own project. To run a copy of this repository, simply type code in fowl.clj, or your own files, then run the command `lein run` in the terminal. It is also easy to use in the REPL with the terminal command `lein repl`. A list of all OWL functions currently available from fowl.clj can be seen by entering `(dir ontology.functions)`, and `(doc function)` will show more detail about each function. The [ClojureDoc](https://cljdoc.org/d/onto.aaroneberhart/fowl/0.0.1-SNAPSHOT/doc/readme) is also available if you prefer to see functions in the browser. The functions documentation in ontology is the most up-to-date regarding current capabilities.
 
 Importing (f OWL) from [Clojars](https://clojars.org/onto.aaroneberhart/fowl) as a library into your own project is also extremely easy. Just make sure your project.clj file contains `[onto.aaroneberhart/fowl "0.0.1-SNAPSHOT"]` in the project `:dependencies`, and then add `[ontology.functions :as fowl]` to the `:require` entry in any file's namespace. Then you can access any of the (f OWL) functions by prefixing them with your alias, in this case `(fowl/function args)`.
 

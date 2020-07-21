@@ -6,7 +6,7 @@
            [ontology.regexes :as reg]
            [util.msc :as msc]))
 
-(def extractParams
+(def ^:no-doc extractParams
  "Separates annotations from other inputs for functions with variable arguments"
  (comp
   (fn [l]
@@ -16,7 +16,7 @@
   (fn [l] (split-with (fn [x](or (= (:type x) :annotation)(and (set? x)(some #(= (:type %) :annotation) x)))) l))
   list))
 
-(def extractParamList
+(def ^:no-doc extractParamList
  "Separates annotations from other inputs for functions with variable arguments"
  (comp
   (fn [l]
@@ -26,7 +26,7 @@
   (fn [l](split-with (fn [x] (or (= (:type x) :annotation)(and (set? x)(some #(= (:type %) :annotation) x)))) l))
   list))
 
-(def extractFirstParamFromList
+(def ^:no-doc extractFirstParamFromList
  "Separates annotations from other inputs for functions with variable arguments"
  (comp
   (fn [l]

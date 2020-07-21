@@ -2,15 +2,15 @@
  "Functions that represent OWL axioms"
  (:require [ontology.annotations :as ann][ontology.components :as co][ontology.expressions :as ex][ontology.SWRL :as swrl]))
 
-(def axiomTypes
+(def ^:no-doc axiomTypes
   #{:declaration :classAxiom :roleAxiom :dataRoleAxiom :newDataType :hasKey :fact :annotationAxiom :rule :dgAxiom})
-(def classAxiomTypes
+(def ^:no-doc classAxiomTypes
   #{:classImplication :=classes :disjClasses :disjOr})
-(def roleAxiomTypes
+(def ^:no-doc roleAxiomTypes
   #{:roleImplication  :=roles :disjRoles :inverseRoles :roleDomain :roleRange :functionalRole :functionalInverseRole :reflexiveRole :irreflexiveRole :symmetricRole :asymmetricRole :transitiveRole})
-(def dataRoleAxiomTypes
+(def ^:no-doc dataRoleAxiomTypes
   #{:dataRoleImplication :=dataRoles :disjDataRoles :dataRoleDomain :dataRoleRange :functionalDataRole})
-(def annotationAxiomTypes
+(def ^:no-doc annotationAxiomTypes
   #{:annotationFact :annotationImplication :annotationDomain :annotationRange})
 
 (defn- -axiom 
@@ -34,7 +34,7 @@
   nil
   )
 
-(defn dgRule
+(defn ^:no-doc dgRule
   ([body head](-axiom (-rule (-dgRule body head))))
   ([annotations body head](-axiom (-rule (-dgRule body head)))))
 
