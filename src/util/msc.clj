@@ -1,8 +1,7 @@
 (ns util.msc
- (:require [clojure.string :as str]);[clojure.set :as set])
+ (:require [clojure.string :as str])
  )
 
-"for logging"
 (def logfile "output.txt")
 (defn strToFile [file str]
  (spit logfile (with-out-str (println str)) :append true))
