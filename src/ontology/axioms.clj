@@ -29,8 +29,9 @@
 
 (defn- -dgRule
   "DGRule ::= DescriptionGraphRule ‘(’ {Annotation} ‘Body’ ‘(’ {DGAtom} ‘)’ ‘Head’ ‘(’ {DGAtom} ‘)’ ‘)'"
-  []
+  [& args]
   ;TODO
+  nil
   )
 
 (defn dgRule

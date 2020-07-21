@@ -3,9 +3,9 @@
  )
 
 "for logging"
-(def file "output.txt")
+(def logfile "output.txt")
 (defn strToFile [file str]
- (spit file (with-out-str (println str)) :append true))
+ (spit logfile (with-out-str (println str)) :append true))
 
 "for testing lazy seqs"
 (def fib-seq-seq ((fn fib [a b] (lazy-seq (cons a (fib b (+ a b))))) 0 1))

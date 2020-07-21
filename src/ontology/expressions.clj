@@ -173,6 +173,7 @@
 
 (defn Self
  ([iri](class (-Self (role iri))))
+ ([prefix iri](-class (-Self (role prefix iri))))
  ([prefix iri namespace](-class (-Self (role prefix iri namespace)))))
 
 (defn- ->=exists
