@@ -1128,7 +1128,7 @@
   :variable (str "Variable(" (if (:short thing) (str (:prefix thing) (:short thing)) (:iri thing)) ")")))
 
 (defn toString 
- "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is NOT the same as the java function."
+ "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is __*not*__ the same as java toString."
  [thing]
  (case (:innerType thing)
 
