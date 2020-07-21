@@ -9,7 +9,7 @@
 (def roleAxiomTypes
   #{:roleImplication  :=roles :disjRoles :inverseRoles :roleDomain :roleRange :functionalRole :functionalInverseRole :reflexiveRole :irreflexiveRole :symmetricRole :asymmetricRole :transitiveRole})
 (def dataRoleAxiomTypes
-  #{:dataRoleImplication :=DataRoles :disjDataRoles :dataRoleDomain :dataRoleRange :functionalDataRole})
+  #{:dataRoleImplication :=dataRoles :disjDataRoles :dataRoleDomain :dataRoleRange :functionalDataRole})
 (def annotationAxiomTypes
   #{:annotationFact :annotationImplication :annotationDomain :annotationRange})
 
@@ -535,28 +535,28 @@
   ([annotations antecedent consequent]
     (-axiom (-dataRoleAxiom (-dataRoleImplication (ann/axiomAnnotations annotations)  (ex/dataRole antecedent) (ex/dataRole consequent))))))
 
-(defn- -=DataRoles
+(defn- -=dataRoles
  "EquivalentDataProperties := 'EquivalentDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
   ([dataRoles]
     (if (< 1 (count dataRoles))
       (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
-        {:dataRoles dataRoles :type :=DataRoles :innerType :=DataRoles :outerType :=DataRoles}
+        {:dataRoles dataRoles :type :=dataRoles :innerType :=dataRoles :outerType :=dataRoles}
         (throw (Exception. (str  {:type ::notRoles :dataRoles dataRoles}))))
       (throw (Exception. (str  {:type ::notEnoughDataRoles :dataRoles dataRoles})))))
   ([annotations dataRoles]
     (if (< 1 (count dataRoles))
       (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
         (if (= (:type annotations) :axiomAnnotations)
-          {:dataRoles dataRoles :annotations (:annotations annotations) :type :=DataRoles :innerType :=DataRoles :outerType :=DataRoles}
+          {:dataRoles dataRoles :annotations (:annotations annotations) :type :=dataRoles :innerType :=dataRoles :outerType :=dataRoles}
           (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
         (throw (Exception. (str  {:type ::notRoles :dataRoles dataRoles}))))
       (throw (Exception. (str  {:type ::notEnoughDataRoles :dataRoles dataRoles}))))))
 
-(defn =DataRoles
+(defn =dataRoles
   ([dataRoles]
-    (-axiom (-dataRoleAxiom (-=DataRoles (into #{} (map ex/dataRole dataRoles))))))
+    (-axiom (-dataRoleAxiom (-=dataRoles (into #{} (map ex/dataRole dataRoles))))))
   ([annotations dataRoles]
-    (-axiom (-dataRoleAxiom (-=DataRoles (ann/axiomAnnotations annotations) (into #{} (map ex/dataRole dataRoles)))))))
+    (-axiom (-dataRoleAxiom (-=dataRoles (ann/axiomAnnotations annotations) (into #{} (map ex/dataRole dataRoles)))))))
 
 (defn- -disjDataRoles
  "DisjointDataProperties := 'DisjointDataProperties' '(' axiomAnnotations DataPropertyExpression DataPropertyExpression { DataPropertyExpression } ')'"
