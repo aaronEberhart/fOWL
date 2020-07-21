@@ -50,11 +50,11 @@
 
 (defn dataRole
  ([iri]
-   (if (string? iri)
-     (-dataRole (co/dataRoleName (co/IRI iri)))
-     (if (contains? iri :type)
-       (-dataRole iri)
-       (-dataRole (co/dataRoleName iri)))))
+  (if (string? iri)
+    (-dataRole (co/dataRoleName (co/IRI iri)))
+    (if (contains? iri :type)
+      (-dataRole iri)
+      (-dataRole (co/dataRoleName iri)))))
  ([prefix iri](-dataRole (co/dataRoleName prefix iri)))
  ([prefix iri namespace](-dataRole (co/dataRoleName prefix iri namespace))))
 
@@ -165,11 +165,11 @@
  (-class (-partialRole (role r) (co/individual i))))
 
 (defn- -Self 
-"ObjectHasSelf := 'ObjectHasSelf' '(' ObjectPropertyExpression ')'"
-[role]
-(if (= (:type role) :role)
- {:role role :type :Self :innerType :Self}
- (throw (Exception. (str  {:type ::notRole :role role})))))
+ "ObjectHasSelf := 'ObjectHasSelf' '(' ObjectPropertyExpression ')'"
+ [role]
+ (if (= (:type role) :role)
+  {:role role :type :Self :innerType :Self}
+  (throw (Exception. (str  {:type ::notRole :role role})))))
 
 (defn Self
  ([iri](class (-Self (role iri))))
@@ -250,8 +250,12 @@
     (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
    (throw (Exception. (str  {:type ::notDataRoles :role role})))))
 
-(defn dataExists [dataRoles dataRange]
-(-class (-dataExists (into #{} (if (map? dataRoles) [(dataRole dataRoles)] (map dataRole dataRoles))) (co/dataRange dataRange))))
+(defn dataExists [drs dra]
+ (if (string? drs)
+  (-class (-dataExists #{(dataRole drs)} (co/dataRange dra)))
+  (if (map? drs)
+   (-class (-dataExists #{(dataRole drs)} (co/dataRange dra)))
+   (-class (-dataExists (into #{} (map dataRole drs)) (co/dataRange dra))))))
 
 (defn- -dataAll 
  "DataAllValuesFrom := 'DataAllValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'"
@@ -264,8 +268,12 @@
      (throw (Exception. (str  {:type ::notDataRange :dataRange dataRange}))))
  (throw (Exception. (str  {:type ::notDataRoles :role role})))))
 
-(defn dataAll [dataRoles dataRange]
- (-class (-dataAll (if (map? dataRoles) #{(dataRole dataRoles)} (into #{} (map dataRole dataRoles))) (co/dataRange dataRange))))
+(defn dataAll [drs dra]
+ (if (string? drs)
+  (-class (-dataAll #{(dataRole drs)} (co/dataRange dra)))
+  (if (map? drs)
+   (-class (-dataAll #{(dataRole drs)} (co/dataRange dra)))
+   (-class (-dataAll (into #{} (map dataRole drs)) (co/dataRange dra))))))
 
 (defn- ->=dataExists
  "DataMinCardinality := 'DataMinCardinality' '(' nonNegativeInteger DataPropertyExpression [ DataRange ] ')'"

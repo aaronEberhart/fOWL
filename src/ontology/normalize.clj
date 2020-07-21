@@ -24,10 +24,6 @@
   (constantly :dataAll))
 (def dataExists
   (constantly :dataExists))
-(def <=dataExists
-  (constantly :<=dataExists))
-(def >=dataExists
-  (constantly :>=dataExists))
 (def atomics
   #{:className :>=dataExists :<=dataExists :dataExists :dataAll :Self :nominal :partialRole :partialDataRole})
 
@@ -70,14 +66,14 @@
   :<=exists (update (update (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class)) :nat inc) :innerType >=exists)
   :dataExists (update (update (:class class) :dataRange co/dataNot) :innerType dataAll)
   :dataAll (update (update (:class class) :dataRange co/dataNot) :innerType dataExists)
-  :<=dataExists (update (update (:class class) :nat inc) :innerType >=dataExists)
+  :<=dataExists (update (update (:class class) :nat inc) :innerType constantly :>=dataExists)
   :=dataExists (if (> (:nat (:class class)) 0)
-                (ex/or (update (update (:class class) :nat inc) :innerType >=dataExists)
-                       (update (update (:class class) :nat dec) :innerType <=dataExists))
-                (update (update (:class class) :nat one) :innerType >=dataExists))
+                (ex/or (update (update (:class class) :nat inc) :innerType constantly :>=dataExists)
+                       (update (update (:class class) :nat dec) :innerType constantly :<=dataExists))
+                (update (update (:class class) :nat one) :innerType constantly :>=dataExists))
   :>=dataExists (if (> (:nat (:class class)) 0)
-                 (update (update (:class class) :nat dec) :innerType <=dataExists)
-                 (ex/and (update (update (:class class) :nat zero) :innerType <=dataExists)
+                 (update (update (:class class) :nat dec) :innerType constantly :<=dataExists)
+                 (ex/and (update (update (:class class) :nat zero) :innerType constantly :<=dataExists)
                          (update (:class class) :nat one)))
   :>=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
              (if (> (:nat class) 0)
@@ -110,7 +106,7 @@
   :<=exists (if (:class class) (checkInnerClass class getClassNNF) class)
   :or (update class :classes (constantlyMapToClassSet getClassNNF (:classes class)))
   :and (update class :classes (constantlyMapToClassSet getClassNNF (:classes class)))
-  :=dataExists (ex/and (update class :innerType >=dataExists)(update class :innerType <=dataExists))
+  :=dataExists (ex/and (update class :innerType constantly :>=dataExists)(update class :innerType constantly :<=dataExists))
   :=exists (let [class (if (:class class) (update class :class getClassNNF) class)]
               (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
   :not (if (= :not (:innerType (:class class)))
@@ -183,8 +179,8 @@
   :<=exists (if (:class class) (checkInnerClass class getClassDSNF) class)
   :or (update class :classes (constantlyMapToClassSet getClassDSNF (:classes class)))
   :and (negate (update (update class :classes (constantlyMapToClassSet (notFun getClassDSNF) (:classes class))) :innerType -or))
-  :=dataExists (negate (ex/or (update (update class :nat (if (> (:nat class) 0) inc one)) :innerType >=dataExists)
-                              (update (update class :nat (if (> (:nat class) 0) dec zero)) :innerType <=dataExists)))
+  :=dataExists (negate (ex/or (update (update class :nat (if (> (:nat class) 0) inc one)) :innerType constantly :>=dataExists)
+                              (update (update class :nat (if (> (:nat class) 0) dec zero)) :innerType constantly :<=dataExists)))
   :=exists (let [class (if (:class class) (update class :class getClassDSNF) class)]
             (negate (ex/or (update (update class :nat (if (> (:nat class) 0) inc one)) :innerType >=exists) 
                            (update (update class :nat (if (> (:nat class) 0) dec zero)) :innerType <=exists))))
@@ -228,7 +224,7 @@
   :<=exists (if (:class class) (checkInnerClass class getClassCSNF) class)
   :or (negate (update (update class :classes (constantlyMapToClassSet (notFun getClassCSNF) (:classes class))) :innerType -and))
   :and (update class :classes (constantlyMapToClassSet getClassCSNF (:classes class)))
-  :=dataExists (ex/and (update class :innerType >=dataExists)(update class :innerType <=dataExists))
+  :=dataExists (ex/and (update class :innerType constantly :>=dataExists)(update class :innerType constantly :<=dataExists))
   :=exists (let [class (if (:class class) (update class :class getClassCSNF) class)]
             (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
   :not (case (:innerType (:class class))

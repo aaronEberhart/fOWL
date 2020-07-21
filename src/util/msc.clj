@@ -2,12 +2,12 @@
  (:require [clojure.string :as str])
  )
 
-(def logfile "output.txt")
-(defn strToFile [file str]
+(def logfile "for logging" "output.txt")
+(defn strToFile "for logging" [file str]
  (spit logfile (with-out-str (println str)) :append true))
 
-"for testing lazy seqs"
-(def fib-seq-seq ((fn fib [a b] (lazy-seq (cons a (fib b (+ a b))))) 0 1))
+
+(def fib-seq-seq "for testing lazy seqs" ((fn fib [a b] (lazy-seq (cons a (fib b (+ a b))))) 0 1))
 
 (defn lazer
  "makes any valid coll into a lazy-seq,

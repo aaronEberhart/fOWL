@@ -309,9 +309,11 @@
 
 (defn dataRange 
  [dr]
- (if (contains? dr :type)
-  (-dataRange dr)
-  (-dataRange (dataType dr))))
+ (if (string? dr)
+  (-dataRange (dataType dr))
+  (if (contains? dr :type)
+   (-dataRange dr)
+   (-dataRange (dataType dr)))))
 
 (defn dataAnd 
 	([datarange1 datarange2]
