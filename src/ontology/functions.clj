@@ -1551,6 +1551,7 @@
  "Change printStyle to modify how the terminal output looks (files will still output in functional syntax)
  
   toString - standard Functional syntax
+
   toDLString - DL instead of functional"
  toString) 
 (defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))
