@@ -1133,7 +1133,7 @@
  (case (:innerType thing)
 
   ;Not an OWL map
-  nil (if (map? thing) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (map? (% thing)) (toString (% thing)) (str (% thing))) "nil")) (keys thing))) "}") (if thing (str thing) "nil"))
+  nil (str (if (map? thing) (str "{" (str/join " " (map #(str % " " (if (% thing) (if (map? (% thing)) (toString (% thing)) (% thing)) "nil")) (keys thing))) "}") (if thing thing "nil")))
 
   ;atoms
   :typedLiteral (:value thing)
