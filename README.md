@@ -138,4 +138,4 @@ fowl=> (loop [counter 0
 ```
 
 ## License
-Don't copy this and say you wrote it.
+GNU General Public License v3.0
