@@ -13,7 +13,7 @@ If you want to load your own ontology the program can read and write Functional 
 ## Examples
 ```
 ;; show the documentation for a function
-fowl=> (doc makeOWLFile)
+fowl=> (doc fowl/makeOWLFile)
 
 -------------------------
 ontology.functions/makeOWLFile
@@ -23,18 +23,18 @@ ontology.functions/makeOWLFile
   (Currently only functional syntax defined)
 
 ;; print some things sequentially
-fowl=> (doseq [x [(implies (exists "r" "a") "b")
-                  (implies (-or "b" "c") (-not (-or "d" "e")))
-                  (implies (roleChain "r" (inverseRole "s")) "t")
-                  (fact (inverseRole "s") "i" "j")
-                  (fact "a" "i")
-                  (fact "d" "i" (stringLiteral "l"))
-                  (implies (<=exists 4 "r" "c") 
-                           (-not (-or (-and "d" "e") 
-                                      (-not (-and "f" "g")))))
-                  (getNNF (implies (<=exists 4 "r" "c") 
-                                   (-not (-or (-and "d" "e") 
-                                              (-not (-and "f" "g"))))))]]
+fowl=> (doseq [x [(fowl/implies (fowl/exists "r" "a") "b")
+                  (fowl/implies (fowl/or "b" "c") (fowl/not (fowl/or "d" "e")))
+                  (fowl/implies (fowl/roleChain "r" (fowl/inverseRole "s")) "t")
+                  (fowl/fact (fowl/inverseRole "s") "i" "j")
+                  (fowl/fact "a" "i")
+                  (fowl/fact "d" "i" (fowl/stringLiteral "l"))
+                  (fowl/implies (fowl/<=exists 4 "r" "c") 
+                                (fowl/not (fowl/or (fowl/and "d" "e") 
+                                          (fowl/not (fowl/and "f" "g")))))
+                  (fowl/getNNF (fowl/implies (fowl/<=exists 4 "r" "c") 
+                                             (fowl/not (fowl/or (fowl/and "d" "e") 
+                                                       (fowl/not (fowl/and "f" "g"))))))]]
         (println x))
 
 SubClassOf(ObjectSomeValuesFrom(r a) b)
@@ -48,19 +48,19 @@ SubClassOf(ObjectMaxCardinality(4 r c) ObjectIntersectionOf(ObjectUnionOf(Object
 nil
 
 ;; Use let to store some values to make an ontology
-fowl=> (let [ont emptyOntologyFile
-             ont (setOntologyIRI ont "http://www.test.stuff")
-             ont (addAnnotations ont (annotation "annotations" "are fun"))
-             ont (addPrefixes ont (prefix "" "http://www.test.stuff/")
-                                  (prefix "" "http://www.overwriting.test.stuff/")
-                                  (prefix "prefix" "http://www.prefix.stuff/")) 
-             ont (addAxioms ont (implies "a" (IRI "prefix" "b"))
-                                (implies (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
-                                (implies "d" "a")
-                                (implies (inverseRole "r") "s")
-                                (fact "a" "i")
-                                (fact "r" "j" "i")
-                                (notFact "d" "i" (stringLiteral "l")))]
+fowl=> (let [ont fowl/emptyOntologyFile
+             ont (fowl/setOntologyIRI ont "http://www.test.stuff")
+             ont (fowl/addAnnotations ont (fowl/annotation "annotations" "are fun"))
+             ont (fowl/addPrefixes ont (fowl/prefix "" "http://www.test.stuff/")
+                                       (fowl/prefix "" "http://www.overwriting.test.stuff/")
+                                       (fowl/prefix "prefix" "http://www.prefix.stuff/")) 
+             ont (fowl/addAxioms ont (fowl/implies "a" (fowl/IRI "prefix" "b"))
+                                     (fowl/implies (fowl/IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
+                                     (fowl/implies "d" "a")
+                                     (fowl/implies (fowl/inverseRole "r") "s")
+                                     (fowl/fact "a" "i")
+                                     (fowl/fact "r" "j" "i")
+                                     (fowl/notFact "d" "i" (fowl/stringLiteral "l")))]
         ont)
 
 Prefix(:=<http://www.overwriting.test/stuff#>)
@@ -84,19 +84,19 @@ SubClassOf(prefix:b :c)
 )
 
 ;; use threading to accomplish the same task as the let expression
-fowl=> (-> emptyOntologyFile
-          (setOntologyIRI "http://www.test.stuff")
-          (addAnnotations (annotation "annotations" "are fun"))
-          (addPrefixes (prefix "" "http://www.test.stuff/")
-                       (prefix "" "http://www.overwriting.test/stuff#")
-                       (prefix "prefix" "http://www.prefix.stuff/"))
-          (addAxioms (implies "a" (IRI "prefix" "b"))
-                     (implies (IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
-                     (implies "d" "a")
-                     (implies (inverseRole "r") "s")
-                     (fact "a" "i")
-                     (fact "r" "j" "i")
-                     (notFact "d" "i" (stringLiteral "l"))))
+fowl=> (-> fowl/emptyOntologyFile
+           (fowl/setOntologyIRI "http://www.test.stuff")
+           (fowl/addAnnotations (fowl/annotation "annotations" "are fun"))
+           (fowl/addPrefixes (fowl/prefix "" "http://www.test.stuff/")
+                             (fowl/prefix "" "http://www.overwriting.test.stuff/")
+                             (fowl/prefix "prefix" "http://www.prefix.stuff/")) 
+           (fowl/addAxioms (fowl/implies "a" (fowl/IRI "prefix" "b"))
+                           (fowl/implies (fowl/IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
+                           (fowl/implies "d" "a")
+                           (fowl/implies (fowl/inverseRole "r") "s")
+                           (fowl/fact "a" "i")
+                           (fowl/fact "r" "j" "i")
+                           (fowl/notFact "d" "i" (fowl/stringLiteral "l"))))
 
 Prefix(:=<http://www.overwriting.test/stuff#>)
 Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
@@ -121,13 +121,13 @@ SubClassOf(prefix:b :c)
 ;; Use a tail-recursive loop to add every third axiom from the vector to the set
 fowl=> (loop [counter 0
               axiomSet #{}
-              axioms [(implies (exists "r" "a") "b")
-                      (implies (-or "b" "c") (-not (-or "d" "e")))
-                      (implies (roleChain "r" (inverseRole "s")) "t")
-                      (fact (inverseRole "s") "i" "j")
-                      (fact "a" "i")
-                      (fact "d" "i" (stringLiteral "l"))
-                      (implies (roleChain "s" "q") "t")]]
+              axioms [(fowl/implies (fowl/exists "r" "a") "b")
+                      (fowl/implies (fowl/or "b" "c") (fowl/not (fowl/or "d" "e")))
+                      (fowl/implies (fowl/roleChain "r" (fowl/inverseRole "s")) "t")
+                      (fowl/fact (fowl/inverseRole "s") "i" "j")
+                      (fowl/fact "a" "i")
+                      (fowl/fact "d" "i" (fowl/stringLiteral "l"))
+                      (fowl/implies (fowl/roleChain "s" "q") "t")]]
         (if (empty? axioms)
          axiomSet
          (recur (inc counter) (if (= 0 (mod counter 3)) (conj axiomSet (first axioms)) axiomSet) (rest axioms))))

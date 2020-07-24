@@ -17,25 +17,25 @@
 
 (def Top
  "owl:Thing"
- {:namespace owlNS :short "Thing" :prefix "owl:" :iri (str "<" owlNS "Thing" ">") :type :class :innerType :top})
+ {:namespace owlNS :short "Thing" :prefix "owl" :iri (str "<" owlNS "Thing" ">") :type :class :innerType :top})
 (def Bot
  "owl:Nothing"
- {:namespace owlNS :short "Nothing" :prefix "owl:" :iri (str "<" owlNS "Nothing" ">") :type :class :innerType :bot})
+ {:namespace owlNS :short "Nothing" :prefix "owl" :iri (str "<" owlNS "Nothing" ">") :type :class :innerType :bot})
 (def RDFSLiteral
  "rdfs:Literal"
- {:namespace rdfsNS :short "Literal" :prefix "rdfs:" :iri (str "<" rdfsNS "Literal" ">") :arity 1 :type :dataType :innerType :dataType})
+ {:namespace rdfsNS :short "Literal" :prefix "rdfs" :iri (str "<" rdfsNS "Literal" ">") :arity 1 :type :dataType :innerType :dataType})
 (def TopRole
  "owl:topObjectProperty"
- {:namespace owlNS :short "topObjectProperty" :prefix "owl:" :iri (str "<" owlNS "topObjectProperty" ">") :type :role :innerType :roleTop})
+ {:namespace owlNS :short "topObjectProperty" :prefix "owl" :iri (str "<" owlNS "topObjectProperty" ">") :type :role :innerType :roleTop})
 (def BotRole
  "owl:bottomObjectProperty"
- {:namespace owlNS :short "bottomObjectProperty" :prefix "owl:" :iri (str "<" owlNS "bottomObjectProperty" ">") :type :role :innerType :roleBot})
+ {:namespace owlNS :short "bottomObjectProperty" :prefix "owl" :iri (str "<" owlNS "bottomObjectProperty" ">") :type :role :innerType :roleBot})
 (def TopData
  "owl:topDataProperty"
- {:namespace owlNS :short "topDataProperty" :prefix "owl:" :iri (str "<" owlNS "topDataProperty" ">") :type :dataRole :innerType :dataRoleName})
+ {:namespace owlNS :short "topDataProperty" :prefix "owl" :iri (str "<" owlNS "topDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 (def BotData
  "owl:bottomDataProperty"
- {:namespace owlNS :short "bottomDataProperty" :prefix "owl:" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
+ {:namespace owlNS :short "bottomDataProperty" :prefix "owl" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 (def ^:no-doc dataRangeTypes
  #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
 (def ^:no-doc nameTypes

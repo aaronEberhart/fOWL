@@ -67,7 +67,7 @@
   ([role value]
     (-annotation (annotationRole role) (annotationValue value)))
   ([annotations role value]
-    (-annotation (metaAnnotations annotations) (annotationRole role) (annotationValue value))))
+    (-annotation (if (= (:type annotations) :annotation) (metaAnnotations #{annotations}) (metaAnnotations (into #{} annotations))) (annotationRole role) (annotationValue value))))
 
 (defn annotationSubject
  "AnnotationSubject := IRI | AnonymousIndividual"
