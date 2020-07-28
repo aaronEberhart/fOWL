@@ -11,7 +11,7 @@ Importing (f OWL) from [Clojars](https://clojars.org/onto.aaroneberhart/fowl) as
 If you want to load your own ontology the program can read and write Functional Syntax OWL files. More formats are planned in the future.
 
 ## Examples
-```clojure
+```
 ;; show the documentation for a function
 fowl=> (doc fowl/makeOWLFile)
 
