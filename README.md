@@ -1,4 +1,4 @@
-# ![(f OWL)](https://raw.githubusercontent.com/aaronEberhart/me/master/docs/img/fOWLicon.png)
+# ![(f OWL)](https://raw.githubusercontent.com/aaronEberhart/me/master/docs/img/fOWLiconsmall.png)
 (f OWL) is a minimalistic functional programming style ontology editor. Ontologies in (f OWL) are implemented as standalone data structures with internalized types: nested maps containing values and collections of additional maps. This homogeneous data structure means that functions for single axioms or expressions usually work identically on any part of an Ontology, or even the entire Ontology itself. The lazy functional style of Clojure also allows for intuitive and simple Ontology modification with a minimal memory footprint.
 
 ## Usage
