@@ -13,7 +13,7 @@ If you want to load your own ontology the program can read and write Functional 
 ## Examples
 ```clojure
 ;; show the documentation for a function
-fowl.core=> (doc fowl/makeOWLFile)
+fowl.core=> (doc ont/makeOWLFile)
 ```
 ```
 -------------------------
