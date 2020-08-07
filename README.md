@@ -17,7 +17,7 @@ fowl.core=> (doc ont/makeOWLFile)
 ```
 ```
 -------------------------
-ontology.functions/makeOWLFile
+ontology.core/makeOWLFile
 ([ontology filename & fileType])
   Writes an owl file of the ontology with the supplied file name. 
   Optional argument allows choice of file type. No option defaults to functional syntax. 
