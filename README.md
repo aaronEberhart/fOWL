@@ -91,18 +91,18 @@ SubClassOf(prefix:b :c)
 ```clojure
 ;; use threading to accomplish the same task as the let expression
 fowl.core=> (-> ont/emptyOntologyFile
-           (ont/setOntologyIRI "http://www.test.stuff")
-           (ont/addAnnotations (ont/annotation "annotations" "are fun"))
-           (ont/addPrefixes (ont/prefix "" "http://www.test.stuff/")
-                             (ont/prefix "" "http://www.overwriting.test.stuff/")
-                             (ont/prefix "prefix" "http://www.prefix.stuff/")) 
-           (ont/addAxioms (ont/implies "a" (ont/IRI "prefix" "b"))
-                           (ont/implies (ont/IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
-                           (ont/implies "d" "a")
-                           (ont/implies (ont/inverseRole "r") "s")
-                           (ont/fact "a" "i")
-                           (ont/fact "r" "j" "i")
-                           (ont/notFact "d" "i" (ont/stringLiteral "l"))))
+               (ont/setOntologyIRI "http://www.test.stuff")
+               (ont/addAnnotations (ont/annotation "annotations" "are fun"))
+               (ont/addPrefixes (ont/prefix "" "http://www.test.stuff/")
+                                 (ont/prefix "" "http://www.overwriting.test.stuff/")
+                                 (ont/prefix "prefix" "http://www.prefix.stuff/")) 
+               (ont/addAxioms (ont/implies "a" (ont/IRI "prefix" "b"))
+                               (ont/implies (ont/IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
+                               (ont/implies "d" "a")
+                               (ont/implies (ont/inverseRole "r") "s")
+                               (ont/fact "a" "i")
+                               (ont/fact "r" "j" "i")
+                               (ont/notFact "d" "i" (ont/stringLiteral "l"))))
 ```
 ```
 Prefix(:=<http://www.overwriting.test/stuff#>)
@@ -128,17 +128,17 @@ SubClassOf(prefix:b :c)
 ```clojure
 ;; Use a tail-recursive loop to add every third axiom from the vector to the set
 fowl.core=> (loop [counter 0
-              axiomSet #{}
-              axioms [(ont/implies (ont/exists "r" "a") "b")
-                      (ont/implies (ont/or "b" "c") (ont/not (ont/or "d" "e")))
-                      (ont/implies (ont/roleChain "r" (ont/inverseRole "s")) "t")
-                      (ont/fact (ont/inverseRole "s") "i" "j")
-                      (ont/fact "a" "i")
-                      (ont/fact "d" "i" (ont/stringLiteral "l"))
-                      (ont/implies (ont/roleChain "s" "q") "t")]]
-        (if (empty? axioms)
-         axiomSet
-         (recur (inc counter) (if (= 0 (mod counter 3)) (conj axiomSet (first axioms)) axiomSet) (rest axioms))))
+                   axiomSet #{}
+                   axioms [(ont/implies (ont/exists "r" "a") "b")
+                           (ont/implies (ont/or "b" "c") (ont/not (ont/or "d" "e")))
+                           (ont/implies (ont/roleChain "r" (ont/inverseRole "s")) "t")
+                           (ont/fact (ont/inverseRole "s") "i" "j")
+                           (ont/fact "a" "i")
+                           (ont/fact "d" "i" (ont/stringLiteral "l"))
+                           (ont/implies (ont/roleChain "s" "q") "t")]]
+             (if (empty? axioms)
+              axiomSet
+              (recur (inc counter) (if (= 0 (mod counter 3)) (conj axiomSet (first axioms)) axiomSet) (rest axioms))))
 ```
 ```
 #{ObjectPropertyAssertion(ObjectInverseOf(s) i j) 
