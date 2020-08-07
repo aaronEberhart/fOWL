@@ -33,10 +33,10 @@ fowl.core=> (doseq [x [(ont/implies (ont/exists "r" "a") "b")
                        (ont/fact "d" "i" (ont/stringLiteral "l"))
                        (ont/implies (ont/<=exists 4 "r" "c") 
                                     (ont/not (ont/or (ont/and "d" "e") 
-                                             (ont/not (ont/and "f" "g")))))
+                                                     (ont/not (ont/and "f" "g")))))
                        (ont/getNNF (ont/implies (ont/<=exists 4 "r" "c") 
                                                 (ont/not (ont/or (ont/and "d" "e") 
-                                                           (ont/not (ont/and "f" "g"))))))]]
+                                                                 (ont/not (ont/and "f" "g"))))))]]
              (println x))
 ```
 ```
