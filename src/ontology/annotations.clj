@@ -13,16 +13,16 @@
     (if (:iri iri)
      (assoc iri :type :annotationRole :innerType :annotationRole)
      (throw (Exception. (str  {:type ::notStringIRI :iri iri}))))))
- ([prefix iri]
-   (if (and (string? iri)(string? prefix))
-    (let [check (str prefix iri)]
-     {:reserved (co/isReservedIRI? (str prefix ":" iri)) :short iri :prefix prefix :iri (str prefix ":" iri )}))
-     (throw (Exception. (str  {:type ::notStringIRI :iri iri}))))
-  ([prefix iri namespace]
-   (if (and (and (string? iri)(string? namespace))(string? prefix))
-    (let [check (str prefix iri)]
-     {:reserved (co/isReservedIRI? (str prefix ":" iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}))
-     (throw (Exception. (str  {:type ::notStringIRI :iri iri})))))
+ ([prefix name]
+   (if (and (string? name)(string? prefix))
+    (let [check (str prefix name)]
+     {:reserved (co/isReservedIRI? (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name )}))
+     (throw (Exception. (str  {:type ::notStringIRI :iri name}))))
+  ([prefix name namespace]
+   (if (and (and (string? name)(string? namespace))(string? prefix))
+    (let [check (str prefix name)]
+     {:reserved (co/isReservedIRI? (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name ">")}))
+     (throw (Exception. (str  {:type ::notStringIRI :iri name})))))
 
 (defn annotationValue 
  "AnnotationValue := AnonymousIndividual | IRI | Literal"
@@ -93,5 +93,5 @@
 (defn annotationDataType
  "Datatype := IRI"
  ([iri] (assoc (co/XSDDatatype iri) :arity 1 :type :dataType :innerType :dataType))
- ([prefix iri](assoc (co/XSDDatatype prefix iri) :arity 1 :type :dataType :innerType :dataType))
- ([prefix iri namespace](assoc (co/XSDDatatype prefix iri namespace) :arity 1 :type :dataType :innerType :dataType)))
+ ([prefix name](assoc (co/XSDDatatype prefix name) :arity 1 :type :dataType :innerType :dataType))
+ ([prefix name namespace](assoc (co/XSDDatatype prefix name namespace) :arity 1 :type :dataType :innerType :dataType)))

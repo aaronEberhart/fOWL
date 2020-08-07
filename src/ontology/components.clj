@@ -1,6 +1,6 @@
 (ns ontology.components
  "Functions that represent IRI components and datatypes"
- (:require [clojure.string :as str][clojure.set :as set]))
+ (:require [clojure.string :as str]))
 
 (def xsdNS
  "The XML namespace"
@@ -66,14 +66,14 @@
   (if (not (string? iri))
    (throw (Exception. (str  {:type ::notStringIRI :iri iri})))
    {:reserved (isReservedIRI? iri) :knownDataType (contains? dataTypeMaps iri) :iri iri}))
- ([prefix iri]
-  (if (not (and (string? iri)(string? prefix)))
-   (throw (Exception. (str  {:type ::notStringIRI :iri iri})))
-   {:reserved (isReservedIRI? (str prefix ":" iri)) :knownDataType (contains? dataTypeMaps (str prefix ":" iri)) :short iri :prefix prefix :iri (str prefix ":" iri )}))
- ([prefix iri namespace]
-  (if (not (and (and (string? iri)(string? namespace))(string? prefix)))
-   (throw (Exception. (str  {:type ::notStringIRI :iri iri})))
-   {:reserved (isReservedIRI? (str prefix ":" iri)) :knownDataType (contains? dataTypeMaps (str prefix ":" iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri ">")})))
+ ([prefix name]
+  (if (not (and (string? name)(string? prefix)))
+   (throw (Exception. (str  {:type ::notStringIRI :iri name})))
+   {:reserved (isReservedIRI? (str prefix ":" name)) :knownDataType (contains? dataTypeMaps (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name )}))
+ ([prefix name namespace]
+  (if (not (and (and (string? name)(string? namespace))(string? prefix)))
+   (throw (Exception. (str  {:type ::notStringIRI :iri name})))
+   {:reserved (isReservedIRI? (str prefix ":" name)) :knownDataType (contains? dataTypeMaps (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name ">")})))
 
 (defn IRI
  "IRI := String"
@@ -83,14 +83,14 @@
    (if (:iri iri)
     iri
     (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
- ([prefix iri]
-  (if (and (string? iri)(string? prefix))
-   {:reserved (isReservedIRI? (str prefix ":" iri)) :short iri :prefix prefix :iri (str prefix ":" iri )}
-   (throw (Exception. (str  {:type ::notStringIRI :iri iri})))))
- ([prefix iri namespace]
-  (if (and (and (string? iri)(string? namespace))(string? prefix))
-   {:reserved (isReservedIRI? (str prefix ":" iri)) :namespace namespace :short iri :prefix prefix :iri (str "<" namespace iri  ">")}
-   (throw (Exception. (str  {:type ::notStringIRI :iri iri}))))))
+ ([prefix name]
+  (if (and (string? name)(string? prefix))
+   {:reserved (isReservedIRI? (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name )}
+   (throw (Exception. (str  {:type ::notStringIRI :iri name})))))
+ ([prefix name namespace]
+  (if (and (and (string? name)(string? namespace))(string? prefix))
+   {:reserved (isReservedIRI? (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name  ">")}
+   (throw (Exception. (str  {:type ::notStringIRI :iri name}))))))
 
 (defn className
  "Class := IRI"
@@ -100,10 +100,10 @@
   	(if (contains? iri :type)
   		(throw (Exception. (str  {:type ::notClassName :iri iri})))
   		(assoc iri :innerType :className :type :className))))
- ([prefix iri]
-  (assoc (IRI prefix iri) :innerType :className :type :className))
- ([prefix iri namespace]
-  (assoc (IRI prefix iri namespace) :innerType :className :type :className)))
+ ([prefix name]
+  (assoc (IRI prefix name) :innerType :className :type :className))
+ ([prefix name namespace]
+  (assoc (IRI prefix name namespace) :innerType :className :type :className)))
 
 (defn roleName
  "ObjectProperty := IRI"
@@ -113,10 +113,10 @@
   	(if (contains? iri :type)
   		(throw (Exception. (str  {:type ::notRoleName :iri iri})))
   		(assoc iri :type :roleName :innerType :roleName))))
- ([prefix iri]
-  (assoc (IRI prefix iri) :type :roleName :innerType :roleName))
- ([prefix iri namespace]
-  (assoc (IRI prefix iri namespace) :type :roleName :innerType :roleName)))
+ ([prefix name]
+  (assoc (IRI prefix name) :type :roleName :innerType :roleName))
+ ([prefix name namespace]
+  (assoc (IRI prefix name namespace) :type :roleName :innerType :roleName)))
 
 (defn- -inverseRoleName 
  "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
@@ -129,37 +129,37 @@
  "InverseObjectProperty := 'ObjectInverseOf' '(' ObjectProperty ')'"
  ([iri]
   (-inverseRoleName (roleName iri)))
- ([prefix iri]
-  (-inverseRoleName (roleName prefix iri)))
- ([prefix iri namespace]
-  (-inverseRoleName (roleName prefix iri namespace))))
+ ([prefix name]
+  (-inverseRoleName (roleName prefix name)))
+ ([prefix name namespace]
+  (-inverseRoleName (roleName prefix name namespace))))
 
 (defn dataRoleName
  "DataProperty := IRI"
  ([iri]
   (assoc iri :type :dataRoleName :innerType :dataRoleName))
- ([prefix iri]
-  (assoc (IRI prefix iri) :type :dataRoleName :innerType :dataRoleName))
- ([prefix iri namespace]
-  (assoc (IRI prefix iri namespace) :type :dataRoleName :innerType :dataRoleName)))
+ ([prefix name]
+  (assoc (IRI prefix name) :type :dataRoleName :innerType :dataRoleName))
+ ([prefix name namespace]
+  (assoc (IRI prefix name namespace) :type :dataRoleName :innerType :dataRoleName)))
 
 (defn- -namedIndividual
  "NamedIndividual := IRI"
  ([iri]
   (assoc iri :type :namedIndividual :innerType :namedIndividual))
- ([prefix iri]
-  (assoc (IRI prefix iri) :type :namedIndividual :innerType :namedIndividual))
- ([prefix iri namespace]
-  (assoc (IRI prefix iri namespace) :type :namedIndividual :innerType :namedIndividual)))
+ ([prefix name]
+  (assoc (IRI prefix name) :type :namedIndividual :innerType :namedIndividual))
+ ([prefix name namespace]
+  (assoc (IRI prefix name namespace) :type :namedIndividual :innerType :namedIndividual)))
 
 (defn- -anonymousIndividual
  "AnonymousIndividual := nodeID"
  ([iri]
   (assoc iri :type :anonymousIndividual :innerType :anonymousIndividual))
- ([prefix iri]
-  (assoc (IRI prefix iri) :type :anonymousIndividual :innerType :anonymousIndividual))
- ([prefix iri namespace]
-  (assoc (IRI prefix iri namespace) :type :anonymousIndividual :innerType :anonymousIndividual)))
+ ([prefix name]
+  (assoc (IRI prefix name) :type :anonymousIndividual :innerType :anonymousIndividual))
+ ([prefix name namespace]
+  (assoc (IRI prefix name namespace) :type :anonymousIndividual :innerType :anonymousIndividual)))
 
 (defn- -individual 
  "Individual := AnonymousIndividual | NamedIndividual"
@@ -175,11 +175,11 @@
   	(-individual (-namedIndividual (IRI iri)))
    (if (contains? iri :type)
     (throw (Exception. (str  {:type ::notIndividual :iri iri})))
-   	(-individual (if (= (get (:prefix iri) 0) \_)(-anonymousIndividual iri)(-namedIndividual iri))))))
- ([prefix iri]
-  (-individual (if (= (get prefix 0) \_)(-anonymousIndividual prefix iri)(-namedIndividual prefix iri))))
- ([prefix iri namespace]
-  (-individual (if (= (get prefix 0) \_)(-anonymousIndividual prefix iri namespace)(-namedIndividual prefix iri namespace)))))
+   	(-individual (if (= (get (:prefix name) 0) \_)(-anonymousIndividual iri)(-namedIndividual iri))))))
+ ([prefix name]
+  (-individual (if (= (get prefix 0) \_)(-anonymousIndividual prefix name)(-namedIndividual prefix name))))
+ ([prefix name namespace]
+  (-individual (if (= (get prefix 0) \_)(-anonymousIndividual prefix name namespace)(-namedIndividual prefix name namespace)))))
 
 (defn- -dataType
  "Datatype := IRI"
@@ -187,14 +187,14 @@
   (if (:iri iri)
    (assoc iri :arity 1 :type :dataType :innerType :dataType)
    (throw (Exception. (str  {:type ::notdataType :iri iri})))))
- ([prefix iri]
-  (if (or (= (str prefix iri) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix iri)) (not (isReservedIRI? (str prefix iri)))))
-   (assoc (XSDDatatype prefix iri) :arity 1 :type :dataType :innerType :dataType)
-   (throw (Exception. (str  {:type ::notdataType :iri iri})))))
- ([prefix iri namespace]
-  (if (or (= (str prefix iri) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix iri)) (not (isReservedIRI? (str prefix iri)))))
-   (assoc (XSDDatatype prefix iri namespace) :arity 1 :type :dataType :innerType :dataType)
-   (throw (Exception. (str  {:type ::notdataType :iri iri :namespace namespace}))))))
+ ([prefix name]
+  (if (or (= (str prefix name) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix name)) (not (isReservedIRI? (str prefix name)))))
+   (assoc (XSDDatatype prefix name) :arity 1 :type :dataType :innerType :dataType)
+   (throw (Exception. (str  {:type ::notdataType :iri name})))))
+ ([prefix name namespace]
+  (if (or (= (str prefix name) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix name)) (not (isReservedIRI? (str prefix name)))))
+   (assoc (XSDDatatype prefix name namespace) :arity 1 :type :dataType :innerType :dataType)
+   (throw (Exception. (str  {:type ::notdataType :iri name :namespace namespace}))))))
 
 (defn dataType
  "Datatype := IRI"
@@ -206,10 +206,10 @@
      iri
      (throw (Exception. (str  {:type ::notDataType :dataType iri}))))
     (-dataType iri))))
- ([prefix iri]
-  (-dataType (XSDDatatype prefix iri)))
- ([prefix iri namespace]
-  (-dataType (XSDDatatype prefix iri namespace))))
+ ([prefix name]
+  (-dataType (XSDDatatype prefix name)))
+ ([prefix name namespace]
+  (-dataType (XSDDatatype prefix name namespace))))
 
 (defn- -literal 
  "Literal := typedLiteral | stringLiteralNoLanguage | stringLiteralWithLanguage"

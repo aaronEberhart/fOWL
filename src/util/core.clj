@@ -1,14 +1,15 @@
-(ns util.msc
- "Assorted random useful fuctions"
- (:require [clojure.string :as str]))
+(ns util.core
+ "Assorted random useful fuctions")
 
 (def logfile 
  "for logging" 
  "output.txt")
 (defn strToFile 
  "for logging" 
- [file str]
- (spit logfile (with-out-str (println str)) :append true))
+ ([str]
+  (spit logfile (with-out-str (println str)) :append true))
+ ([file str]
+  (spit file (with-out-str (println str)) :append true)))
 
 (def fib-seq-seq 
  "for testing lazy seqs"
@@ -35,6 +36,8 @@
  "Function for recursively retreiving data from a nested map"
  ([getThis? doThis stuff]
  (cond
+  (and (map? stuff) (getThis? stuff))
+    #{(doThis stuff)} 
   (map? stuff) 
    (reduce (partial getStuffInNestedMap getThis? doThis) #{} stuff)
   (coll? stuff) 

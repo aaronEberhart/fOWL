@@ -1,8 +1,6 @@
 (ns ontology.normalize
  "Functions that normalize ontology classes"
- (:require [ontology.axioms :as ax][ontology.expressions :as ex][ontology.components :as co]
-           [util.msc :as msc]
-           [clojure.string :as str]))
+ (:require [ontology.axioms :as ax][ontology.expressions :as ex][ontology.components :as co]))
 
 (def ^:no-doc one
   (constantly 1))
@@ -135,7 +133,7 @@
 
 (defn- disjOrToImp
   ([class classes](reduce disjToImp #{} classes))
-  ([classes class1 class2](throw (Exception. (str  {:type ::notNormalizable :class class})))))
+  ([classes class1 class2](throw (Exception. (str  {:type ::notNormalizable :class classes})))))
 
 (defn toClassImplications 
  "Converts an axiom to an equivalent axiom or set of axioms that are class implications"
@@ -151,7 +149,7 @@
  "Gets the NNF of a class axiom"
  [axiom]
  (if (= (:innerType axiom) :classImplication)
-  (update (update axiom :consequentClass getClassNNF) :antecedentClass getClassNNF)
+  (update (update axiom :consequent getClassNNF) :antecedent getClassNNF)
   (map getClassAxiomNNF (toClassImplications axiom))))
 
 (defn getNNF 
@@ -198,7 +196,7 @@
 
 (defn- getClassAxiomDSNF [axiom]
   (if (= (:innerType axiom) :classImplication)
-    (ex/or (getClassDSNF (negate (:antecedentClass axiom))) (getClassDSNF (:consequentClass axiom)))
+    (ex/or (getClassDSNF (negate (:antecedent axiom))) (getClassDSNF (:consequent axiom)))
     (map getClassAxiomDSNF (toClassImplications axiom))))
 
 (defn ^:no-doc getDSNF 
@@ -241,7 +239,7 @@
 
 (defn- getClassAxiomCSNF [axiom]
   (if (= (:innerType axiom) :classImplication)
-   (negate (ex/and (getClassCSNF (:antecedentClass axiom)) (getClassCSNF (negate (:consequentClass axiom)))))
+   (negate (ex/and (getClassCSNF (:antecedent axiom)) (getClassCSNF (negate (:consequent axiom)))))
    (map getClassAxiomCSNF (toClassImplications axiom))))
 
 (defn ^:no-doc getCSNF 

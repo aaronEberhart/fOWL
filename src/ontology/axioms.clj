@@ -100,28 +100,28 @@
   "subClassExpression := ClassExpression"
   [class]
   (if (= (:type class) :class)
-    class;(assoc class :type :antecedentClass)
+    class;(assoc class :type :antecedent)
     (throw (Exception. (str  {:type ::notClass :class class})))))
 
 (defn- -consequentClass 
   "superClassExpression := ClassExpression"
   [class]
   (if (= (:type class) :class)
-    class;(assoc class :type :consequentClass)
+    class;(assoc class :type :consequent)
     (throw (Exception. (str  {:type ::notClass :class class})))))
 
 (defn- -classImplication
  "SubClassOf := 'SubClassOf' '(' axiomAnnotations subClassExpression superClassExpression ')'"
  ([antecedent consequent]
  (if (and(= (:type antecedent) :class)(= (:type consequent) :class))
-  {:antecedentClass antecedent :consequentClass consequent :type :classImplication :innerType :classImplication :outerType :classImplication}
-  (throw (Exception. (str  {:type ::notAntecedentConsequentClasses :antecedentClass antecedent :consequentClass consequent})))))
+  {:antecedent antecedent :consequent consequent :type :classImplication :innerType :classImplication :outerType :classImplication}
+  (throw (Exception. (str  {:type ::notAntecedentConsequentClasses :antecedent antecedent :consequent consequent})))))
  ([annotations antecedent consequent]
  (if (and(= (:type antecedent) :class)(= (:type consequent) :class))
   (if (= (:type annotations) :axiomAnnotations)
-   {:antecedentClass antecedent :consequentClass consequent :annotations (:annotations annotations) :type :classImplication :innerType :classImplication :outerType :classImplication}
+   {:antecedent antecedent :consequent consequent :annotations (:annotations annotations) :type :classImplication :innerType :classImplication :outerType :classImplication}
    (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-  (throw (Exception. (str  {:type ::notAntecedentConsequentClasses :antecedentClass antecedent :consequentClass consequent}))))))
+  (throw (Exception. (str  {:type ::notAntecedentConsequentClasses :antecedent antecedent :consequent consequent}))))))
 
 (defn classImplication
  "SubClassOf := 'SubClassOf' '(' axiomAnnotations subClassExpression superClassExpression ')'"
@@ -252,14 +252,14 @@
  "SubObjectPropertyOf := 'SubObjectPropertyOf' '(' axiomAnnotations subObjectPropertyExpression superObjectPropertyExpression ')'"
  ([antecedent consequent]
    (if (and (or (= (:type antecedent) :role)(= (:type antecedent) :roleChain))(= (:type consequent) :role))
-     {:antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
-     (throw (Exception. (str  {:type ::notAntecedentConsequentRoles :antecedentRole antecedent :consequentRole consequent})))))
+     {:antecedent antecedent :consequent consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
+     (throw (Exception. (str  {:type ::notAntecedentConsequentRoles :antecedent antecedent :consequent consequent})))))
  ([annotations antecedent consequent]
    (if (and (or (= (:type antecedent) :role)(= (:type antecedent) :roleChain))(= (:type consequent) :role))
      (if (= (:type annotations) :axiomAnnotations)
-       {:annotations (:annotations annotations) :antecedentRole antecedent :consequentRole consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
+       {:annotations (:annotations annotations) :antecedent antecedent :consequent consequent :type :roleImplication :innerType :roleImplication :outerType :roleImplication}
        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-     (throw (Exception. (str  {:type ::notAntecedentConsequentRoles :antecedentRole antecedent :consequentRole consequent}))))))
+     (throw (Exception. (str  {:type ::notAntecedentConsequentRoles :antecedent antecedent :consequent consequent}))))))
 
 (defn roleImplication
  "SubObjectPropertyOf := 'SubObjectPropertyOf' '(' axiomAnnotations subObjectPropertyExpression superObjectPropertyExpression ')'"
@@ -541,14 +541,14 @@
  "SubDataPropertyOf := 'SubDataPropertyOf' '(' axiomAnnotations subDataPropertyExpression superDataPropertyExpression ')'"
   ([antecedent consequent]
     (if (and(= (:type antecedent) :dataRole)(= (:type consequent) :dataRole))
-      {:antecedentDataRole antecedent :consequentDataRole consequent :type :dataRoleImplication :innerType :dataRoleImplication :outerType :dataRoleImplication}
-      (throw (Exception. (str  {:type ::notAntecedentConsequentDataRoles :antecedentDataRole antecedent :consequentDataRole consequent})))))
+      {:antecedent antecedent :consequent consequent :type :dataRoleImplication :innerType :dataRoleImplication :outerType :dataRoleImplication}
+      (throw (Exception. (str  {:type ::notAntecedentConsequentDataRoles :antecedent antecedent :consequent consequent})))))
   ([annotations antecedent consequent]
     (if (and(= (:type antecedent) :dataRole)(= (:type consequent) :dataRole))
       (if (= (:type annotations) :axiomAnnotations)
-        {:annotations (:annotations annotations) :antecedentDataRole antecedent :consequentDataRole consequent :type :dataRoleImplication :innerType :dataRoleImplication :outerType :dataRoleImplication}
+        {:annotations (:annotations annotations) :antecedent antecedent :consequent consequent :type :dataRoleImplication :innerType :dataRoleImplication :outerType :dataRoleImplication}
         (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
-      (throw (Exception. (str  {:type ::notAntecedentConsequentDataRoles :antecedentDataRole antecedent :consequentDataRole consequent}))))))
+      (throw (Exception. (str  {:type ::notAntecedentConsequentDataRoles :antecedent antecedent :consequent consequent}))))))
 
 (defn dataRoleImplication
  "SubDataPropertyOf := 'SubDataPropertyOf' '(' axiomAnnotations subDataPropertyExpression superDataPropertyExpression ')'"

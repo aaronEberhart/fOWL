@@ -25,8 +25,8 @@
      			iri
        	(-role iri))
        (-role (co/roleName iri)))))
- ([prefix iri](-role (co/roleName prefix iri)))
- ([prefix iri namespace](-role (co/roleName prefix iri namespace))))
+ ([prefix name](-role (co/roleName prefix name)))
+ ([prefix name namespace](-role (co/roleName prefix name namespace))))
 
 (defn inverseRole
  "ObjectPropertyExpression := ObjectProperty | InverseObjectProperty"
@@ -38,8 +38,8 @@
         iri
         (throw (Exception. (str  {:type ::notInverseRole :roleName iri}))))
       (-role (co/inverseRoleName iri)))))
- ([prefix iri](-role (co/inverseRoleName prefix iri)))
- ([prefix iri namespace](-role (co/inverseRoleName prefix iri namespace))))
+ ([prefix name](-role (co/inverseRoleName prefix name)))
+ ([prefix name namespace](-role (co/inverseRoleName prefix name namespace))))
 
 (defn- -dataRole 
  "DataPropertyExpression := DataProperty"
@@ -58,8 +58,8 @@
     (if (contains? iri :type)
       (-dataRole iri)
       (-dataRole (co/dataRoleName iri)))))
- ([prefix iri](-dataRole (co/dataRoleName prefix iri)))
- ([prefix iri namespace](-dataRole (co/dataRoleName prefix iri namespace))))
+ ([prefix name](-dataRole (co/dataRoleName prefix name)))
+ ([prefix name namespace](-dataRole (co/dataRoleName prefix name namespace))))
 
 (defn- -class
  "ClassExpression := Class | ObjectIntersectionOf | ObjectUnionOf | ObjectComplementOf | ObjectOneOf | ObjectSomeValuesFrom | ObjectAllValuesFrom |
@@ -80,8 +80,8 @@
     (if (contains? iri :type)
       (-class iri)
       (-class (co/className iri)))))
- ([prefix iri](-class (co/className prefix iri)))
- ([prefix iri namespace](-class (co/className prefix iri namespace))))
+ ([prefix name](-class (co/className prefix name)))
+ ([prefix name namespace](-class (co/className prefix name namespace))))
 
 (defn- -and 
  "ObjectIntersectionOf := 'ObjectIntersectionOf' '(' ClassExpression ClassExpression { ClassExpression } ')'"
@@ -136,7 +136,7 @@
 
 (defn nominal
  "ObjectOneOf := 'ObjectOneOf' '(' Individual { Individual }')'"
- ([individual](-class (-nominal (into #{} [(co/individual individual)]))))
+ ([individual](-class (-nominal #{(co/individual individual)})))
  ([individual & individuals](-class (-nominal (into #{} (map co/individual (flatten [individual individuals])))))))
 
 (defn- -exists 
@@ -191,8 +191,8 @@
 (defn Self
  "ObjectHasSelf := 'ObjectHasSelf' '(' ObjectPropertyExpression ')'"
  ([iri](class (-Self (role iri))))
- ([prefix iri](-class (-Self (role prefix iri))))
- ([prefix iri namespace](-class (-Self (role prefix iri namespace)))))
+ ([prefix name](-class (-Self (role prefix name))))
+ ([prefix name namespace](-class (-Self (role prefix name namespace)))))
 
 (defn- ->=exists
  "ObjectMinCardinality := 'ObjectMinCardinality' '(' nonNegativeInteger ObjectPropertyExpression [ ClassExpression ] ')'"

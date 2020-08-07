@@ -1,6 +1,6 @@
-(ns ontology.functions
+(ns ontology.core
  "Wrapper to easily handle all OWL functions"
- (:require [clojure.java.io :as io][clojure.string :as str][clojure.set :as set][clojure.walk :as walk]
+ (:require [clojure.java.io :as io][clojure.string :as str][clojure.walk :as walk]
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
            [ontology.regexes :as reg][ontology.IO :as oio]
@@ -28,7 +28,8 @@
  (onf/prefixes (into #{} prefixes)))
 
 (defn ontology
- "Ontology := 'Ontology' '(' [ ontologyIRI [ versionIRI ] ] directlyImportsDocuments ontologyAnnotations axioms ')'"
+ "Ontology := 'Ontology' '(' [ ontologyIRI [ versionIRI ] ] directlyImportsDocuments ontologyAnnotations axioms ')'
+  Returns an Ontology without any prefixes. No arguments returns an empty ontology."
  ([] emptyOntology)
  ([imports annotations axioms](onf/ontology imports annotations axioms))
  ([ontologyIRI imports annotations axioms](onf/ontology ontologyIRI imports annotations axioms))
@@ -65,7 +66,9 @@
  (onf/axioms (into #{} axioms)))
 
 (defn ontologyFile
- "ontologyDocument := { prefixDeclaration } Ontology"
+ "ontologyDocument := { prefixDeclaration } Ontology
+  Returns an Ontology File with the default OWL prefixes and any additional prefixes supplied. No arguments returns an empty ontology file."
+ ([] emptyOntologyFile)
  ([ontology](onf/ontologyFile ontology))
  ([prefixes ontology](onf/ontologyFile prefixes ontology)))
 
@@ -83,6 +86,11 @@
  "Gets a set of all the role names used in this object"
  [object]
  (msc/getStuffInNestedMap #(= (:innerType %) :roleName) identity object))
+
+(defn getPredicateNames
+ "Gets the set of all the class, role, and dataRole names used in this object. Predicate means anything that can contain an individual (not a datatype)."
+ [object]
+ (msc/getStuffInNestedMap #(cond (= (:innerType %) :className) true (= (:innerType %) :roleName) true (= (:innerType %) :dataRoleName) true (= (:innerType %) :nominal) true :else false) identity object))
 
 (defn getDataRoleNames
  "Gets a set of all the data role names used in this object"
