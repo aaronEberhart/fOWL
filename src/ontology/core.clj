@@ -4,7 +4,7 @@
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
            [ontology.regexes :as reg][ontology.IO :as oio]
-           [util.msc :as msc])
+           [util.core :as msc])
  (:refer-clojure :exclude [class and or not]))
 
 (def emptyOntology
