@@ -56,15 +56,15 @@ fowl.core=> (let [ontology ont/emptyOntologyFile
                   ontology (ont/setOntologyIRI ontology "http://www.test.stuff")
                   ontology (ont/addAnnotations ontology (ont/annotation "annotations" "are fun"))
                   ontology (ont/addPrefixes ontology (ont/prefix "" "http://www.test.stuff/")
-                            (ont/prefix "" "http://www.overwriting.test.stuff/")
-                            (ont/prefix "prefix" "http://www.prefix.stuff/")) 
+                                                     (ont/prefix "" "http://www.overwriting.test.stuff/")
+                                                     (ont/prefix "prefix" "http://www.prefix.stuff/")) 
                   ontology (ont/addAxioms ontology (ont/implies "a" (ont/IRI "prefix" "b"))
-                            (ont/implies (ont/IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
-                            (ont/implies "d" "a")
-                            (ont/implies (ont/inverseRole "r") "s")
-                            (ont/fact "a" "i")
-                            (ont/fact "r" "j" "i")
-                            (ont/notFact "d" "i" (ont/stringLiteral "l")))]
+                                                   (ont/implies (ont/IRI "prefix" "b" "http://prefix.overwrites/this#") "c")
+                                                   (ont/implies "d" "a")
+                                                   (ont/implies (ont/inverseRole "r") "s")
+                                                   (ont/fact "a" "i")
+                                                   (ont/fact "r" "j" "i")
+                                                   (ont/notFact "d" "i" (ont/stringLiteral "l")))]
              ontology)
 ```
 ```
