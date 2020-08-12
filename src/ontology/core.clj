@@ -260,28 +260,6 @@
  [ontology & annotations]
  (updateOntology ontology annotations (comp constantly (partial apply disj)) :annotations))
 
-(defn addAxiom 
- "Adds an axiom to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
- [ontology axiom] 
- (if (:prefixes ontology)
-  (let [names (getNames axiom)]
-   (loop [axiom axiom
-          prefixes (:prefixes ontology)
-          ontology ontology]
-   (cond 
-    (empty? prefixes)  
-     (updateOntology ontology axiom (comp constantly conj) :axioms)
-    (seq? (keep (partial oio/hasThisPrefix (first prefixes)) names))
-     (recur (updateForAddedPrefix axiom (first prefixes)) (rest prefixes) ontology)
-    :else 
-     (recur axiom (rest prefixes) ontology))))
-  (updateOntology ontology axiom (comp constantly conj) :axioms)))
-
-(defn addAxioms
- "Adds a set of axioms to an ontology"
- [ontology & axioms]
- (addStuffToOntologyWithFunction ontology axioms addAxiom))
-
 (defn- -addPrefix
  [ontology prefix]
  (updateForAddedPrefix (updateOntology ontology prefix (comp constantly conj) :prefixes) prefix))
@@ -303,6 +281,28 @@
  [ontology & prefixes]
  (addStuffToOntologyWithFunction ontology prefixes addPrefix))
 
+(defn addAxiom 
+ "Adds an axiom to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
+ [ontology axiom] 
+ (if (:prefixes ontology)
+  (let [names (getNames axiom)]
+   (loop [axiom axiom
+          prefixes (:prefixes ontology)
+          ontology ontology]
+   (cond 
+    (empty? prefixes)  
+     (updateOntology (addStuffToOntologyWithFunction ontology (map (partial apply prefix) (filter (fn [x] (not-any? #(= (get x 0)(:prefix %)) (:prefixes ontology))) (keep #(if (:namespace %) [(:prefix %)(:namespace %)] nil) names))) addPrefix) axiom (comp constantly conj) :axioms)
+    (seq? (keep (partial oio/hasThisPrefix (first prefixes)) names))
+     (recur (updateForAddedPrefix axiom (first prefixes)) (rest prefixes) ontology)
+    :else 
+     (recur axiom (rest prefixes) ontology))))
+  (updateOntology ontology axiom (comp constantly conj) :axioms)))
+
+(defn addAxioms
+ "Adds a set of axioms to an ontology"
+ [ontology & axioms]
+ (addStuffToOntologyWithFunction ontology axioms addAxiom))
+
 (defn addImport 
  "Adds an import to an ontology"
  [ontology import]
@@ -323,7 +323,7 @@
           ontology ontology]
    (cond 
     (empty? prefixes)
-     (updateOntology ontology annotation (comp constantly conj) :annotations)
+     (updateOntology (addStuffToOntologyWithFunction ontology (map (partial apply prefix) (filter (fn [x] (not-any? #(= (get x 0)(:prefix %)) (:prefixes ontology))) (keep #(if (:namespace %) [(:prefix %)(:namespace %)] nil) names))) addPrefix) annotation (comp constantly conj) :annotations)
     (seq? (keep (partial oio/hasThisPrefix (first prefixes)) names))
      (recur (updateForAddedPrefix annotation (first prefixes)) (rest prefixes) ontology)
     :else 
