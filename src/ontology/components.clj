@@ -379,15 +379,3 @@
  (if (contains? nameTypes (:innerType thing))
   (assoc thing :type :name)
   (throw (Exception. (str  {:type ::notName :name thing})))))
-
-(comment "
-nonNegativeInteger := a nonempty finite sequence of digits between 0 and 9
-";quotedString := a finite sequence of characters in which " (U+22) and \ (U+5C) occur only in pairs of the form \" (U+5C, U+22) and \\ (U+5C, U+5C), enclosed in a pair of " (U+22) characters
-"languageTag := @ (U+40) followed a nonempty sequence of characters matching the langtag production from [BCP 47]
-nodeID := a finite sequence of characters matching the BLANK_NODE_LABEL production of [SPARQL]
-
-fullIRI := an IRI as defined in [RFC3987], enclosed in a pair of < (U+3C) and > (U+3E) characters
-prefixName := a finite sequence of characters matching the as PNAME_NS production of [SPARQL]
-abbreviatedIRI := a finite sequence of characters matching the PNAME_LN production of [SPARQL]
-IRI := fullIRI | abbreviatedIRI
-")
