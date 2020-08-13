@@ -271,9 +271,11 @@
 (defn- -constrainingFacet 
  "constrainingFacet := IRI"
  [iri]
- (if (:iri iri)
-  (assoc iri :type :constrainingFacet)
-  (throw (Exception. (str  {:type ::notFacet :facet iri})))))
+ (if (string? iri)
+  (assoc (IRI iri) :type :constrainingFacet)
+  (if (:iri iri)
+   (assoc iri :type :constrainingFacet)
+   (throw (Exception. (str  {:type ::notFacet :facet iri}))))))
 
 (defn- -restrictionValue 
  "restrictionValue := Literal"
@@ -370,8 +372,8 @@
 
 (defn datatypeRestriction
  "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"
- [datatype restrictedvalues]
- (-dataRange (-datatypeRestriction (dataType datatype) (into #{} (map restrictedValue (filter #(nil? (:type %)) restrictedvalues) (filter #(= (:type %) :literal) restrictedvalues))))))
+[datatype restrictedvalues]
+ (-dataRange (-datatypeRestriction (dataType datatype) (into #{} (map (partial apply restrictedValue) (partition-all 2 restrictedvalues))))))
 
 (defn entity 
  "Entity := 'Class' '(' Class ')' | 'Datatype' '(' Datatype ')' | 'ObjectProperty' '(' ObjectProperty ')' | 'DataProperty' '(' DataProperty ')' | 'AnnotationProperty' '(' AnnotationProperty ')' | 'NamedIndividual' '(' NamedIndividual ')'"

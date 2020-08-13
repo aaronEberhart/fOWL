@@ -167,7 +167,7 @@
   :dataOr (str/join " ∨ " (map (fn [x] (if (or (= (:innerType x) :dataOr)(= (:innerType x) :dataAnd)) (str "(" (toDLString x) ")")(toDLString x))) (:dataRanges thing)))
   :dataAnd (str/join " ∧ " (map (fn [x] (if (or (= (:innerType x) :dataOr)(= (:innerType x) :dataAnd)) (str "(" (toDLString x) ")")(toDLString x))) (:dataRanges thing)))
   :dataOneOf (str/join "," (map (fn [x] (:value x)) (:literals thing)))
-  :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) ":" (:short thing) " " (str/join " " (map toDLString (:restrictedValues thing)))")")
+  :datatypeRestriction (str "DatatypeRestriction(" (swapPrefixes thing) " " (str/join " " (map toDLString (:restrictedValues thing)))")")
   :Self  (str "∃" (:role thing) ".Self")
   :nominal (str "{" (str/join " " (map (fn [x] (toDLString x)) (:individuals thing))) "}")
 
@@ -289,7 +289,7 @@
   :dataOr (str "DataUnionOf(" (str/join " " (map (fn [x] (toString x )) (:dataRanges thing))) ")")
   :dataAnd (str "DataIntersectionOf(" (str/join " " (map (fn [x] (toString x )) (:dataRanges thing))) ")")
   :dataOneOf (str "DataOneOf(" (str/join " " (map (fn [x] (:value x)) (:literals thing))) ")")
-  :datatypeRestriction (str "DatatypeRestriction(" (:prefix thing) ":" (:short thing) " " (str/join " " (map toString (:restrictedValues thing))) ")")
+  :datatypeRestriction (str "DatatypeRestriction(" (swapPrefixes thing) " " (str/join " " (map toString (:restrictedValues thing))) ")")
   :Self (str "ObjectHasSelf(" (toString (:role thing)) ")")
   :nominal (str "ObjectOneOf("(str/join " " (map (fn [x] (toString x)) (:individuals thing))) ")")
 
