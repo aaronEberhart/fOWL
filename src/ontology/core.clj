@@ -793,7 +793,7 @@
  ([literal & literals](co/dataOneOf literal literals)))
 
 (defn datatypeRestriction 
- "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"
+ "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype constrainingFacet restrictionValue { constrainingFacet restrictionValue } ')'"
  [& args]
  (apply co/datatypeRestriction (apply oio/extractFirstParamFromList args)))
 
