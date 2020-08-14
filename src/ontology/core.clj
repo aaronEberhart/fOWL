@@ -668,20 +668,22 @@
  (let [args (apply oio/extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
   (cond
    (= 2 (count args)) (apply fs/classFact (cons ann args))
+   (= :role (:type (first args))) (apply fs/roleFact (cons ann args))
    (= :literal (:type (last args))) (apply fs/dataRoleFact (cons ann args))
-   (= :role (:type (first args))) (apply fs/roleFact (cons ann args)) 
    (string? (first args)) (apply fs/roleFact (cons ann args))   
    (= :annotationRole (:type (first args))) (apply ax/annotationFact (cons ann args))
+   (= :dataRole (:type (first args))) (apply fs/dataRoleFact (cons ann args))
    :else (throw (Exception. (str {:type ::notFact :annotations ann :args args}))))))
 
 (defn notFact
- "Will attempt to infer a valid negative fact based on the arguments supplied. If the first argument is string, it will create a role fact."
+ "Will attempt to infer a valid negative fact based on the arguments supplied. If the first argument is string, it will create a negative role fact."
  [& args]
  (let [args (apply oio/extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
   (cond
-   (= :literal (:type (last args))) (apply fs/notDataRoleFact (cons ann args))
    (= :role (:type (first args))) (apply fs/notRoleFact (cons ann args))  
-   (string? (first args)) (apply fs/notRoleFact (cons ann args))   
+   (string? (first args)) (apply fs/notRoleFact (cons ann args))
+   (= :dataRole (:type (first args))) (apply fs/notDataRoleFact (cons ann args))
+   (= :literal (:type (last args))) (apply fs/notDataRoleFact (cons ann args))   
    :else (throw (Exception. (str {:type ::notNotFact :annotations ann :args args}))))))
 
 (def Top
@@ -751,6 +753,11 @@
  "stringLiteral := quotedString | quotedString languageTag"
  ([string](co/stringLiteralNoLanguage string))
  ([string lang](co/stringLiteralWithLanguage string lang)))
+
+(defn literal
+ "literal := stringLiteral | typedLiteral"
+ [literalString]
+ (co/literal literalString))
 
 (defn restrictedValue 
  "RestrictedFacet := constrainingFacet restrictionValue"

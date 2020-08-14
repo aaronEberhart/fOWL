@@ -200,7 +200,7 @@
  "Datatype := IRI"
  ([iri]
   (if (string? iri)
-   (-dataType (IRI iri))
+   (-dataType (if (str/includes? iri ":") (apply IRI (str/split iri #":")) (IRI iri)))
    (if (contains? iri :type)
     (if (= (:innerType iri) :dataType)
      iri
@@ -222,7 +222,7 @@
  "typedLiteral := lexicalForm '^^' Datatype"
  [lexicalForm datatype]
  (if (and (= (:type lexicalForm) :lexicalForm)(= (:type datatype) :dataType))
-  (assoc datatype :value (str (:value lexicalForm) \^ \^  (:prefix datatype)":"(:short datatype)) :type :typedLiteral :innerType :typedLiteral)
+  (assoc datatype :value (str (:value lexicalForm) \^ \^  (if (:prefix datatype) (str (:prefix datatype)":"(:short datatype)) (:iri datatype))) :type :typedLiteral :innerType :typedLiteral)
   (throw (Exception. (str  {:type ::notTypedLiteral :lexicalForm lexicalForm :dataType datatype})))))
 
 (defn- -lexicalForm 
@@ -261,6 +261,19 @@
  [string lang]
  (-literal (-stringLiteralWithLanguage string lang)))
 
+(defn literal
+ "literal := stringLiteral | typedLiteral"
+ [literalString]
+ (if (and (:type literalString) (= (:type literalString) :literal))
+  literalString
+  (if-some [literalTypedMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"\^\^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))" literalString)]
+   (typedLiteral (get literalTypedMatch 1)(if (get literalTypedMatch 2)(get literalTypedMatch 2)(get literalTypedMatch 3)))
+  (if-some [literalLangMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"\@([^\s\(\)\"\\\:]+)" literalString)]
+   (stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2))
+  (if-some [literalQuotedMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"" literalString)]
+   (stringLiteralNoLanguage (get literalQuotedMatch 1))
+   (throw (Exception. (str {:type ::notLiteral :literal literalString}))))))))
+
 (defn- -dataOneOf 
  "DataOneOf := 'DataOneOf' '(' Literal { Literal } ')'"
  [literals]
@@ -294,7 +307,7 @@
 (defn restrictedValue
  "RestrictedFacet := constrainingFacet restrictionValue" 
  [facet restriction]
- (-restrictedValue (-constrainingFacet facet) (-restrictionValue restriction)))
+ (-restrictedValue (-constrainingFacet facet) (-restrictionValue (literal restriction))))
 
 (defn- -datatypeRestriction 
  "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"
@@ -365,10 +378,10 @@
 
 (defn dataOneOf
  "DataOneOf := 'DataOneOf' '(' Literal { Literal } ')'"
-	([literal]
-	 (-dataRange (-dataOneOf #{literal})))
-	([literal & literals]
-	 (-dataRange (-dataOneOf (into #{} (flatten [literal literals]))))))
+	([Literal]
+	 (-dataRange (-dataOneOf #{(literal Literal)})))
+	([Literal & literals]
+	 (-dataRange (-dataOneOf (into #{} (map literal (flatten [Literal literals])))))))
 
 (defn datatypeRestriction
  "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"

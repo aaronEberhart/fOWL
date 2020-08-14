@@ -380,4 +380,4 @@
 (defn partialDataRole 
  "DataHasValue := 'DataHasValue' '(' DataPropertyExpression Literal ')'"
  [dr literal]
- (-class (-partialDataRole (dataRole dr) literal)))
+ (-class (-partialDataRole (dataRole dr) (co/literal literal))))

@@ -236,6 +236,7 @@
   nil (if (map? thing) (str "{" (str/join ", " (map #(str (toString %) " " (toString (get thing %))) (keys thing))) "}") (if thing (str thing) "nil"))
 
   ;atoms
+  :lexicalForm (:value thing)
   :typedLiteral (:value thing)
   :stringLiteralNoLanguage (:value thing)
   :stringLiteralWithLanguage (:value thing)
