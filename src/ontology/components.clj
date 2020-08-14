@@ -266,13 +266,15 @@
  [literalString]
  (if (and (:type literalString) (= (:type literalString) :literal))
   literalString
-  (if-some [literalTypedMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"\^\^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))" literalString)]
-   (typedLiteral (get literalTypedMatch 1)(if (get literalTypedMatch 2)(get literalTypedMatch 2)(get literalTypedMatch 3)))
-  (if-some [literalLangMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"\@([^\s\(\)\"\\\:]+)" literalString)]
-   (stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2))
-  (if-some [literalQuotedMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"" literalString)]
-   (stringLiteralNoLanguage (get literalQuotedMatch 1))
-   (throw (Exception. (str {:type ::notLiteral :literal literalString}))))))))
+  (if (string? literalString)
+   (if-some [literalTypedMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"\^\^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))" literalString)]
+    (typedLiteral (get literalTypedMatch 1)(if (get literalTypedMatch 2)(get literalTypedMatch 2)(get literalTypedMatch 3)))
+   (if-some [literalLangMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"\@([^\s\(\)\"\\\:]+)" literalString)]
+    (stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2))
+   (if-some [literalQuotedMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"" literalString)]
+    (stringLiteralNoLanguage (get literalQuotedMatch 1))
+    (throw (Exception. (str {:type ::notLiteral :literal literalString}))))))
+   (throw (Exception. (str {:type ::notLiteral :literal literalString}))))))
 
 (defn- -dataOneOf 
  "DataOneOf := 'DataOneOf' '(' Literal { Literal } ')'"
