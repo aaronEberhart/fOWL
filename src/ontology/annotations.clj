@@ -92,6 +92,6 @@
 
 (defn annotationDataType
  "Datatype := IRI"
- ([iri] (assoc (co/XSDDatatype iri) :arity 1 :type :dataType :innerType :dataType))
- ([prefix name](assoc (co/XSDDatatype prefix name) :arity 1 :type :dataType :innerType :dataType))
- ([prefix name namespace](assoc (co/XSDDatatype prefix name namespace) :arity 1 :type :dataType :innerType :dataType)))
+ ([iri] (assoc (co/IRI iri) :arity 1 :type :dataType :innerType :dataType))
+ ([prefix name](assoc (co/IRI prefix name) :arity 1 :type :dataType :innerType :dataType))
+ ([prefix name namespace](assoc (co/IRI prefix name namespace) :arity 1 :type :dataType :innerType :dataType)))

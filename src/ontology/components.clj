@@ -60,21 +60,6 @@
  [iri]
  (contains? reservedIRIs iri))
 
-(defn XSDDatatype
- "IRI := String"
- ([iri]
-  (if (not (string? iri))
-   (throw (Exception. (str  {:type ::notStringIRI :iri iri})))
-   {:reserved (isReservedIRI? iri) :knownDataType (contains? dataTypeMaps iri) :iri iri}))
- ([prefix name]
-  (if (not (and (string? name)(string? prefix)))
-   (throw (Exception. (str  {:type ::notStringIRI :iri name})))
-   {:reserved (isReservedIRI? (str prefix ":" name)) :knownDataType (contains? dataTypeMaps (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name )}))
- ([prefix name namespace]
-  (if (not (and (and (string? name)(string? namespace))(string? prefix)))
-   (throw (Exception. (str  {:type ::notStringIRI :iri name})))
-   {:reserved (isReservedIRI? (str prefix ":" name)) :knownDataType (contains? dataTypeMaps (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name ">")})))
-
 (defn IRI
  "IRI := String"
  ([iri]
@@ -85,12 +70,12 @@
     (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
  ([prefix name]
   (if (and (string? name)(string? prefix))
-   {:reserved (isReservedIRI? (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name )}
-   (throw (Exception. (str  {:type ::notStringIRI :iri name})))))
+   {:reserved (isReservedIRI? (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name)}
+   (throw (Exception. (str  {:type ::notIRI :iri name})))))
  ([prefix name namespace]
-  (if (and (and (string? name)(string? namespace))(string? prefix))
+  (if (and (string? name)(string? namespace)(string? prefix))
    {:reserved (isReservedIRI? (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name  ">")}
-   (throw (Exception. (str  {:type ::notStringIRI :iri name}))))))
+   (throw (Exception. (str  {:type ::notIRI :iri name}))))))
 
 (defn className
  "Class := IRI"
@@ -184,16 +169,18 @@
 (defn- -dataType
  "Datatype := IRI"
  ([iri]
-  (if (:iri iri)
-   (assoc iri :arity 1 :type :dataType :innerType :dataType)
-   (throw (Exception. (str  {:type ::notdataType :iri iri})))))
+  (if (string? iri)
+   (assoc (IRI iri) :arity 1 :type :dataType :innerType :dataType)
+   (if (:iri iri)
+    (assoc iri :arity 1 :type :dataType :innerType :dataType)
+    (throw (Exception. (str  {:type ::notdataType :iri iri}))))))
  ([prefix name]
   (if (or (= (str prefix name) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix name)) (not (isReservedIRI? (str prefix name)))))
-   (assoc (XSDDatatype prefix name) :arity 1 :type :dataType :innerType :dataType)
+   (assoc (IRI prefix name) :arity 1 :type :dataType :innerType :dataType)
    (throw (Exception. (str  {:type ::notdataType :iri name})))))
  ([prefix name namespace]
   (if (or (= (str prefix name) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix name)) (not (isReservedIRI? (str prefix name)))))
-   (assoc (XSDDatatype prefix name namespace) :arity 1 :type :dataType :innerType :dataType)
+   (assoc (IRI prefix name namespace) :arity 1 :type :dataType :innerType :dataType)
    (throw (Exception. (str  {:type ::notdataType :iri name :namespace namespace}))))))
 
 (defn dataType
@@ -207,9 +194,9 @@
      (throw (Exception. (str  {:type ::notDataType :dataType iri}))))
     (-dataType iri))))
  ([prefix name]
-  (-dataType (XSDDatatype prefix name)))
+  (-dataType (IRI prefix name)))
  ([prefix name namespace]
-  (-dataType (XSDDatatype prefix name namespace))))
+  (-dataType (IRI prefix name namespace))))
 
 (defn- -literal 
  "Literal := typedLiteral | stringLiteralNoLanguage | stringLiteralWithLanguage"

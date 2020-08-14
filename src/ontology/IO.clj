@@ -85,8 +85,7 @@
  (let [splits (re-matches #"([^\:]*?):([\s\S]+)" name)
        key (get splits 1)
        val (get splits 2)
-       pref (:iri (first (drop-while (fn [x] (not (= key (:prefix x)))) prefixes)))
-       fullIRI (if pref (subs pref 1 (- (count pref) 1)))]
+       fullIRI (:iri (first (drop-while (fn [x] (not (= key (:prefix x)))) prefixes)))]
  (if fullIRI [key val fullIRI][key val])))
 
 ;think need to update this fun?
