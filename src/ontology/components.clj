@@ -1,6 +1,6 @@
 (ns ontology.components
  "Functions that represent IRI components and datatypes"
- (:require [clojure.string :as str]))
+ (:require [clojure.string :as s]))
 
 (def xsdNS
  "The XML namespace"
@@ -64,18 +64,24 @@
  "IRI := String"
  ([iri]
   (if (string? iri)
-   {:reserved (isReservedIRI? iri) :iri iri}
+   (if (and (= \< (first iri)) (= \> (last iri)))
+    {:reserved (isReservedIRI? iri) :iri iri}
+     (if-some [[_ prefix name] (re-matches #"^([^\<\(\)\"\\\s]*)\:([^\:\>\(\)\"\\\s]+)" iri)]
+      {:reserved (isReservedIRI? iri) :short name :prefix prefix :iri iri}
+      (if (s/includes? iri " ")
+       (throw (Exception. (str  {:type ::notIRI :iri iri})))
+       {:reserved (isReservedIRI? iri) :iri iri})))
    (if (:iri iri)
     iri
     (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
  ([prefix name]
-  (if (and (string? name)(string? prefix))
+  (if (and (string? name)(string? prefix)(not (s/includes? name " "))(not (s/includes? prefix " ")))
    {:reserved (isReservedIRI? (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name)}
-   (throw (Exception. (str  {:type ::notIRI :iri name})))))
+   (throw (Exception. (str  {:type ::notIRI :iri (str prefix ":" name)})))))
  ([prefix name namespace]
   (if (and (string? name)(string? namespace)(string? prefix))
-   {:reserved (isReservedIRI? (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name  ">")}
-   (throw (Exception. (str  {:type ::notIRI :iri name}))))))
+   {:reserved (isReservedIRI? (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name ">")}
+   (throw (Exception. (str  {:type ::notIRI :namespace namespace :short name :prefix prefix}))))))
 
 (defn className
  "Class := IRI"
@@ -187,7 +193,7 @@
  "Datatype := IRI"
  ([iri]
   (if (string? iri)
-   (-dataType (if (str/includes? iri ":") (apply IRI (str/split iri #":")) (IRI iri)))
+   (-dataType (IRI iri))
    (if (contains? iri :type)
     (if (= (:innerType iri) :dataType)
      iri

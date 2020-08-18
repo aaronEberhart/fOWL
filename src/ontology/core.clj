@@ -1,6 +1,6 @@
 (ns ontology.core
  "Wrapper to easily handle all OWL functions"
- (:require [clojure.java.io :as io][clojure.string :as str][clojure.walk :as walk]
+ (:require [clojure.java.io :as io][clojure.walk :as walk]
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
            [ontology.regexes :as reg][ontology.IO :as oio]
@@ -680,10 +680,10 @@
  [& args]
  (let [args (apply oio/extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
   (cond
-   (= :role (:type (first args))) (apply fs/notRoleFact (cons ann args))  
+   (= :role (:type (first args))) (apply fs/notRoleFact (cons ann args)) 
+   (= :literal (:type (last args))) (apply fs/notDataRoleFact (cons ann args))    
    (string? (first args)) (apply fs/notRoleFact (cons ann args))
    (= :dataRole (:type (first args))) (apply fs/notDataRoleFact (cons ann args))
-   (= :literal (:type (last args))) (apply fs/notDataRoleFact (cons ann args))   
    :else (throw (Exception. (str {:type ::notNotFact :annotations ann :args args}))))))
 
 (def Top
