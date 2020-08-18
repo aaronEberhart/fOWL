@@ -66,11 +66,11 @@
   (if (string? iri)
    (if (and (= \< (first iri)) (= \> (last iri)))
     {:reserved (isReservedIRI? iri) :iri iri}
-     (if-some [[_ prefix name] (re-matches #"^([^\<\(\)\"\\\s]*)\:([^\:\>\(\)\"\\\s]+)" iri)]
-      {:reserved (isReservedIRI? iri) :short name :prefix prefix :iri iri}
-      (if (s/includes? iri " ")
-       (throw (Exception. (str  {:type ::notIRI :iri iri})))
-       {:reserved (isReservedIRI? iri) :iri iri})))
+    (if-some [[_ prefix name] (re-matches #"^([^\<\(\)\"\\\s]*)\:([^\:\>\(\)\"\\\s]+)" iri)]
+     {:reserved (isReservedIRI? iri) :short name :prefix prefix :iri iri}
+     (if (s/includes? iri " ")
+      (throw (Exception. (str  {:type ::notIRI :iri iri})))
+      {:reserved (isReservedIRI? iri) :iri iri})))
    (if (:iri iri)
     iri
     (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
