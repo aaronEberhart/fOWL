@@ -788,7 +788,7 @@
 (defn annotationDomain
   "AnnotationPropertyDomain := 'AnnotationPropertyDomain' '(' axiomAnnotations AnnotationProperty IRI ')'"
   ([annotationRole IRI]
-    (-axiom (-annotationAxiom (-annotationDomain (ann/annotationRole annotationRole) IRI))))
+    (-axiom (-annotationAxiom (-annotationDomain (ann/annotationRole annotationRole) (co/IRI IRI)))))
   ([annotations annotationRole IRI]
     (-axiom (-annotationAxiom (-annotationDomain (ann/axiomAnnotations annotations) (ann/annotationRole annotationRole) (co/IRI IRI))))))
 
@@ -808,6 +808,6 @@
 (defn annotationRange
  "AnnotationPropertyRange := 'AnnotationPropertyRange' '(' axiomAnnotations AnnotationProperty IRI ')'"
  ([annotationRole IRI]
-   (-axiom (-annotationAxiom (-annotationRange (ann/annotationRole annotationRole) IRI))))
+   (-axiom (-annotationAxiom (-annotationRange (ann/annotationRole annotationRole) (co/IRI IRI)))))
  ([annotations annotationRole IRI]
-   (-axiom (-annotationAxiom (-annotationRange (ann/axiomAnnotations annotations) (ann/annotationRole annotationRole) IRI)))))
+   (-axiom (-annotationAxiom (-annotationRange (ann/axiomAnnotations annotations) (ann/annotationRole annotationRole) (co/IRI IRI))))))
