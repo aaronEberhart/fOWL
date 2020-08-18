@@ -24,6 +24,19 @@ ontology.core/makeOWLFile
   (Currently only functional syntax defined)
 ```
 ```clojure
+;; use a partial function and a list comprehension to make axioms for a class
+fowl.core=> (let [aImplies (partial ont/implies "a")]
+             (for [b ["c" 
+                      (ont/all "r" "d")
+                      (ont/and "e" "f" "g")]] 
+                  (aImplies b)))
+```
+```
+(SubClassOf(a c) 
+ SubClassOf(a ObjectAllValuesFrom(r d)) 
+ SubClassOf(a ObjectIntersectionOf(e f g)))
+```
+```clojure
 ;; print some things sequentially
 fowl.core=> (doseq [x [(ont/implies (ont/exists "r" "a") "b")
                        (ont/implies (ont/or "b" "c") (ont/not (ont/or "d" "e")))
