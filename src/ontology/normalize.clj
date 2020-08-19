@@ -35,7 +35,7 @@
   (case (:innerType c)
     :not (:class c)
     :className
-      (case (:short c)
+      (case (:name c)
       "Thing" co/Bot
       "Nothing" co/Top
       "topObjectProperty" co/TopRole

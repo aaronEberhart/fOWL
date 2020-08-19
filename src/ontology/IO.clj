@@ -19,15 +19,15 @@
 (defn ^:no-doc losePrefix
   "loses the prefix"
   [prefix thing]
-  (dissoc (assoc thing :iri (get (re-matches (re-pattern (str "\\<?"(:iri prefix) "([^\\>]+)\\>?")) (:iri thing)) 1)) :namespace :prefix :short))
+  (dissoc (assoc thing :iri (get (re-matches (re-pattern (str "\\<?"(:iri prefix) "([^\\>]+)\\>?")) (:iri thing)) 1)) :namespace :prefix :name))
 
 (defn ^:no-doc gainPrefix
   "gains the prefix"
   [prefix thing]
-  (let [short (if (:short thing) (:short thing) (get (re-matches (re-pattern (str (:prefix prefix) "(\\S+)")) (:iri thing)) 1))
+  (let [short (if (:name thing) (:name thing) (get (re-matches (re-pattern (str (:prefix prefix) "(\\S+)")) (:iri thing)) 1))
         pre (if (:prefix thing) (:prefix thing) (:prefix prefix))
         namespace (:iri prefix)]
-  (assoc thing :prefix pre :namespace namespace :iri (str "<" namespace short ">") :short short)))
+  (assoc thing :prefix pre :namespace namespace :iri (str "<" namespace short ">") :name short)))
 
 (defn ^:no-doc hasThisPrefix
   "sees if the thing has the prefix"
@@ -67,20 +67,20 @@
 (defn- swapPrefixes 
  [iri]
  (if (:prefix iri)
-  (if (s/includes? (:short iri) " ")
+  (if (s/includes? (:name iri) " ")
    (:iri iri)
-   (str (:prefix iri)":"(:short iri)))
+   (str (:prefix iri)":"(:name iri)))
   (:iri iri)))
 
 (defn- noPrefixes 
  [iri]
- (case (:short iri)
+ (case (:name iri)
   nil (:iri iri)
   "Thing" "⊤"
   "Nothing" "⊥"
   "topObjectProperty" "U"
   "bottomObjectProperty" "∅"
-  (:short iri)))
+  (:name iri)))
 
 (defn- assignPrefix 
  [name prefixes]
@@ -153,7 +153,7 @@
 
   ;roles
   :roleChain (s/join " ∘ " (map (fn [x] (toDLString x)) (:roles thing)))
-  :partialRole (str "∃" (toDLString (:role thing)) "{" (:short (:individual thing)) "}")
+  :partialRole (str "∃" (toDLString (:role thing)) "{" (:name (:individual thing)) "}")
   :=exists (str "=" (:nat thing) (toDLString (:role thing)) (str "."  (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
   :<=exists (str "≤" (:nat thing) (toDLString (:role thing))  (str "." (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
   :>=exists (str "≥" (:nat thing) (toDLString (:role thing))  (str "."  (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
@@ -226,7 +226,7 @@
   :builtInAtom (str "BuiltInAtom(" (toDLString (:iri thing)) " " (s/join " " (map (fn [x] (toDLString x)) (:dargs thing))) ")")
   :=individualsAtom (str "SameIndividualAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
-  :variable (str "Variable(" (if (:short thing) (str (:prefix thing) ":" (:short thing)) (:iri thing)) ")")))
+  :variable (str "Variable(" (if (:name thing) (str (:prefix thing) ":" (:name thing)) (:iri thing)) ")")))
 
 (defn toString 
  "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is __*not*__ the same as java toString."
@@ -348,7 +348,7 @@
   :builtInAtom (str "BuiltInAtom(" (toString (:iri thing)) " " (s/join " " (map (fn [x] (toString x)) (:dargs thing))) ")")
   :=individualsAtom (str "SameIndividualAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
-  :variable (str "Variable(" (if (:short thing) (str (:prefix thing) ":" (:short thing)) (:iri thing)) ")")
+  :variable (str "Variable(" (if (:name thing) (str (:prefix thing) ":" (:name thing)) (:iri thing)) ")")
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (s/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (s/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
 
 (defn- getFunction 

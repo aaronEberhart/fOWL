@@ -16,12 +16,12 @@
  ([prefix name]
    (if (and (string? name)(string? prefix))
     (let [check (str prefix name)]
-     {:reserved (co/isReservedIRI? (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name )}))
+     {:reserved (co/isReservedIRI? (str prefix ":" name)) :name name :prefix prefix :iri (str prefix ":" name )}))
      (throw (Exception. (str  {:type ::notStringIRI :iri name}))))
   ([prefix name namespace]
    (if (and (and (string? name)(string? namespace))(string? prefix))
     (let [check (str prefix name)]
-     {:reserved (co/isReservedIRI? (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name ">")}))
+     {:reserved (co/isReservedIRI? (str prefix ":" name)) :namespace namespace :name name :prefix prefix :iri (str "<" namespace name ">")}))
      (throw (Exception. (str  {:type ::notStringIRI :iri name})))))
 
 (defn annotationValue 

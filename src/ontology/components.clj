@@ -17,25 +17,25 @@
 
 (def Top
  "owl:Thing"
- {:namespace owlNS :short "Thing" :prefix "owl" :iri (str "<" owlNS "Thing" ">") :type :class :innerType :top})
+ {:namespace owlNS :name "Thing" :prefix "owl" :iri (str "<" owlNS "Thing" ">") :type :class :innerType :top})
 (def Bot
  "owl:Nothing"
- {:namespace owlNS :short "Nothing" :prefix "owl" :iri (str "<" owlNS "Nothing" ">") :type :class :innerType :bot})
+ {:namespace owlNS :name "Nothing" :prefix "owl" :iri (str "<" owlNS "Nothing" ">") :type :class :innerType :bot})
 (def RDFSLiteral
  "rdfs:Literal"
- {:namespace rdfsNS :short "Literal" :prefix "rdfs" :iri (str "<" rdfsNS "Literal" ">") :arity 1 :type :dataType :innerType :dataType})
+ {:namespace rdfsNS :name "Literal" :prefix "rdfs" :iri (str "<" rdfsNS "Literal" ">") :arity 1 :type :dataType :innerType :dataType})
 (def TopRole
  "owl:topObjectProperty"
- {:namespace owlNS :short "topObjectProperty" :prefix "owl" :iri (str "<" owlNS "topObjectProperty" ">") :type :role :innerType :roleTop})
+ {:namespace owlNS :name "topObjectProperty" :prefix "owl" :iri (str "<" owlNS "topObjectProperty" ">") :type :role :innerType :roleTop})
 (def BotRole
  "owl:bottomObjectProperty"
- {:namespace owlNS :short "bottomObjectProperty" :prefix "owl" :iri (str "<" owlNS "bottomObjectProperty" ">") :type :role :innerType :roleBot})
+ {:namespace owlNS :name "bottomObjectProperty" :prefix "owl" :iri (str "<" owlNS "bottomObjectProperty" ">") :type :role :innerType :roleBot})
 (def TopData
  "owl:topDataProperty"
- {:namespace owlNS :short "topDataProperty" :prefix "owl" :iri (str "<" owlNS "topDataProperty" ">") :type :dataRole :innerType :dataRoleName})
+ {:namespace owlNS :name "topDataProperty" :prefix "owl" :iri (str "<" owlNS "topDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 (def BotData
  "owl:bottomDataProperty"
- {:namespace owlNS :short "bottomDataProperty" :prefix "owl" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
+ {:namespace owlNS :name "bottomDataProperty" :prefix "owl" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 (def ^:no-doc dataRangeTypes
  #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
 (def ^:no-doc nameTypes
@@ -48,10 +48,10 @@
   "rdfs:label" "rdfs:seeAlso" "xsd:anyURI" "xsd:base64Binary" "xsd:boolean" "xsd:byte" "xsd:dateTime" "xsd:dateTimeStamp" "xsd:decimal" "xsd:double" "xsd:float"
   "xsd:hexBinary" "xsd:int" "xsd:integer" "xsd:language" "xsd:length" "xsd:long" "xsd:maxExclusive" "xsd:maxInclusive" "xsd:maxLength" "xsd:minExclusive" "xsd:minInclusive"
   "xsd:minLength" "xsd:Name" "xsd:NCName" "xsd:negativeInteger" "xsd:NMTOKEN" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger" "xsd:normalizedString" "xsd:pattern"
-  "xsd:positiveInteger" "xsd:short" "xsd:string" "xsd:token" "xsd:unsignedByte" "xsd:unsignedInt" "xsd:unsignedLong" "xsd:unsignedShort"})
+  "xsd:positiveInteger" "xsd:name" "xsd:string" "xsd:token" "xsd:unsignedByte" "xsd:unsignedInt" "xsd:unsignedLong" "xsd:unsignedShort"})
 (def dataTypeMaps
 "The set of data type maps"
- #{"rdfs:Literal" "owl:rational" "owl:real" "xsd:double" "xsd:float" "xsd:decimal" "xsd:integer" "xsd:long" "xsd:int" "xsd:short" "xsd:byte" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger"
+ #{"rdfs:Literal" "owl:rational" "owl:real" "xsd:double" "xsd:float" "xsd:decimal" "xsd:integer" "xsd:long" "xsd:int" "xsd:name" "xsd:byte" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger"
  "xsd:positiveInteger" "xsd:negativeInteger" "xsd:unsignedLong" "xsd:unsignedInt" "xsd:unsignedShort" "xsd:unsignedByte" "rdf:PlainLiteral" "xsd:string" "xsd:NCName" "xsd:Name"
  "xsd:NMTOKEN" "xsd:token" "xsd:language" "xsd:normalizedString" "xsd:boolean" "xsd:base64Binary" "xsd:hexBinary" "xsd:anyURI" "xsd:dateTime" "xsd:dateTimeStamp" "rdf:XMLLiteral"})
 
@@ -67,21 +67,21 @@
    (if (and (= \< (first iri)) (= \> (last iri)))
     {:reserved (isReservedIRI? iri) :iri iri}
     (if-some [[_ prefix name] (re-matches #"^([^\<\(\)\"\\\s]*)\:([^\:\>\(\)\"\\\s]+)" iri)]
-     {:reserved (isReservedIRI? iri) :short name :prefix prefix :iri iri}
-     (if (s/includes? iri " ")
-      (throw (Exception. (str  {:type ::notIRI :iri iri})))
-      {:reserved (isReservedIRI? iri) :iri iri})))
+     {:reserved (isReservedIRI? iri) :name name :prefix prefix :iri iri}
+     (if-some [[_ iri] (re-matches #"^([^\<\>\(\)\"\\\s]+)" iri)]
+      {:reserved (isReservedIRI? iri) :iri iri}
+      (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
    (if (:iri iri)
     iri
     (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
  ([prefix name]
-  (if (and (string? name)(string? prefix)(not (s/includes? name " "))(not (s/includes? prefix " ")))
-   {:reserved (isReservedIRI? (str prefix ":" name)) :short name :prefix prefix :iri (str prefix ":" name)}
-   (throw (Exception. (str  {:type ::notIRI :iri (str prefix ":" name)})))))
+  (if (and (re-matches #"^[^\<\>\(\)\"\\\s]+" name)(re-matches #"^[^\<\>\(\)\"\\\s]*" prefix))
+   {:reserved (isReservedIRI? (str prefix ":" name)) :name name :prefix prefix :iri (str prefix ":" name)}
+   (throw (Exception. (str  {:type ::notIRI :name name :prefix prefix})))))
  ([prefix name namespace]
-  (if (and (string? name)(string? namespace)(string? prefix))
-   {:reserved (isReservedIRI? (str prefix ":" name)) :namespace namespace :short name :prefix prefix :iri (str "<" namespace name ">")}
-   (throw (Exception. (str  {:type ::notIRI :namespace namespace :short name :prefix prefix}))))))
+  (if (and (re-matches #"^[^\<\>\(\)\"\\\s]+" name)(re-matches #"^[^\<\>\(\)\"\\\s]*" prefix)(re-matches #"^([^\:\<\>\(\)\"\\\s]+)\:([^\<\>\(\)\"\\\s]+)" namespace))
+   {:reserved (isReservedIRI? (str prefix ":" name)) :namespace namespace :name name :prefix prefix :iri (str "<" namespace name ">")}
+   (throw (Exception. (str  {:type ::notIRI :namespace namespace :name name :prefix prefix}))))))
 
 (defn className
  "Class := IRI"
@@ -215,7 +215,7 @@
  "typedLiteral := lexicalForm '^^' Datatype"
  [lexicalForm datatype]
  (if (and (= (:type lexicalForm) :lexicalForm)(= (:type datatype) :dataType))
-  (assoc datatype :value (str (:value lexicalForm) \^ \^  (if (:prefix datatype) (str (:prefix datatype)":"(:short datatype)) (:iri datatype))) :type :typedLiteral :innerType :typedLiteral)
+  (assoc datatype :value (str (:value lexicalForm) \^ \^  (if (:prefix datatype) (str (:prefix datatype)":"(:name datatype)) (:iri datatype))) :type :typedLiteral :innerType :typedLiteral)
   (throw (Exception. (str  {:type ::notTypedLiteral :lexicalForm lexicalForm :dataType datatype})))))
 
 (defn- -lexicalForm 
