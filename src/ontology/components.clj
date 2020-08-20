@@ -66,7 +66,7 @@
   (if (string? iri)
    (if (and (= \< (first iri)) (= \> (last iri)))
     {:reserved (isReservedIRI? iri) :iri iri}
-    (if-some [[_ prefix name] (re-matches #"^([^\<\(\)\"\\\s]*)\:([^\:\>\(\)\"\\\s]+)" iri)]
+    (if-some [[_ prefix name] (re-matches #"^([^\<\>\(\)\"\\\s]*)\:([^\:\<\>\(\)\"\\\s]+)" iri)]
      {:reserved (isReservedIRI? iri) :name name :prefix prefix :iri iri}
      (if-some [[_ iri] (re-matches #"^([^\<\>\(\)\"\\\s]+)" iri)]
       {:reserved (isReservedIRI? iri) :iri iri}
