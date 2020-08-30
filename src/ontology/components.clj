@@ -5,7 +5,7 @@
 (def ^:no-doc dataRangeTypes
  #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
 (def ^:no-doc nameTypes
- #{:className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
+ #{:name :className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
 
 (def xsdNS
  "The XML namespace"
