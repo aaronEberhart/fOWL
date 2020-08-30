@@ -85,9 +85,9 @@
 (defn declaration
  "Declaration := 'Declaration' '(' axiomAnnotations Entity ')'"
  ([name]
-   (-axiom (-declaration name)))
+   (-axiom (-declaration (co/entity name))))
  ([annotations name]
-   (-axiom (-declaration annotations name))))
+   (-axiom (-declaration (ann/axiomAnnotations annotations) (co/entity name)))))
 
 (defn- -classAxiom 
   "ClassAxiom := SubClassOf | EquivalentClasses | DisjointClasses | DisjointUnion"

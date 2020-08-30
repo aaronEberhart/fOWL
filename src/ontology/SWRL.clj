@@ -3,21 +3,25 @@
  (:require [ontology.expressions :as ex][ontology.components :as co]))
 
 (def ^:no-doc atomTypes
-  #{:classAtom :roleAtom :dataRoleAtom :dataRangeAtom :builtInAtom :=individualsAtom :!=individualsAtom})
+  #{:atom :classAtom :roleAtom :dataRoleAtom :dataRangeAtom :builtInAtom :=individualsAtom :!=individualsAtom})
 
 (defn body
  "‘Body’ ‘(’ {Atom} ‘)’"
  [atoms]
- (if (every? (fn [x] (= (:type x) :atom)) atoms)
-   {:atoms atoms :type :body :innerType :body}
-   (throw (Exception. (str  {:type ::notAtoms :atoms atoms})))))
+ (if (= (:type atoms) :body)
+  atoms
+  (if (every? (fn [x] (= (:type x) :atom)) atoms)
+    {:atoms atoms :type :body :innerType :body}
+    (throw (Exception. (str  {:type ::notAtoms :atoms atoms}))))))
 
 (defn head
 "‘Head‘ ‘(’ {Atom} ‘)’"
 [atoms]
-(if (every? (fn [x] (= (:type x) :atom)) atoms)
-  {:atoms atoms :type :head :innerType :head}
-  (throw (Exception. (str  {:type ::notAtoms :atoms atoms})))))
+(if (= (:type atoms) :head)
+ atoms
+ (if (every? (fn [x] (= (:type x) :atom)) atoms)
+   {:atoms atoms :type :head :innerType :head}
+   (throw (Exception. (str  {:type ::notAtoms :atoms atoms}))))))
 
 (defn- -atom 
  "Atom ::= ClassAtom | DataRangeAtom | ObjectPropertyAtom | DataPropertyAtom | BuiltInAtom | SameIndividualAtom | DifferentIndividualsAtom" 

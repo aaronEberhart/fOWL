@@ -2,6 +2,11 @@
  "Functions that represent IRI components and datatypes"
  (:require [clojure.string :as s]))
 
+(def ^:no-doc dataRangeTypes
+ #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
+(def ^:no-doc nameTypes
+ #{:className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
+
 (def xsdNS
  "The XML namespace"
  "http://www.w3.org/2001/XMLSchema#")
@@ -36,24 +41,23 @@
 (def BotData
  "owl:bottomDataProperty"
  {:namespace owlNS :name "bottomDataProperty" :prefix "owl" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
-(def ^:no-doc dataRangeTypes
- #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
-(def ^:no-doc nameTypes
- #{:className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
 
 (def reservedIRIs
 "The set of reserved IRIs"
- #{"owl:backwardCompatibleWith" "owl:deprecated" "owl:incompatibleWith" "owl:priorVersion" "owl:rational"
-  "owl:real" "owl:versionInfo" "rdf:langRange" "rdf:PlainLiteral" "rdf:XMLLiteral" "rdfs:comment" "rdfs:isDefinedBy"
-  "rdfs:label" "rdfs:seeAlso" "xsd:anyURI" "xsd:base64Binary" "xsd:boolean" "xsd:byte" "xsd:dateTime" "xsd:dateTimeStamp" "xsd:decimal" "xsd:double" "xsd:float"
-  "xsd:hexBinary" "xsd:int" "xsd:integer" "xsd:language" "xsd:length" "xsd:long" "xsd:maxExclusive" "xsd:maxInclusive" "xsd:maxLength" "xsd:minExclusive" "xsd:minInclusive"
-  "xsd:minLength" "xsd:Name" "xsd:NCName" "xsd:negativeInteger" "xsd:NMTOKEN" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger" "xsd:normalizedString" "xsd:pattern"
-  "xsd:positiveInteger" "xsd:name" "xsd:string" "xsd:token" "xsd:unsignedByte" "xsd:unsignedInt" "xsd:unsignedLong" "xsd:unsignedShort"})
+ #{"owl:backwardCompatibleWith" "owl:deprecated" "owl:incompatibleWith" "owl:priorVersion" "owl:rational" "owl:real"
+   "owl:versionInfo" "rdf:langRange" "rdf:PlainLiteral" "rdf:XMLLiteral" "rdfs:comment" "rdfs:isDefinedBy" "rdfs:label" 
+   "rdfs:seeAlso" "xsd:anyURI" "xsd:base64Binary" "xsd:boolean" "xsd:byte" "xsd:dateTime" "xsd:dateTimeStamp" "xsd:decimal" 
+   "xsd:double" "xsd:float" "xsd:hexBinary" "xsd:int" "xsd:integer" "xsd:language" "xsd:length" "xsd:long" "xsd:maxExclusive" 
+   "xsd:maxInclusive" "xsd:maxLength" "xsd:minExclusive" "xsd:minInclusive" "xsd:minLength" "xsd:Name" "xsd:NCName" "xsd:name" 
+   "xsd:negativeInteger" "xsd:NMTOKEN" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger" "xsd:normalizedString" "xsd:pattern"
+   "xsd:positiveInteger" "xsd:string" "xsd:token" "xsd:unsignedByte" "xsd:unsignedInt" "xsd:unsignedLong" "xsd:unsignedShort"})
+
 (def dataTypeMaps
 "The set of data type maps"
- #{"rdfs:Literal" "owl:rational" "owl:real" "xsd:double" "xsd:float" "xsd:decimal" "xsd:integer" "xsd:long" "xsd:int" "xsd:name" "xsd:byte" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger"
- "xsd:positiveInteger" "xsd:negativeInteger" "xsd:unsignedLong" "xsd:unsignedInt" "xsd:unsignedShort" "xsd:unsignedByte" "rdf:PlainLiteral" "xsd:string" "xsd:NCName" "xsd:Name"
- "xsd:NMTOKEN" "xsd:token" "xsd:language" "xsd:normalizedString" "xsd:boolean" "xsd:base64Binary" "xsd:hexBinary" "xsd:anyURI" "xsd:dateTime" "xsd:dateTimeStamp" "rdf:XMLLiteral"})
+ #{"rdfs:Literal" "owl:rational" "xsd:double" "xsd:float" "xsd:decimal" "xsd:integer" "xsd:long" "xsd:int" "xsd:name" "xsd:language" 
+   "xsd:byte" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger" "xsd:positiveInteger" "xsd:negativeInteger" "xsd:unsignedLong" "xsd:anyURI" 
+   "xsd:unsignedInt" "xsd:unsignedShort" "xsd:unsignedByte" "rdf:PlainLiteral" "xsd:string" "xsd:NCName" "xsd:Name"  "xsd:token" "owl:real" 
+   "xsd:NMTOKEN" "xsd:normalizedString" "xsd:boolean" "xsd:base64Binary" "xsd:hexBinary" "xsd:dateTime" "xsd:dateTimeStamp" "rdf:XMLLiteral"})
 
 (defn isReservedIRI?
  "Is the IRI in the set of reserved IRIs?"
