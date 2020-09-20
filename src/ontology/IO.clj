@@ -146,7 +146,7 @@
   :prefix (str "Prefix(" (:prefix thing) "=<" (:iri thing) ">)")
   :prefixes (str (s/join "\n" (map toDLString (:prefixes thing))))
   :import (str "Import(" (:iri thing) ")")
-  :declaration (str "Declaration(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toDLString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toDLString (:name thing) ) "))")
+  :declaration (str "Declaration(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toDLString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toDLString (:name thing)) "))")
 
   ;data roles ⊑ ⊓ ⊔ ∃ ∀ ∘ ≡ ≤ ≥ ⊤ ⊥ U ∅ ¬
   :partialDataRole (str "∃" (toDLString (:dataRole thing)) "[" (:value (:literal thing)) "]")
@@ -269,7 +269,7 @@
   :prefix (str "Prefix(" (:prefix thing) ":=<" (:iri thing) ">)")
   :prefixes (str (s/join "\n" (map toString (:prefixes thing))))
   :import (str "Import(" (:iri thing) ")")
-  :declaration (str "Declaration(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toString (:name thing) ) "))")
+  :declaration (str "Declaration(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toString (:name thing)) "))")
 
   ;data roles
   :partialDataRole (str "DataHasValue(" (toString (:dataRole thing)) " " (:value (:literal thing)) ")")
@@ -322,7 +322,7 @@
   :roleImplication  (str "SubObjectPropertyOf(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:antecedent thing) ) " " (toString (:consequent thing) ) ")")
   :=roles (str "EquivalentObjectProperties(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (s/join " " (map (fn [x] (toString x )) (:roles thing))) ")")
   :disjRoles (str "DisjointObjectProperties(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (s/join " " (map (fn [x] (toString x )) (:roles thing))) ")")
-  :inverseRoles (str "InverseObjectProperties(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) " " (toString (:inverse thing) ) ")")
+  :inverseRoles (str "InverseObjectProperties(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) " " (toString (:inverse thing)) ")")
   :roleDomain (str "ObjectPropertyDomain(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) " " (toString (:class thing) ) ")")
   :roleRange (str "ObjectPropertyRange(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) " " (toString (:class thing) ) ")")
   :functionalRole (str "FunctionalObjectProperty(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:role thing) ) ")")
@@ -549,19 +549,19 @@
   (recur (get fullIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (co/IRI (get fullIRIMatch 1)))) expFuns)
  (if-some [prefIRIMatch (re-matches (:prefIRIPat regexes) state)]
   (recur (get prefIRIMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (parseIRI (get prefIRIMatch 1) prefixes))) expFuns)
- (if-some [literalTypedMatch (re-matches (:literalTypedPat regexes) state)]
-  (recur (get literalTypedMatch 4) annotations annFun (conj (rest exps) (conj (first exps) (co/typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (co/dataType (get literalTypedMatch 2)) (apply co/dataType (assignPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
- (if-some [literalLangMatch (re-matches (:literalLangPat regexes) state)]
-  (recur (get literalLangMatch 3) annotations annFun (conj (rest exps) (conj (first exps) (co/stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
  (if-some [literalQuotedMatch (re-matches (:literalQuotedPat regexes) state)]
-  (recur (get literalQuotedMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (co/stringLiteralNoLanguage (get literalQuotedMatch 1)))) expFuns)
+  (if-some [literalTypedMatch (re-matches (:literalTypedPat regexes) (get literalQuotedMatch 2))]
+   (recur (get literalTypedMatch 3) annotations annFun (conj (rest exps) (conj (first exps) (co/typedLiteral (get literalQuotedMatch 1) (if (some? (get literalTypedMatch 1)) (co/dataType (get literalTypedMatch 1)) (apply co/dataType (assignPrefix (get literalTypedMatch 2) prefixes)))))) expFuns)
+  (if-some [literalLangMatch (re-matches (:literalLangPat regexes) (get literalQuotedMatch 2))]
+   (recur (get literalLangMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (co/stringLiteralWithLanguage (get literalQuotedMatch 1)(get literalLangMatch 1)))) expFuns)
+  (recur (get literalQuotedMatch 2) annotations annFun (conj (rest exps) (conj (first exps) (co/stringLiteralNoLanguage (get literalQuotedMatch 1)))) expFuns)))
  (if-some [annMatch (re-matches (:annotationPat regexes) state)]
   (if (nil? annFun)
    (recur (get annMatch 2) annotations ann/annotation exps expFuns)
    (recur (get annMatch 2) annotations annFun (conj exps []) (conj expFuns ann/annotation)))
  (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   [state annotations annFun exps expFuns]
- [(str state "\n") annotations annFun exps expFuns]))))))))))))
+ [(str state "\n") annotations annFun exps expFuns]))))))))))
 
 (defn- parseAxiomLine 
  [regexes state axioms ax exs funs prefixes]
@@ -570,6 +570,7 @@
         axFun ax
         exps exs
         expFuns funs]
+        ;(if (< 50 (count state))(println (subs state 0 15)))
  (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
   (cond
    (nil? axFun)
@@ -592,19 +593,19 @@
    (recur (get fullIRIMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (co/IRI (get fullIRIMatch 1)))) expFuns)
  (if-some [prefIRIMatch (re-matches (:prefIRIPat regexes) state)]
    (recur (get prefIRIMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (parseIRI (get prefIRIMatch 1) prefixes))) expFuns)
- (if-some [literalTypedMatch (re-matches (:literalTypedPat regexes) state)]
-   (recur (get literalTypedMatch 4) axioms axFun (conj (rest exps) (conj (first exps) (co/typedLiteral (get literalTypedMatch 1) (if (some? (get literalTypedMatch 2)) (co/dataType (get literalTypedMatch 2)) (apply co/dataType (assignPrefix (get literalTypedMatch 3) prefixes)))))) expFuns)
- (if-some [literalLangMatch (re-matches (:literalLangPat regexes) state)]
-   (recur (get literalLangMatch 3) axioms axFun (conj (rest exps) (conj (first exps) (co/stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2)))) expFuns)
  (if-some [literalQuotedMatch (re-matches (:literalQuotedPat regexes) state)]
-   (recur (get literalQuotedMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (co/stringLiteralNoLanguage (get literalQuotedMatch 1)))) expFuns)
+  (if-some [literalTypedMatch (re-matches (:literalTypedPat regexes) (get literalQuotedMatch 2))]
+   (recur (get literalTypedMatch 3) axioms axFun (conj (rest exps) (conj (first exps) (co/typedLiteral (get literalQuotedMatch 1) (if (some? (get literalTypedMatch 1)) (co/dataType (get literalTypedMatch 1)) (apply co/dataType (assignPrefix (get literalTypedMatch 2) prefixes)))))) expFuns)
+  (if-some [literalLangMatch (re-matches (:literalLangPat regexes) (get literalQuotedMatch 2))]
+   (recur (get literalLangMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (co/stringLiteralWithLanguage (get literalQuotedMatch 1)(get literalLangMatch 1)))) expFuns)
+  (recur (get literalQuotedMatch 2) axioms axFun (conj (rest exps) (conj (first exps) (co/stringLiteralNoLanguage (get literalQuotedMatch 1)))) expFuns)))
  (if-some [annMatch (re-matches (:annotationPat regexes) state)]
   (recur (get annMatch 2) axioms axFun (conj exps []) (conj expFuns ann/annotation))
  (if-some [axMatch (re-matches (:axiomPat regexes) state)]
   (recur (get axMatch 2) axioms (getFunction (get axMatch 1)) exps expFuns)
  (if-some [exMatch (re-matches (:expressionPat regexes) state)]
   (recur (get exMatch 2) axioms axFun (conj exps []) (conj expFuns (getFunction (get exMatch 1))))
- [(str state "\n") axioms axFun exps expFuns]))))))))))))))
+ [(str state "\n") axioms axFun exps expFuns]))))))))))))
 
 (defn- parseLines
   ([lineSeq loopFunction stopCondition prefixes regexes]
@@ -628,8 +629,8 @@
        [ontologyIRI ontFile] ((fn [[x y]]  [(first x) y]) (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
        [versionIRI ontFile] ((fn [[x y]]  [(first x) y]) (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
        [imports ontFile] (parseLines ontFile parseImportLine #(or (some? (re-matches (:annotationPat regexes) (get % 1)))(or (some? (re-matches (:axiomPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes)
-       [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (re-find (:axiomPat regexes) (get % 1))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2))))) prefixes regexes)
-       [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))) prefixes regexes)]
+       [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (some? (re-matches (:axiomPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2))))) prefixes regexes)
+       [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches (:donePat regexes) (get % 1)))) prefixes regexes)]
        (cond
         (and (some? ontologyIRI)(some? versionIRI))(onf/ontologyFile prefixes (onf/ontology ontologyIRI versionIRI imports annotations axioms))
         (some? ontologyIRI)(onf/ontologyFile prefixes (onf/ontology ontologyIRI imports annotations axioms))

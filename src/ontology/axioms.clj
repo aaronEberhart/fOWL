@@ -73,12 +73,12 @@
  "Declaration := 'Declaration' '(' axiomAnnotations Entity ')'"
  ([name]
    (if (= (:type name) :name)
-     {:name name :type :declaration :innerType :declaration  :outerType :declaration}
+     {:name (:name name) :type :declaration :innerType :declaration  :outerType :declaration}
      (throw (Exception. (str  {:type ::notName :name name})))))
  ([annotations name]
    (if (= (:type name) :name)
      (if (= (:type annotations) :axiomAnnotations)
-       {:name name :annotations (:annotations annotations) :type :declaration :innerType :declaration :outerType :declaration}
+       {:name (:name name) :annotations (:annotations annotations) :type :declaration :innerType :declaration :outerType :declaration}
        (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
      (throw (Exception. (str  {:type ::notName :name name}))))))
 

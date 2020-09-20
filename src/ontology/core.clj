@@ -1,6 +1,6 @@
 (ns ontology.core
  "Wrapper to easily handle all OWL functions"
- (:require [clojure.java.io :as io][clojure.walk :as walk]
+ (:require [clojure.java.io :as io]
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl][ontology.normalize :as nml]
            [ontology.regexes :as reg][ontology.IO :as oio]
@@ -11,11 +11,13 @@
  "Returns an empty ontology with no prefixes"
  (onf/ontology #{} #{} #{}))
 
+(def defaultPrefixes
+ "The default prefixes for OWL"
+ #{{:prefix "" :iri "empty:ontology" :type :prefix :innerType :prefix}{:prefix "owl" :iri co/owlNS :type :prefix :innerType :prefix}{:prefix "rdf" :iri co/rdfNS :type :prefix :innerType :prefix}{:prefix "rdfs" :iri co/rdfsNS :type :prefix :innerType :prefix}{:prefix "xsd" :iri co/xsdNS :type :prefix :innerType :prefix}})
+
 (def emptyOntologyFile
  "Returns an empty ontology file with the default OWL prefixes."
- (onf/ontologyFile 
-  #{{:prefix "" :iri "empty:ontology" :type :prefix :innerType :prefix}{:prefix "owl" :iri co/owlNS :type :prefix :innerType :prefix}{:prefix "rdf" :iri co/rdfNS :type :prefix :innerType :prefix}{:prefix "rdfs" :iri co/rdfsNS :type :prefix :innerType :prefix}{:prefix "xsd" :iri co/xsdNS :type :prefix :innerType :prefix}} 
-  (update emptyOntology :ontologyIRI (constantly (onf/ontologyIRI "empty:ontology")))))
+ (onf/ontologyFile defaultPrefixes (update emptyOntology :ontologyIRI (constantly (onf/ontologyIRI "empty:ontology")))))
 
 (defn prefix 
  "prefixDeclaration := 'Prefix' '(' prefixName '=' fullIRI ')'"
@@ -75,47 +77,56 @@
 (defn getNames
  "Gets a set of all the iris used in this object"
  [object]
- (msc/getStuffInNestedMap oio/hasIRI identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(if (oio/hasIRI %) (send a conj %) a) object)))
 
 (defn getClassNames
  "Gets a set of all the class names used in this object"
  [object]
- (msc/getStuffInNestedMap #(= (:innerType %) :className) identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(if (= (:innerType %) :className) (send a conj %) a) object)))
 
 (defn getRoleNames
  "Gets a set of all the role names used in this object"
  [object]
- (msc/getStuffInNestedMap #(= (:innerType %) :roleName) identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(if (= (:innerType %) :roleName) (send a conj %) a) object)))
 
 (defn getPredicateNames
  "Gets the set of all the class, role, and dataRole names used in this object. Predicate means anything that can contain an individual (not a datatype)."
  [object]
- (msc/getStuffInNestedMap #(cond (= (:innerType %) :className) true (= (:innerType %) :roleName) true (= (:innerType %) :dataRoleName) true (= (:innerType %) :nominal) true :else false) identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(cond (= (:innerType %) :className) (send a conj %) (= (:innerType %) :roleName) (send a conj %) (= (:innerType %) :dataRoleName) (send a conj %) (= (:innerType %) :nominal) (send a conj %) :else a) object)))
 
 (defn getDataRoleNames
  "Gets a set of all the data role names used in this object"
  [object]
- (msc/getStuffInNestedMap #(= (:innerType %) :dataRoleName) identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(if (= (:innerType %) :dataRoleName) (send a conj %) a) object)))
 
 (defn getDataTypes
  "Gets a set of all the data types used in this object"
  [object]
- (msc/getStuffInNestedMap #(= (:innerType %) :dataType) identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(if (= (:innerType %) :dataType) (send a conj %) a) object)))
 
 (defn getClasses
  "Gets a set of all the classes used in this object"
  [object]
- (msc/getStuffInNestedMap #(= (:type %) :class) identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(if (= (:innerType %) :class) (send a conj %) a) object)))
 
 (defn getRoles
  "Gets a set of all the roles used in this object"
  [object]
- (msc/getStuffInNestedMap #(cond (= (:type %) :role) % (= (:type %) :inverseRole) %) identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(cond (= (:type %) :role) (send a conj %) (= (:type %) :inverseRole) (send a conj %) :else a) object)))
 
 (defn getRoleChains
  "Gets a set of all the roles chains used in this object"
  [object]
- (msc/getStuffInNestedMap #(= (:type %) :roleChain) identity object))
+ (let [a (agent #{})]
+  @(msc/fowlPostwalk #(if (= (:innerType %) :roleChain) (send a conj %) a) object)))
 
 (defn getAxioms 
  "Returns the axioms from an ontology in a lazy sequence"
@@ -205,16 +216,16 @@
  (update ontology key (fun (key ontology) object)))
 
 (defn- updateOntologyComponents 
- [ontology updateThis? updateFunction]
- (walk/postwalk (fn [v] (if (updateThis? v) (updateFunction v) v)) ontology))
+ [f ontology]
+ (msc/fowlPostwalk f ontology))
 
 (defn- updateForDroppedPrefix
  [ontology prefix]
- (updateOntologyComponents ontology (partial oio/changePrefix? prefix) (partial oio/losePrefix prefix)))
+ (updateOntologyComponents ontology (fn [v] (if ((partial oio/changePrefix? prefix) v) ((partial oio/losePrefix prefix) v) v))))
 
 (defn- updateForAddedPrefix
  [thing prefix]
- (updateOntologyComponents thing (partial oio/changePrefix? prefix) (partial oio/gainPrefix prefix)))
+ (updateOntologyComponents thing (fn [v] (if ((partial oio/changePrefix? prefix) v) ((partial oio/gainPrefix prefix) v) v))))
 
 (defn dropAxiom 
  "Drops the axiom from the ontology"
@@ -265,21 +276,29 @@
  (updateForAddedPrefix (updateOntology ontology prefix (comp constantly conj) :prefixes) prefix))
 
 (defn addPrefix 
- "Adds a prefix to an ontology. If it is already in use it is overwritten. Any IRIs in the ontology that have this prefix are adjusted."
+ "Adds a prefix to an ontology. If it is already in use it is overwritten. Any IRIs in the ontology that have this prefix are adjusted.
+  If the ontology is not an ontology file, it will be converted to suppot prefixes."
  [ontology prefix]
- (loop [prefixes (:prefixes ontology)]
- (cond 
-  (empty? prefixes)  
-   (-addPrefix ontology prefix)
-  (= (:prefix (first prefixes)) (:prefix prefix))
-   (-addPrefix (updateOntology ontology (first prefixes) (comp constantly disj) :prefixes) prefix)
-  :else 
-   (recur (rest prefixes)))))
+ (if (:prefixes ontology)
+  (loop [prefixes (:prefixes ontology)]
+   (cond 
+    (empty? prefixes)  
+     (-addPrefix ontology prefix)
+    (= (:prefix (first prefixes)) (:prefix prefix))
+     (-addPrefix (updateOntology ontology (first prefixes) (comp constantly disj) :prefixes) prefix)
+    :else 
+     (recur (rest prefixes))))
+   (-addPrefix (assoc ontology :prefixes #{}) prefix)))
 
 (defn addPrefixes
  "Adds a set of prefixes to an ontology"
  [ontology & prefixes]
  (addStuffToOntologyWithFunction ontology prefixes addPrefix))
+
+(defn addDefaultPrefixes
+ "Adds the default OWL prefixes to the ontology"
+ [ontology]
+ (addStuffToOntologyWithFunction ontology defaultPrefixes addPrefix))
 
 (defn addAxiom 
  "Adds an axiom to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."

@@ -5,7 +5,7 @@
 (def ^:no-doc dataRangeTypes
  #{:dataRange :dataType :dataAnd :dataOr :dataNot :dataOneOf :datatypeRestriction})
 (def ^:no-doc nameTypes
- #{:name :className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
+ #{:className :dataType :roleName :dataRoleName :annotationRole :namedIndividual})
 
 (def xsdNS
  "The XML namespace"
@@ -70,7 +70,7 @@
   (if (string? iri)
    (if (and (= \< (first iri)) (= \> (last iri)))
     {:reserved (isReservedIRI? iri) :iri iri}
-    (if-some [[_ prefix name] (re-matches #"^([^\<\>\(\)\"\\\s]*)\:([^\:\<\>\(\)\"\\\s]+)" iri)]
+    (if-some [[_ prefix name] (re-matches #"^([^\<\>\(\)\"\\\s]+)\:([^\:\<\>\(\)\"\\\s]*)" iri)]
      {:reserved (isReservedIRI? iri) :name name :prefix prefix :iri iri}
      (if-some [[_ iri] (re-matches #"^([^\<\>\(\)\"\\\s]+)" iri)]
       {:reserved (isReservedIRI? iri) :iri iri}
@@ -83,7 +83,7 @@
    {:reserved (isReservedIRI? (str prefix ":" name)) :name name :prefix prefix :iri (str prefix ":" name)}
    (throw (Exception. (str  {:type ::notIRI :name name :prefix prefix})))))
  ([prefix name namespace]
-  (if (and (re-matches #"^[^\<\>\(\)\"\\\s]+" name)(re-matches #"^[^\<\>\(\)\"\\\s]*" prefix)(re-matches #"^([^\:\<\>\(\)\"\\\s]+)\:([^\<\>\(\)\"\\\s]+)" namespace))
+  (if (and (re-matches #"^[^\<\>\(\)\"\\\s]+" name)(re-matches #"^[^\<\>\(\)\"\\\s]*" prefix)(re-matches #"^([^\:\<\>\(\)\"\\\s]+)\:([^\<\>\(\)\"\\\s]*)" namespace))
    {:reserved (isReservedIRI? (str prefix ":" name)) :namespace namespace :name name :prefix prefix :iri (str "<" namespace name ">")}
    (throw (Exception. (str  {:type ::notIRI :namespace namespace :name name :prefix prefix}))))))
 
@@ -384,12 +384,14 @@
 
 (defn datatypeRestriction
  "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"
-[datatype restrictedvalues]
+ [datatype restrictedvalues]
  (-dataRange (-datatypeRestriction (dataType datatype) (into #{} (map (partial apply restrictedValue) (partition-all 2 restrictedvalues))))))
 
 (defn entity 
  "Entity := 'Class' '(' Class ')' | 'Datatype' '(' Datatype ')' | 'ObjectProperty' '(' ObjectProperty ')' | 'DataProperty' '(' DataProperty ')' | 'AnnotationProperty' '(' AnnotationProperty ')' | 'NamedIndividual' '(' NamedIndividual ')'"
  [thing]
- (if (contains? nameTypes (:innerType thing))
-  (assoc thing :type :name)
-  (throw (Exception. (str  {:type ::notName :name thing})))))
+ (if (= (:type thing) :name)
+  thing
+  (if (contains? nameTypes (:innerType thing))
+   {:name thing :type :name :innerType :name}
+   (throw (Exception. (str  {:type ::notName :name thing}))))))

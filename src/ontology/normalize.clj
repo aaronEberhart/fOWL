@@ -141,8 +141,8 @@
  (case (:innerType axiom)
   :classImplication axiom
   :disjClasses (disjToImp (classesPermutations (into [] (:classes axiom))))
-  :=Classes (equivToImp (classesPermutations (into [] (:classes axiom))))
-  :disjOr (throw (Exception. (str  {:type ::notNormalizableYet :axiom axiom})))
+  :=classes (equivToImp (classesPermutations (into [] (:classes axiom))))
+  :disjOr (apply conj (toClassImplications (ax/disjClasses (:classes axiom))) (toClassImplications (ax/=classes [(:class axiom) (apply ex/or (:classes axiom))])))
   (throw (Exception. (str  {:type ::incompatibleClassAxiom :axiom axiom})))))
 
 (defn- getClassAxiomNNF 
