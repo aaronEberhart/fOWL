@@ -96,7 +96,7 @@
    :ontologyIRI (outer form) 
    :versionIRI (outer form) 
    :prefix (outer form) 
-   :prefixes (outer (into #{} (map inner (:prefixes form))))
+   :prefixes (outer (update form :prefixes #(into #{} (map outer %))))
    :import (outer form)
    :declaration (outer (update (if (:annotations form) (update form :annotations inner) form) :name outer))
 
