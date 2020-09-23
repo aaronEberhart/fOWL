@@ -98,6 +98,7 @@
    :prefix (outer form) 
    :prefixes (outer (update form :prefixes #(into #{} (map outer %))))
    :import (outer form)
+   :imports (outer (update form :imports #(into #{} (map outer %))))
    :declaration (outer (update (if (:annotations form) (update form :annotations inner) form) :name outer))
 
   ;data roles

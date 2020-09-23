@@ -146,6 +146,7 @@
   :prefix (str "Prefix(" (:prefix thing) "=<" (:iri thing) ">)")
   :prefixes (str (s/join "\n" (map toDLString (:prefixes thing))))
   :import (str "Import(" (:iri thing) ")")
+  :imports (str (s/join "\n" (map toDLString (:imports thing))))
   :declaration (str "Declaration(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toDLString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toDLString (:name thing)) "))")
 
   ;data roles ⊑ ⊓ ⊔ ∃ ∀ ∘ ≡ ≤ ≥ ⊤ ⊥ U ∅ ¬
@@ -269,6 +270,7 @@
   :prefix (str "Prefix(" (:prefix thing) ":=<" (:iri thing) ">)")
   :prefixes (str (s/join "\n" (map toString (:prefixes thing))))
   :import (str "Import(" (:iri thing) ")")
+  :imports (str (s/join "\n" (map toString (:imports thing))))
   :declaration (str "Declaration(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toString (:name thing)) "))")
 
   ;data roles
