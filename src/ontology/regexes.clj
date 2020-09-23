@@ -8,7 +8,6 @@
   :axiomPat #"\s*(Declaration|SubClassOf|EquivalentClasses|DisjointClasses|DisjointUnion|SubObjectPropertyOf|EquivalentObjectProperties|SubObjectPropertyOf|DisjointObjectProperties|InverseObjectProperties|ObjectPropertyDomain|ObjectPropertyRange|FunctionalObjectProperty|InverseFunctionalObjectProperty|ReflexiveObjectProperty|IrreflexiveObjectProperty|SymmetricObjectProperty|AsymmetricObjectProperty|TransitiveObjectProperty|SubDataPropertyOf|EquivalentDataProperties|DisjointDataProperties|DataPropertyDomain|DataPropertyRange|FunctionalDataProperty|SameIndividual|DifferentIndividuals|ClassAssertion|ObjectPropertyAssertion|NegativeObjectPropertyAssertion|HasKey|DataPropertyAssertion|NegativeDataPropertyAssertion|AnnotationAssertion|SubAnnotationPropertyOf|AnnotationPropertyDomain|AnnotationPropertyRange|DatatypeDefinition|DGRule|DLSafeRule)\s*\(\s*([\s\S]*)"
   :fullIRIPat #"^\s*([<][^>]+[>])\s*([\s\S]*)"
   :prefIRIPat #"^\s*([^\<\(\)\"\\\s]*\:[^\>\(\)\"\\\s]+)\s*([\s\S]*)"
-  :literalStartPat #"^\s*\"([\s\S]*)"
   :literalTypedPat #"^\^\^\s*(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))\s*([\s\S]*)"
   :literalQuotedPat #"^\s*\"([\s\S]*?(?<!\\)(?:\\\\)*?)\"(?=\s|\^|\@|\))\s*([\s\S]*)"
   :literalLangPat #"^\@([^\s\(\)\"\\\:]+)\s*([\s\S]*)"
