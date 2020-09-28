@@ -74,11 +74,11 @@
  ([ontology](onf/ontologyFile ontology))
  ([prefixes ontology](onf/ontologyFile prefixes ontology)))
 
-(defn getNames
+(defn getIRIs
  "Gets a set of all the iris used in this object"
  [object]
  (let [a (agent #{})]
-  @(msc/fowlPostwalk #(if (oio/hasIRI %) (send a conj %) a) object)))
+  @(msc/fowlPostwalk #(if (:iri %) (send a conj (:iri %)) a) object)))
 
 (defn getClassNames
  "Gets a set of all the class names used in this object"
@@ -221,11 +221,11 @@
 
 (defn- updateForDroppedPrefix
  [ontology prefix]
- (updateOntologyComponents ontology (fn [v] (if ((partial oio/changePrefix? prefix) v) ((partial oio/losePrefix prefix) v) v))))
+ (updateOntologyComponents (fn [v] (if ((partial oio/changePrefix? prefix) v) ((partial oio/losePrefix prefix) v) v)) ontology))
 
 (defn- updateForAddedPrefix
  [thing prefix]
- (updateOntologyComponents thing (fn [v] (if ((partial oio/changePrefix? prefix) v) ((partial oio/gainPrefix prefix) v) v))))
+ (updateOntologyComponents (fn [v] (if ((partial oio/changePrefix? prefix) v) ((partial oio/gainPrefix prefix) v) v)) thing))
 
 (defn dropAxiom 
  "Drops the axiom from the ontology"
@@ -304,7 +304,7 @@
  "Adds an axiom to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
  [ontology axiom] 
  (if (:prefixes ontology)
-  (let [names (getNames axiom)]
+  (let [names (getIRIs axiom)]
    (loop [axiom axiom
           prefixes (:prefixes ontology)
           ontology ontology]
@@ -336,7 +336,7 @@
  "Adds an annotation to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
  [ontology annotation]
  (if (:prefixes ontology)
-  (let [names (getNames annotation)]
+  (let [names (getIRIs annotation)]
    (loop [annotation annotation
           prefixes (:prefixes ontology)
           ontology ontology]

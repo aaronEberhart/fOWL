@@ -112,7 +112,7 @@
  (case (:innerType thing)
 
   ;not an OWL map
-  nil (if (map? thing) (str "{" (s/join ", " (map #(str (toDLString %) " " (toDLString (get thing %))) (keys thing))) "}") (if thing (str thing) "nil"))
+  nil (if (:iri thing) (:iri thing) (if (map? thing) (str "{" (s/join ", " (map #(str (toDLString %) " " (toDLString (get thing %))) (keys thing))) "}") (if thing (str thing) "nil")))
 
   ;atoms
   :top "⊤"
@@ -235,7 +235,7 @@
  (case (:innerType thing)
 
   ;Not an OWL map
-  nil (if (map? thing) (str "{" (s/join ", " (map #(str (toString %) " " (toString (get thing %))) (keys thing))) "}") (if thing (str thing) "nil"))
+  nil (if (:iri thing) (:iri thing) (if (map? thing) (str "{" (s/join ", " (map #(str (toString %) " " (toString (get thing %))) (keys thing))) "}") (if thing (str thing) "nil")))
 
   ;atoms
   :lexicalForm (:value thing)
@@ -628,8 +628,8 @@
  (with-open [rdr (io/reader (if (string? file) (io/file file) file))]
   (let [ontFile (line-seq rdr)
        [prefixes ontFile] (parseLines ontFile parsePrefixLine #(some? (re-matches (:ontPat regexes) (get % 1))) nil regexes)
-       [ontologyIRI ontFile] ((fn [[x y]]  [(first x) y]) (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
-       [versionIRI ontFile] ((fn [[x y]]  [(first x) y]) (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
+       [ontologyIRI ontFile] ((fn [[x y]] [(first x) y]) (parseLines ontFile parseOntologyIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
+       [versionIRI ontFile] ((fn [[x y]] [(first x) y]) (parseLines ontFile parseVersionIRILine #(or (= 1 (count (get % 0)))(or (some? (re-matches (:iriStopPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes))
        [imports ontFile] (parseLines ontFile parseImportLine #(or (some? (re-matches (:annotationPat regexes) (get % 1)))(or (some? (re-matches (:axiomPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2)))))) nil regexes)
        [annotations ontFile] (parseLines ontFile parseAnnotationLine #(or (some? (re-matches (:axiomPat regexes) (get % 1)))(or (some? (re-matches (:donePat regexes) (get % 1)))(empty? (rest (get % 2))))) prefixes regexes)
        [axioms lastParen] (parseLines ontFile parseAxiomLine #(and (some? (re-matches (:donePat regexes) (get % 1)))) prefixes regexes)]
