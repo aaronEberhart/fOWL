@@ -13,7 +13,7 @@
 
 (def defaultPrefixes
  "The default prefixes for OWL"
- #{{:prefix "" :iri "empty:ontology" :type :prefix :innerType :prefix}{:prefix "owl" :iri co/owlNS :type :prefix :innerType :prefix}{:prefix "rdf" :iri co/rdfNS :type :prefix :innerType :prefix}{:prefix "rdfs" :iri co/rdfsNS :type :prefix :innerType :prefix}{:prefix "xsd" :iri co/xsdNS :type :prefix :innerType :prefix}})
+ #{{:prefix "" :iri "empty:ontology#" :type :prefix :innerType :prefix}{:prefix "owl" :iri co/owlNS :type :prefix :innerType :prefix}{:prefix "rdf" :iri co/rdfNS :type :prefix :innerType :prefix}{:prefix "rdfs" :iri co/rdfsNS :type :prefix :innerType :prefix}{:prefix "xsd" :iri co/xsdNS :type :prefix :innerType :prefix}})
 
 (def emptyOntologyFile
  "Returns an empty ontology file with the default OWL prefixes."
