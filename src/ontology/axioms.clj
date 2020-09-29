@@ -667,18 +667,18 @@
   "HasKey := 'HasKey' '(' axiomAnnotations ClassExpression '(' { ObjectPropertyExpression } ')' '(' { DataPropertyExpression } ')' ')'"
   ([class roles dataRoles]
     (if (= (:type class) :class)
-      (if (or (< 1 (count roles))(< 1 (count dataRoles)))
+      (if (or (< 0 (count roles))(< 0 (count dataRoles)))
         (if (and (every? (fn [x] (= (:type x) :role)) roles)(every? (fn [x] (= (:type x) :dataRole)) dataRoles))
-          {:roles roles :dataRoles dataRoles :type :hasKey :innerType :hasKey :outerType :hasKey}
+          {:class class :roles roles :dataRoles dataRoles :type :hasKey :innerType :hasKey :outerType :hasKey}
           (throw (Exception. (str  {:type ::notRoles :roles roles :dataRoles dataRoles}))))
         (throw (Exception. (str  {:type ::notEnoughKeys :roles roles :dataRoles dataRoles}))))
       (throw (Exception. (str  {:type ::notClass :class class})))))
   ([annotations class roles dataRoles]
     (if (= (:type class) :class)
-      (if (or (< 1 (count roles))(< 1 (count dataRoles)))
+      (if (or (< 0 (count roles))(< 0 (count dataRoles)))
         (if (and (every? (fn [x] (= (:type x) :role)) roles)(every? (fn [x] (= (:type x) :dataRole)) dataRoles))
           (if (= (:type annotations) :axiomAnnotations)
-            {:roles roles :dataRoles dataRoles :annotations (:annotations annotations) :type :hasKey :innerType :hasKey :outerType :hasKey}
+            {:class class :roles roles :dataRoles dataRoles :annotations (:annotations annotations) :type :hasKey :innerType :hasKey :outerType :hasKey}
             (throw (Exception. (str  {:type ::notAnnotations :annotations annotations}))))
           (throw (Exception. (str  {:type ::notRoles :roles roles :dataRoles dataRoles}))))
         (throw (Exception. (str  {:type ::notEnoughKeys :roles roles :dataRoles dataRoles}))))
@@ -687,9 +687,9 @@
 (defn hasKey
  "HasKey := 'HasKey' '(' axiomAnnotations ClassExpression '(' { ObjectPropertyExpression } ')' '(' { DataPropertyExpression } ')' ')'"
   ([class roles dataRoles]
-    (-axiom (-hasKey (ex/class class) (into #{} (map ex/role roles)) dataRoles)))
+    (-axiom (-hasKey (ex/class class) (into #{} (map ex/role roles)) (into #{} (map ex/dataRole dataRoles)))))
   ([annotations class roles dataRoles]
-    (-axiom (-hasKey (ann/axiomAnnotations annotations) (ex/class class) (into #{} (map ex/role roles)) dataRoles))))
+    (-axiom (-hasKey (ann/axiomAnnotations annotations) (ex/class class) (into #{} (map ex/role roles)) (into #{} (map ex/dataRole dataRoles))))))
 
 (defn- -dataTypeDefinition
   "DatatypeDefinition := 'DatatypeDefinition' '(' axiomAnnotations Datatype DataRange ')'"

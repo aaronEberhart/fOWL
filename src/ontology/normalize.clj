@@ -34,13 +34,12 @@
   [c]
   (case (:innerType c)
     :not (:class c)
-    :className
-      (case (:name c)
-      "Thing" co/Bot
-      "Nothing" co/Top
-      "topObjectProperty" co/TopRole
-      "bottomObjectProperty" co/BotRole
-      (ex/not c))
+    :className (case (:name c)
+                "Thing" co/Bot
+                "Nothing" co/Top
+                "topObjectProperty" co/TopRole
+                "bottomObjectProperty" co/BotRole
+                (ex/not c))      
     (ex/not c)))
 
 (defn- notFun [fun]
@@ -156,8 +155,20 @@
  "Gets the NNF of any axiom or class. (anything besides a class axiom returns itself)"
  [thing]
  (case (:type thing)
-  :axiom (if (= (:outerType thing) :classAxiom)
-          (getClassAxiomNNF thing)
+  :axiom (case (:outerType thing) 
+          :classAxiom (getClassAxiomNNF thing)
+          :fact (if (= (:innerType thing) :classFact) 
+                 (update thing :class getClassNNF) 
+                 thing)
+          :roleAxiom (case (:innerType thing) 
+                      :roleDomain (update thing :class getClassNNF)
+                      :roleRange (update thing :class getClassNNF)
+                      thing)
+          :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
+                          (update thing :class getClassNNF) 
+                          thing)
+          :hasKey (update thing :class getClassNNF)
+          :rule (update (update thing :head (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:head thing))) :body (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:body thing)))
           thing)
   :class (getClassNNF thing)
   thing))
@@ -197,14 +208,26 @@
 (defn- getClassAxiomDSNF [axiom]
   (if (= (:innerType axiom) :classImplication)
     (ex/or (getClassDSNF (negate (:antecedent axiom))) (getClassDSNF (:consequent axiom)))
-    (map getClassAxiomDSNF (toClassImplications axiom))))
+    (ex/and (map getClassAxiomDSNF (toClassImplications axiom)))))
 
 (defn ^:no-doc getDSNF 
  "Gets the Disjunctive Syntactic Normal Form for an axiom or class. Unfinished"
  [thing]
  (case (:type thing)
-  :axiom (if (= (:outerType thing) :classAxiom)
-          (getClassAxiomDSNF thing)
+  :axiom (case (:outerType thing) 
+          :classAxiom (getClassAxiomDSNF thing)
+          :fact (if (= (:innerType thing) :classFact) 
+                 (update thing :class getClassDSNF) 
+                 thing)
+          :roleAxiom (case (:innerType thing) 
+                      :roleDomain (update thing :class getClassDSNF)
+                      :roleRange (update thing :class getClassDSNF)
+                      thing)
+          :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
+                          (update thing :class getClassDSNF) 
+                          thing)
+          :hasKey (update thing :class getClassDSNF)
+          :rule (update (update thing :head (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassDSNF) %) (:head thing))) :body (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassDSNF) %) (:body thing)))
           thing)
   :class (getClassDSNF thing)
   thing))
@@ -240,14 +263,26 @@
 (defn- getClassAxiomCSNF [axiom]
   (if (= (:innerType axiom) :classImplication)
    (negate (ex/and (getClassCSNF (:antecedent axiom)) (getClassCSNF (negate (:consequent axiom)))))
-   (map getClassAxiomCSNF (toClassImplications axiom))))
+   (ex/and (map getClassAxiomCSNF (toClassImplications axiom)))))
 
 (defn ^:no-doc getCSNF 
  "Gets the Conjunctive Syntactic Normal Form for an axiom or class. Unfinished"
  [thing]
  (case (:type thing)
-  :axiom (if (= (:outerType thing) :classAxiom)
-          (getClassAxiomCSNF thing)
+  :axiom (case (:outerType thing) 
+          :classAxiom (getClassAxiomCSNF thing)
+          :fact (if (= (:innerType thing) :classFact) 
+                 (update thing :class getClassCSNF) 
+                 thing)
+          :roleAxiom (case (:innerType thing) 
+                      :roleDomain (update thing :class getClassCSNF)
+                      :roleRange (update thing :class getClassCSNF)
+                      thing)
+          :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
+                          (update thing :class getClassCSNF) 
+                          thing)
+          :hasKey (update thing :class getClassNNF)
+          :rule (update (update thing :head (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:head thing))) :body (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:body thing)))
           thing)
   :class (getClassCSNF thing)
   thing))
