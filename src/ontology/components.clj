@@ -30,7 +30,7 @@
  "rdfs:Literal"
  {:namespace rdfsNS :name "Literal" :prefix "rdfs" :iri (str "<" rdfsNS "Literal" ">") :arity 1 :type :dataType :innerType :dataType})
 (def RDFLangString
- {:namespace rdfNS :name "langString" :prefix "rdfs" :iri (str "<" rdfsNS "langString" ">") :arity 1 :type :dataType :innerType :dataType})
+ {:namespace rdfNS :name "langString" :prefix "rdf" :iri (str "<" rdfNS "langString" ">") :arity 1 :type :dataType :innerType :dataType})
 (def TopRole
  "owl:topObjectProperty"
  {:namespace owlNS :name "topObjectProperty" :prefix "owl" :iri (str "<" owlNS "topObjectProperty" ">") :type :role :innerType :roleTop})

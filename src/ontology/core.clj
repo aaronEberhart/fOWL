@@ -78,7 +78,7 @@
  "Gets a set of all the iris used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (:iri %) (if (not= (:innerType %) :prefix) (send a conj %))) object)
+       _ (msc/fowlPostwalk #(if (:iri %) (if (not= (:innerType %) :prefix) (do (send a conj %) %) %) %) object)
        _ (await a)]
   @a))
 
@@ -86,7 +86,7 @@
  "Gets the set of all the class, role, and dataRole, individual, dataType, and annotationRole names used in this object. This is identical with the 'Entity' definition in the OWL specification"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(case (:innerType %) :className (send a conj %) :roleName (send a conj %) :dataRoleName (send a conj %) :annotationRoleName (send a conj %) :namedIndividual (send a conj %) :dataType (send a conj (dissoc % :type)) nil) object)
+       _ (msc/fowlPostwalk #(case (:innerType %) :className (do (send a conj %) %) :roleName (do (send a conj %) %) :dataRoleName (do (send a conj %) %) :annotationRoleName (do (send a conj %) %) :namedIndividual (do (send a conj %) %) :dataType (do (send a conj (dissoc % :type)) %) %) object)
        _ (await a)]
   @a))
 
@@ -94,7 +94,7 @@
  "Gets a set of all the class names used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :className) (send a conj %) nil) object)
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :className) (do (send a conj %) %) %) object)
        _ (await a)]
  @a))
 
@@ -102,7 +102,7 @@
  "Gets a set of all the role names used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :roleName) (send a conj %) nil) object)
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :roleName) (do (send a conj %) %) %) object)
        _ (await a)]
  @a))
 
@@ -110,7 +110,7 @@
  "Gets the set of all the class, role, and dataRole names used in this object. Predicate means anything that can contain an individual (not a datatype)."
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(case (:innerType %) :className (send a conj %) :roleName (send a conj %) :dataRoleName (send a conj %) :nominal (send a conj %) nil) object)
+       _ (msc/fowlPostwalk #(case (:innerType %) :className (do (send a conj %) %) :roleName (do (send a conj %) %) :dataRoleName (do (send a conj %) %) :nominal (do (send a conj %) %) %) object)
        _ (await a)]
  @a))
 
@@ -118,7 +118,7 @@
  "Gets a set of all the data role names used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :dataRoleName) (send a conj %) nil) object)
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :dataRoleName) (do (send a conj %) %) %) object)
        _ (await a)]
  @a))
 
@@ -126,7 +126,7 @@
  "Gets a set of all the data types used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :dataType) (send a conj %) nil) object)
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :dataType) (do (send a conj (dissoc % :type)) %) %) object)
        _ (await a)]
  @a))
 
@@ -134,7 +134,7 @@
  "Gets a set of all the classes used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :class) (send a conj %) nil) object)
+       _ (msc/fowlPostwalk #(if (= (:type %) :class) (do (send a conj %) %) %) object)
        _ (await a)]
  @a))
 
@@ -142,7 +142,7 @@
  "Gets a set of all the roles used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(case (:type %) :role (send a conj %) :inverseRole (send a conj %) nil) object)
+       _ (msc/fowlPostwalk #(case (:type %) :role (do (send a conj %) %) :inverseRole (do (send a conj %) %) %) object)
        _ (await a)]
  @a))
 
@@ -150,7 +150,7 @@
  "Gets a set of all the roles chains used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :roleChain) (send a conj %) nil) object)
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :roleChain) (do (send a conj %) %) %) object)
        _ (await a)]
  @a))
 
