@@ -77,56 +77,82 @@
 (defn getIRIs
  "Gets a set of all the iris used in this object"
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(if (:iri %) (send a conj (:iri %)) a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(if (:iri %) (if (not= (:innerType %) :prefix) (send a conj %))) object)
+       _ (await a)]
+  @a))
+
+(defn getNames
+ "Gets the set of all the class, role, and dataRole, individual, dataType, and annotationRole names used in this object. This is identical with the 'Entity' definition in the OWL specification"
+ [object]
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(case (:innerType %) :className (send a conj %) :roleName (send a conj %) :dataRoleName (send a conj %) :annotationRoleName (send a conj %) :namedIndividual (send a conj %) :dataType (send a conj (dissoc % :type)) nil) object)
+       _ (await a)]
+  @a))
 
 (defn getClassNames
  "Gets a set of all the class names used in this object"
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(if (= (:innerType %) :className) (send a conj %) a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :className) (send a conj %) nil) object)
+       _ (await a)]
+ @a))
 
 (defn getRoleNames
  "Gets a set of all the role names used in this object"
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(if (= (:innerType %) :roleName) (send a conj %) a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :roleName) (send a conj %) nil) object)
+       _ (await a)]
+ @a))
 
 (defn getPredicateNames
  "Gets the set of all the class, role, and dataRole names used in this object. Predicate means anything that can contain an individual (not a datatype)."
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(cond (= (:innerType %) :className) (send a conj %) (= (:innerType %) :roleName) (send a conj %) (= (:innerType %) :dataRoleName) (send a conj %) (= (:innerType %) :nominal) (send a conj %) :else a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(case (:innerType %) :className (send a conj %) :roleName (send a conj %) :dataRoleName (send a conj %) :nominal (send a conj %) nil) object)
+       _ (await a)]
+ @a))
 
 (defn getDataRoleNames
  "Gets a set of all the data role names used in this object"
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(if (= (:innerType %) :dataRoleName) (send a conj %) a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :dataRoleName) (send a conj %) nil) object)
+       _ (await a)]
+ @a))
 
 (defn getDataTypes
  "Gets a set of all the data types used in this object"
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(if (= (:innerType %) :dataType) (send a conj %) a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :dataType) (send a conj %) nil) object)
+       _ (await a)]
+ @a))
 
 (defn getClasses
  "Gets a set of all the classes used in this object"
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(if (= (:innerType %) :class) (send a conj %) a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :class) (send a conj %) nil) object)
+       _ (await a)]
+ @a))
 
 (defn getRoles
  "Gets a set of all the roles used in this object"
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(cond (= (:type %) :role) (send a conj %) (= (:type %) :inverseRole) (send a conj %) :else a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(case (:type %) :role (send a conj %) :inverseRole (send a conj %) nil) object)
+       _ (await a)]
+ @a))
 
 (defn getRoleChains
  "Gets a set of all the roles chains used in this object"
  [object]
- (let [a (agent #{})]
-  @(msc/fowlPostwalk #(if (= (:innerType %) :roleChain) (send a conj %) a) object)))
+ (let [a (agent #{})
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :roleChain) (send a conj %) nil) object)
+       _ (await a)]
+ @a))
 
 (defn getAxioms 
  "Returns the axioms from an ontology in a lazy sequence"
@@ -974,3 +1000,4 @@
   toDLString - DL instead of functional"
  toString) 
 (defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))
+(defmethod print-method clojure.lang.PersistentHashMap [x w](.write w (printStyle x)))

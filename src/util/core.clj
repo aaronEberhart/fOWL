@@ -61,9 +61,9 @@
 
    ;atoms
    :lexicalForm (outer form)
-   :typedLiteral (outer form)
+   :typedLiteral (outer (update form :dataType outer))
    :stringLiteralNoLanguage (outer form)
-   :stringLiteralWithLanguage (outer form)
+   :stringLiteralWithLanguage (outer (update form :dataType outer))
    :top (outer form)
    :bot (outer form)
    :roleTop (outer form)
@@ -126,10 +126,10 @@
    :nominal (outer (update form :individuals #(into #{} (map outer %))))
 
    ;annotation
-   :annotation (outer (update (update (if (:annotations form) (update form :annotations #(into #{} (map inner %))) form) :annotationRole outer) :annotationValue outer))
+   :annotation (outer (update (update (if (:annotations form) (update form :annotations #(into #{} (map inner %))) form) :annotationRole outer) :annotationValue inner))
    :axiomAnnotations (outer (update form :annotations #(into #{} (map inner %))))
    :metaAnnotations (outer (update form :annotations #(into #{} (map inner %))))
-   :annotationFact (outer (update (update (update (if (:annotations form) (update form :annotations #(into #{} (map inner %))) form) :annotationRole outer) :annotationSubject outer) :annotationValue outer))
+   :annotationFact (outer (update (update (update (if (:annotations form) (update form :annotations #(into #{} (map inner %))) form) :annotationRole outer) :annotationSubject outer) :annotationValue inner))
    :annotationImplication (outer (update (update (if (:annotations form) (update form :annotations #(into #{} (map inner %))) form) :antecedent inner) :consequent inner))
 
    ;assertions

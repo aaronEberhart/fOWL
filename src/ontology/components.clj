@@ -29,6 +29,8 @@
 (def RDFSLiteral
  "rdfs:Literal"
  {:namespace rdfsNS :name "Literal" :prefix "rdfs" :iri (str "<" rdfsNS "Literal" ">") :arity 1 :type :dataType :innerType :dataType})
+(def RDFLangString
+ {:namespace rdfNS :name "langString" :prefix "rdfs" :iri (str "<" rdfsNS "langString" ">") :arity 1 :type :dataType :innerType :dataType})
 (def TopRole
  "owl:topObjectProperty"
  {:namespace owlNS :name "topObjectProperty" :prefix "owl" :iri (str "<" owlNS "topObjectProperty" ">") :type :role :innerType :roleTop})
@@ -69,22 +71,22 @@
  ([iri]
   (if (string? iri)
    (if (and (= \< (first iri)) (= \> (last iri)))
-    {:reserved (isReservedIRI? iri) :iri iri}
+    {:iri iri}
     (if-some [[_ prefix name] (re-matches #"^([^\<\>\(\)\"\\\s]+)\:([^\:\<\>\(\)\"\\\s]*)" iri)]
-     {:reserved (isReservedIRI? iri) :name name :prefix prefix :iri iri}
+     {:name name :prefix prefix :iri iri}
      (if-some [[_ iri] (re-matches #"^([^\<\>\(\)\"\\\s]+)" iri)]
-      {:reserved (isReservedIRI? iri) :iri iri}
+      {:iri iri}
       (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
    (if (:iri iri)
     iri
     (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
  ([prefix name]
   (if (and (re-matches #"^[^\<\>\(\)\"\\\s]+" name)(re-matches #"^[^\<\>\(\)\"\\\s]*" prefix))
-   {:reserved (isReservedIRI? (str prefix ":" name)) :name name :prefix prefix :iri (str prefix ":" name)}
+   {:name name :prefix prefix :iri (str prefix ":" name)}
    (throw (Exception. (str  {:type ::notIRI :name name :prefix prefix})))))
  ([prefix name namespace]
   (if (and (re-matches #"^[^\<\>\(\)\"\\\s]+" name)(re-matches #"^[^\<\>\(\)\"\\\s]*" prefix)(re-matches #"^([^\:\<\>\(\)\"\\\s]+)\:([^\<\>\(\)\"\\\s]*)" namespace))
-   {:reserved (isReservedIRI? (str prefix ":" name)) :namespace namespace :name name :prefix prefix :iri (str "<" namespace name ">")}
+   {:namespace namespace :name name :prefix prefix :iri (str "<" namespace name ">")}
    (throw (Exception. (str  {:type ::notIRI :namespace namespace :name name :prefix prefix}))))))
 
 (defn className
@@ -219,7 +221,7 @@
  "typedLiteral := lexicalForm '^^' Datatype"
  [lexicalForm datatype]
  (if (and (= (:type lexicalForm) :lexicalForm)(= (:type datatype) :dataType))
-  (assoc datatype :value (str (:value lexicalForm) \^ \^  (if (:prefix datatype) (str (:prefix datatype)":"(:name datatype)) (:iri datatype))) :type :typedLiteral :innerType :typedLiteral)
+  {:dataType datatype :value (str (:value lexicalForm) \^ \^  (if (:prefix datatype) (str (:prefix datatype)":"(:name datatype)) (:iri datatype))) :type :typedLiteral :innerType :typedLiteral}
   (throw (Exception. (str  {:type ::notTypedLiteral :lexicalForm lexicalForm :dataType datatype})))))
 
 (defn- -lexicalForm 
@@ -250,7 +252,7 @@
  "stringLiteralWithLanguage := quotedString languageTag"
  [string lang]
  (if (and (string? string) (string? lang))
-  {:value (str \" string \" \@ lang) :type :stringLiteralWithLanguage :innerType :stringLiteralWithLanguage}
+  {:dataType RDFLangString :value (str \" string \" \@ lang) :type :stringLiteralWithLanguage :innerType :stringLiteralWithLanguage}
   (throw (Exception. (str  {:type ::notStringLiteralWithLang :string string :lang lang})))))
 
 (defn stringLiteralWithLanguage
