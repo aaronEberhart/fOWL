@@ -973,4 +973,4 @@
 
   toDLString - DL instead of functional"
  toString) 
-;(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))
+(defmethod print-method clojure.lang.PersistentArrayMap [x w](.write w (printStyle x)))

@@ -152,7 +152,7 @@
   (map getClassAxiomNNF (toClassImplications axiom))))
 
 (defn getNNF 
- "Gets the NNF of any axiom or class. (anything without classes returns itself)"
+ "Gets the NNF of anything. (non-fowl objects and fowl objects without classes return themselves)"
  [thing]
  (case (:type thing)
   :axiom (case (:outerType thing) 
