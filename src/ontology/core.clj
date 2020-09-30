@@ -408,12 +408,12 @@
  (nml/getNNF object))
 
 (defn body 
- "The body of a SWRL rule."
+ "The body of a SWRL or dg rule."
  [& atoms]
  (swrl/body atoms))
 
 (defn head 
- "The head of a SWRL Rule"
+ "The head of a SWRL or dg Rule"
  [& atoms] 
  (swrl/head atoms))
 
