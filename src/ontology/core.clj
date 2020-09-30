@@ -398,9 +398,14 @@
  (nml/negate class))
 
 (defn toClassImplications 
- "Converts an axiom to an equivalent axiom or set of axioms that are class implications"
+ "Converts a class axiom to an equivalent axiom or set of axioms that are class implications"
  [classaxiom] 
  (nml/toClassImplications classaxiom))
+
+(defn toSyntacticEquivalent 
+ "Converts an axiom to an equivalent axiom or set of axioms that are class, role, or dataRole implications if such an equivalence exists. Corresponds to the definitions of syntactic shortcuts in the OWL 2 Specification."
+ [axiom]
+ (nml/toSyntacticEquivalent axiom))
 
 (defn getNNF 
  "Gets the NNF of any object that is a class axiom or a class. Any non-class axiom or non-class is returned, since NNF is undefined."

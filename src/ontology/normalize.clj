@@ -147,17 +147,17 @@
   ([classes class1 class2](throw (Exception. (str  {:type ::notNormalizable :class classes})))))
 
 (defn toClassImplications 
- "Converts an axiom to an equivalent axiom or set of axioms that are class implications"
+ "Converts a class axiom to an equivalent axiom or set of axioms that are class implications"
  [axiom]
  (case (:innerType axiom)
   :classImplication axiom
   :disjClasses (disjToImp (iriPermutations (into [] (:classes axiom))))
   :=classes (equivToClassImp (iriPermutations (into [] (:classes axiom))))
   :disjOr (apply conj (toClassImplications (ax/disjClasses (:classes axiom))) (toClassImplications (ax/=classes [(:class axiom) (apply ex/or (:classes axiom))])))
-  (throw (Exception. (str  {:type ::incompatibleClassAxiom :axiom axiom})))))
+  axiom))
 
 (defn toSyntacticEquivalent 
- "Converts an axiom to an equivalent axiom or set of axioms that are class, role, or dataRole implications if such an equivalent exists"
+ "Converts an axiom to an equivalent axiom or set of axioms that are class, role, or dataRole implications if such an equivalence exists. Corresponds to the expanded definitions of syntactic shortcuts in the OWL 2 Specification."
  [axiom]
  (case (:innerType axiom)
   :disjClasses (disjToImp (iriPermutations (into [] (:classes axiom))))
