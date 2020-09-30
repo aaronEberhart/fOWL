@@ -115,7 +115,7 @@
         (deMorgan class getClassNNF))
   (throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
-(defn- classesPermutations [classes]
+(defn- iriPermutations [classes]
   (cons (cons (peek classes) (cons (first classes) nil)) (if (> (count classes) 2) (partition 2 1 classes))))
 
 (defn- disjToImp
@@ -124,11 +124,23 @@
   ([classes pair]
     (conj classes (ax/classImplication (first pair) (negate (first (rest pair)))))))
 
-(defn- equivToImp
+(defn- equivToClassImp
   ([classes]
-    (reduce equivToImp #{} classes))
+    (reduce equivToClassImp #{} classes))
   ([classes pair]
     (conj classes (ax/classImplication (first pair) (first (rest pair))) (ax/classImplication (first (rest pair)) (first pair)))))
+
+(defn- equivToRoleImp
+  ([classes]
+    (reduce equivToRoleImp #{} classes))
+  ([classes pair]
+    (conj classes (ax/roleImplication (first pair) (first (rest pair))) (ax/roleImplication (first (rest pair)) (first pair)))))
+
+(defn- equivToDataRoleImp
+  ([classes]
+    (reduce equivToRoleImp #{} classes))
+  ([classes pair]
+    (conj classes (ax/dataRoleImplication (first pair) (first (rest pair))) (ax/dataRoleImplication (first (rest pair)) (first pair)))))
 
 (defn- disjOrToImp
   ([class classes](reduce disjToImp #{} classes))
@@ -139,10 +151,33 @@
  [axiom]
  (case (:innerType axiom)
   :classImplication axiom
-  :disjClasses (disjToImp (classesPermutations (into [] (:classes axiom))))
-  :=classes (equivToImp (classesPermutations (into [] (:classes axiom))))
+  :disjClasses (disjToImp (iriPermutations (into [] (:classes axiom))))
+  :=classes (equivToClassImp (iriPermutations (into [] (:classes axiom))))
   :disjOr (apply conj (toClassImplications (ax/disjClasses (:classes axiom))) (toClassImplications (ax/=classes [(:class axiom) (apply ex/or (:classes axiom))])))
   (throw (Exception. (str  {:type ::incompatibleClassAxiom :axiom axiom})))))
+
+(defn toSyntacticEquivalent 
+ "Converts an axiom to an equivalent axiom or set of axioms that are class, role, or dataRole implications if such an equivalent exists"
+ [axiom]
+ (case (:innerType axiom)
+  :disjClasses (disjToImp (iriPermutations (into [] (:classes axiom))))
+  :=classes (equivToClassImp (iriPermutations (into [] (:classes axiom))))
+  :disjOr (apply conj (toSyntacticEquivalent (ax/disjClasses (:classes axiom))) (toSyntacticEquivalent (ax/=classes [(:class axiom) (apply ex/or (:classes axiom))])))
+  :=roles (equivToRoleImp (iriPermutations (into [] (:roles axiom))))
+  :inverseRoles (toSyntacticEquivalent (ax/=roles  (:role axiom) (ex/inverseRole (:inverse axiom))))
+  :roleDomain (ax/classImplication (ex/exists (:role axiom) co/Top)  (:class axiom)) 
+  :roleRange (ax/classImplication co/Top (ex/all (:role axiom) (:class axiom)))
+  :functionalRole (ax/classImplication co/Top (ex/<=exists 1 (:role axiom)))
+  :functionalInverseRole (ax/classImplication co/Top (ex/<=exists 1 (ex/inverseRole (:role axiom))))
+  :reflexiveRole (ax/classImplication co/Top (ex/Self (:role axiom)))
+  :irreflexiveRole (ax/classImplication (ex/Self (:role axiom)) co/Bot)
+  :symmetricRole (ax/roleImplication  (:role axiom) (ex/inverseRole (:role axiom)))
+  :transitiveRole (ax/roleImplication (ax/roleChain (:role axiom) (:role axiom)) (:role axiom))
+  :=dataRoles (equivToDataRoleImp (iriPermutations (into [] (:dataRoles axiom))))
+  :dataRoleDomain (ax/classImplication (ex/dataExists (:dataRole axiom)) (:class axiom))
+  :dataRoleRange (ax/classImplication co/Top (ex/dataAll (:dataRole axiom) (:class axiom)))
+  :functionalDataRole (ax/classImplication co/Top (ex/<=dataExists 1 (:role axiom)))
+  axiom))
 
 (defn- getClassAxiomNNF 
  "Gets the NNF of a class axiom"
@@ -163,7 +198,7 @@
           :roleAxiom (case (:innerType thing) 
                       :roleDomain (update thing :class getClassNNF)
                       :roleRange (update thing :class getClassNNF)
-                      thing)
+                      (toSyntacticEquivalent thing))
           :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
                           (update thing :class getClassNNF) 
                           thing)
@@ -180,12 +215,12 @@
   :top class
   :bot class
   :nominal class
-  :partialRole class
+  :partialRole (ex/exists (:role class) (ex/nominal (:individual class)))
   :dataExists class
   :dataAll class
   :>=dataExists class
   :<=dataExists class
-  :partialDataRole class
+  :partialDataRole (ex/dataExists (:dataRole class) (co/dataOneOf (:literal class)))
   :all (if (:class class) (checkInnerClass class getClassDSNF) class)
   :exists (if (:class class) (checkInnerClass class getClassDSNF) class)
   :>=exists (if (:class class) (checkInnerClass class getClassDSNF) class)
@@ -220,12 +255,12 @@
                  (update thing :class getClassDSNF) 
                  thing)
           :roleAxiom (case (:innerType thing) 
-                      :roleDomain (update thing :class getClassDSNF)
-                      :roleRange (update thing :class getClassDSNF)
-                      thing)
+                      :roleDomain (getDSNF (toSyntacticEquivalent thing))
+                      :roleRange (getDSNF (toSyntacticEquivalent thing))
+                      (toSyntacticEquivalent thing))
           :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
-                          (update thing :class getClassDSNF) 
-                          thing)
+                          (getDSNF (toSyntacticEquivalent thing))
+                          (toSyntacticEquivalent thing))
           :hasKey (update thing :class getClassDSNF)
           :rule (update (update thing :head (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassDSNF) %) (:head thing))) :body (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassDSNF) %) (:body thing)))
           thing)
@@ -237,12 +272,12 @@
   :className class
   :Self class
   :nominal class
-  :partialRole class
+  :partialRole (ex/exists (:role class) (ex/nominal (:individual class)))
   :dataExists class
   :dataAll class
   :>=dataExists class
   :<=dataExists class
-  :partialDataRole class
+  :partialDataRole (ex/dataExists (:dataRole class) (co/dataOneOf (:literal class)))
   :all (if (:class class) (checkInnerClass class getClassCSNF) class)
   :exists (if (:class class) (checkInnerClass class getClassCSNF) class)
   :>=exists (if (:class class) (checkInnerClass class getClassCSNF) class)
@@ -275,14 +310,14 @@
                  (update thing :class getClassCSNF) 
                  thing)
           :roleAxiom (case (:innerType thing) 
-                      :roleDomain (update thing :class getClassCSNF)
-                      :roleRange (update thing :class getClassCSNF)
-                      thing)
+                      :roleDomain (getCSNF (toSyntacticEquivalent thing))
+                      :roleRange (getCSNF (toSyntacticEquivalent thing))
+                      (toSyntacticEquivalent thing))
           :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
-                          (update thing :class getClassCSNF) 
-                          thing)
+                          (getCSNF (toSyntacticEquivalent thing))
+                          (toSyntacticEquivalent thing))
           :hasKey (update thing :class getClassNNF)
           :rule (update (update thing :head (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:head thing))) :body (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:body thing)))
-          thing)
+          (toSyntacticEquivalent thing))
   :class (getClassCSNF thing)
   thing))

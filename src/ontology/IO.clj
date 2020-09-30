@@ -112,7 +112,7 @@
  (case (:innerType thing)
 
   ;not an OWL map
-  nil (if (:iri thing) (:iri thing) (if (map? thing) (str "{" (s/join ", " (map #(str (toDLString %) " " (toDLString (get thing %))) (keys thing))) "}") (if thing (str thing) "nil")))
+  nil (if (:iri thing) (:iri thing) (if (map? thing) (str "{" (s/join ", " (map #(str (toDLString %) " " (toDLString (% thing))) (keys thing))) "}") (if thing (str thing) "nil")))
 
   ;atoms
   :top "⊤"
@@ -122,6 +122,7 @@
   :typedLiteral (:value thing)
   :stringLiteralNoLanguage (:value thing)
   :stringLiteralWithLanguage (:value thing)
+  :name (swapPrefixes (:name thing)) 
   :dataType (swapPrefixes thing)
   :restrictedValue (str (swapPrefixes thing) " " (:value thing))
   :className (noPrefixes thing)
@@ -159,7 +160,7 @@
 
   ;roles
   :roleChain (s/join " ∘ " (map (fn [x] (toDLString x)) (:roles thing)))
-  :partialRole (str "∃" (toDLString (:role thing)) "{" (:name (:individual thing)) "}")
+  :partialRole (str "∃" (toDLString (:role thing)) "{" (:individual thing) "}")
   :=exists (str "=" (:nat thing) (toDLString (:role thing)) (str "."  (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
   :<=exists (str "≤" (:nat thing) (toDLString (:role thing))  (str "." (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
   :>=exists (str "≥" (:nat thing) (toDLString (:role thing))  (str "."  (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
@@ -220,6 +221,8 @@
 
   ;SWRL
   :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toDLString x)) (:annotations thing))) " ") "") "Body(" (s/join " " (map (fn [x] (toDLString x)) (:body thing))) ") Head(" (s/join " " (map (fn [x] (toDLString x)) (:head thing))) "))")
+  :dgRule (str "DescriptionGraphRule(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toDLString x)) (:annotations thing))) " ") "") "Body(" (s/join " " (map (fn [x] (toDLString x)) (:body thing))) ") Head(" (s/join " " (map (fn [x] (toDLString x)) (:head thing))) "))")
+  :dgAxiom (str "DescriptionGraph(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toDLString x)) (:annotations thing))) " ") "") (swapPrefixes (:dgName thing)) " Nodes(" (s/join " " (map (fn [x] (toDLString x)) (:dgNodes thing))) ") Edges(" (s/join " " (map (fn [x] (toDLString x)) (:dgEdges thing))) ") MainClasses(" (s/join " " (map (fn [x] (toDLString x)) (:mainClasses thing))) "))")
   :classAtom (str "ClassAtom(" (toDLString (:class thing)) " " (toDLString (:iarg thing)) ")")
   :dataRangeAtom (str "DataRangeAtom(" (toDLString (:dataRange thing)) " " (toDLString (:darg thing)) ")")
   :roleAtom (str "ObjectPropertyAtom(" (toDLString (:role thing)) " " (toDLString (:iarg1 thing)) " " (toDLString (:iarg2 thing)) ")")
@@ -227,7 +230,9 @@
   :builtInAtom (str "BuiltInAtom(" (toDLString (:iri thing)) " " (s/join " " (map (fn [x] (toDLString x)) (:dargs thing))) ")")
   :=individualsAtom (str "SameIndividualAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toDLString (:iarg1 thing)) (toDLString (:iarg2 thing)) ")")
-  :variable (str "Variable(" (if (:name thing) (str (:prefix thing) ":" (:name thing)) (:iri thing)) ")")))
+  :variable (str "Variable(" (if (:name thing) (str (:prefix thing) ":" (:name thing)) (:iri thing)) ")")
+  :nodeFact (str "NodeAssertion(" (toDLString (:class thing)) " " (swapPrefixes (:node thing)) ")")
+  :edgeFact (str "EdgeAssertion(" (toDLString (:role thing)) " " (swapPrefixes (:node1 thing)) " " (swapPrefixes (:node2 thing)) ")")))
 
 (defn toString 
  "Returns a functional syntax string representation of the map object used to store the OWL data, or the default representation if there is no OWL type contained in the map. Note that this is __*not*__ the same as java toString."
@@ -242,6 +247,7 @@
   :typedLiteral (:value thing)
   :stringLiteralNoLanguage (:value thing)
   :stringLiteralWithLanguage (:value thing)
+  :name (swapPrefixes (:name thing)) 
   :top (swapPrefixes thing)
   :bot (swapPrefixes thing)
   :roleTop (swapPrefixes thing)
@@ -295,7 +301,7 @@
   :or (str "ObjectUnionOf(" (s/join " " (map (fn [x] (toString x )) (:classes thing))) ")")
   :and (str "ObjectIntersectionOf(" (s/join " " (map (fn [x] (toString x )) (:classes thing))) ")")
   :Self (str "ObjectHasSelf(" (toString (:role thing)) ")")
-  :nominal (str "ObjectOneOf("(s/join " " (map (fn [x] (toString x)) (:individuals thing))) ")")
+  :nominal (str "ObjectOneOf(" (s/join " " (map (fn [x] (toString x)) (:individuals thing))) ")")
 
   ;annotation
   :annotation (str "Annotation(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:annotationRole thing)) " "  (toString (:annotationValue thing) ) ")")
@@ -343,6 +349,9 @@
   :newDataType (str "DatatypeDefinition(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (toString (:dataType thing) ) " " (toString (:dataRange thing) ) ")")
 
   ;swrl
+  :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (s/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (s/join " " (map (fn [x] (toString x)) (:head thing))) "))")
+  :dgRule (str "DescriptionGraphRule(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (s/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (s/join " " (map (fn [x] (toString x)) (:head thing))) "))")
+  :dgAxiom (str "DescriptionGraph(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") (swapPrefixes (:dgName thing)) " Nodes(" (s/join " " (map (fn [x] (toString x)) (:dgNodes thing))) ") Edges(" (s/join " " (map (fn [x] (toString x)) (:dgEdges thing))) ") MainClasses(" (s/join " " (map (fn [x] (toString x)) (:mainClasses thing))) "))")
   :classAtom (str "ClassAtom(" (toString (:class thing)) " " (toString (:iarg thing)) ")")
   :dataRangeAtom (str "DataRangeAtom(" (toString (:dataRange thing)) " " (toString (:darg thing)) ")")
   :roleAtom (str "ObjectPropertyAtom(" (toString (:role thing)) " " (toString (:iarg1 thing)) " " (toString (:iarg2 thing)) ")")
@@ -350,8 +359,9 @@
   :builtInAtom (str "BuiltInAtom(" (toString (:iri thing)) " " (s/join " " (map (fn [x] (toString x)) (:dargs thing))) ")")
   :=individualsAtom (str "SameIndividualAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
   :!=individualsAtom (str "DifferentIndividualsAtom(" (toString (:iarg1 thing)) (toString (:iarg2 thing)) ")")
-  :variable (str "Variable(" (if (:name thing) (str (:prefix thing) ":" (:name thing)) (:iri thing)) ")")
-  :dlSafeRule (str "DLSafeRule(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toString x)) (:annotations thing))) " ") "") "Body(" (s/join " " (map (fn [x] (toString x)) (:body thing))) ") Head(" (s/join " " (map (fn [x] (toString x)) (:head thing))) "))")))
+  :variable (str "Variable(" (if (:name thing) (str (:prefix thing) ":" (:name thing)) (:iri thing)) ")")  
+  :nodeFact (str "NodeAssertion(" (toDLString (:class thing)) " " (swapPrefixes (:node thing)) ")")
+  :edgeFact (str "EdgeAssertion(" (toDLString (:role thing)) " " (swapPrefixes (:node1 thing)) " " (swapPrefixes (:node2 thing)) ")")))
 
 (defn- getFunction 
  [typeString]
@@ -572,7 +582,6 @@
         axFun ax
         exps exs
         expFuns funs]
-        ;(if (< 50 (count state))(println (subs state 0 15)))
  (if-some [doneMatch (re-matches (:closeParenPat regexes) state)]
   (cond
    (nil? axFun)
@@ -617,6 +626,7 @@
          function nil
          expressions '([])
          functionList '()]
+
   (let [[state objects function expressions functionList] (loopFunction regexes state objects function expressions functionList prefixes)]
    (if (stopCondition [objects state lines])
     [(persistent! objects) (lazy-seq (cons state (if (some? lines)(rest lines))))]

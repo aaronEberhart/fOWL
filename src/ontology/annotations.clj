@@ -9,20 +9,18 @@
  "AnnotationProperty := IRI"
  ([iri]
  (if (string? iri)
-    {:reserved (co/isReservedIRI? iri) :iri iri :type :annotationRole :innerType :annotationRole}
+    {:iri iri :type :annotationRole :innerType :annotationRole}
     (if (:iri iri)
      (assoc iri :type :annotationRole :innerType :annotationRole)
      (throw (Exception. (str  {:type ::notStringIRI :iri iri}))))))
  ([prefix name]
    (if (and (string? name)(string? prefix))
-    (let [check (str prefix name)]
-     {:reserved (co/isReservedIRI? (str prefix ":" name)) :name name :prefix prefix :iri (str prefix ":" name )}))
-     (throw (Exception. (str  {:type ::notStringIRI :iri name}))))
+     {:name name :prefix prefix :iri (str prefix ":" name )}
+     (throw (Exception. (str  {:type ::notStringIRI :iri name})))))
   ([prefix name namespace]
    (if (and (and (string? name)(string? namespace))(string? prefix))
-    (let [check (str prefix name)]
-     {:reserved (co/isReservedIRI? (str prefix ":" name)) :namespace namespace :name name :prefix prefix :iri (str "<" namespace name ">")}))
-     (throw (Exception. (str  {:type ::notStringIRI :iri name})))))
+     {:namespace namespace :name name :prefix prefix :iri (str "<" namespace name ">")}
+     (throw (Exception. (str  {:type ::notStringIRI :iri name}))))))
 
 (defn annotationValue 
  "AnnotationValue := AnonymousIndividual | IRI | Literal"

@@ -457,6 +457,42 @@
  [iarg1 iarg2] 
  (swrl/!=individualsAtom iarg1 iarg2))
 
+(defn dgName
+ "DGName ::= IRI"
+ [iri]
+ (swrl/dgName iri))
+
+(defn nodeFact 
+ "NodeAssertion ::= ‘NodeAssertion’‘(’ Class DGNode ‘)’"
+ [class node]
+ (swrl/nodeFact class node))
+
+(defn dgNodes 
+ "DGNodes ::= ‘Nodes’‘(’ NodeAssertion { NodeAssertion } ‘)’"
+ ([node]
+  (swrl/dgNodes node))
+ ([node & nodes]
+  (swrl/dgNodes node nodes)))
+
+(defn  edgeFact 
+ "EdgeAssertion ::= ‘EdgeAssertion’ ‘(’ ObjectProperty DGNode DGNode ‘)’"
+ [role node1 node2]
+ (swrl/edgeFact role node1 node2))
+
+(defn dgEdges
+ "EdgeAssertion ::= ‘EdgeAssertion’ ‘(’ ObjectProperty DGNode DGNode ‘)’"
+ ([edge]
+  (swrl/dgEdges edge))
+ ([edge & edges]
+  (swrl/dgEdges edge edges)))
+
+(defn mainClasses 
+ "MainClasses ::= ‘MainClasses’ ‘(’ Class { Class } ‘)’"
+ ([class]
+  (swrl/mainClasses class))
+ ([class & classes]
+  (swrl/mainClasses class classes)))
+
 (defn declaration 
  "Declaration := 'Declaration' '(' axiomAnnotations Entity ')'"
  [& args]
@@ -465,7 +501,17 @@
 (defn dlSafeRule 
  "DLSafeRule ::= DLSafeRule ‘(’ axiomAnnotations ‘Body’ ‘(’ {Atom} ‘)’ ‘Head’ ‘(’ {Atom} ‘)’ ‘)’"
  [& args]
-  (apply ax/dlSafeRule (apply oio/extractParams args)))
+ (apply ax/dlSafeRule (apply oio/extractParams args)))
+
+(defn dgRule 
+ "DGRule ::= DescriptionGraphRule ‘(’ {Annotation} ‘Body’ ‘(’ {DGAtom} ‘)’ ‘Head’ ‘(’ {DGAtom} ‘)’ ‘)'"
+ [& args]
+ (apply ax/dgRule (apply oio/extractParams args)))
+
+(defn dgAxiom
+ "DGAxiom ::= ‘DescriptionGraph’ ‘(’ {Annotation} DGName DGNodes DGEdges MainClasses ‘)’"
+ [& args]
+ (apply ax/dgAxiom (apply oio/extractParams args)))
 
 (defn classImplication 
  "SubClassOf := 'SubClassOf' '(' axiomAnnotations subClassExpression superClassExpression ')'"

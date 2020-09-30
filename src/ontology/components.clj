@@ -74,12 +74,12 @@
     {:iri iri}
     (if-some [[_ prefix name] (re-matches #"^([^\<\>\(\)\"\\\s]+)\:([^\:\<\>\(\)\"\\\s]*)" iri)]
      {:name name :prefix prefix :iri iri}
-     (if-some [[_ iri] (re-matches #"^([^\<\>\(\)\"\\\s]+)" iri)]
-      {:iri iri}
-      (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
-   (if (:iri iri)
+     (if-some [[_ iri1] (re-matches #"^([^\<\>\(\)\"\\\s]+)" iri)]
+      {:iri iri1}
+      (throw (Exception. (str  {:type ::notIRI :IRI iri}))))))
+   (if (and (:iri iri) (not (:type iri)))
     iri
-    (throw (Exception. (str  {:type ::notIRI :iri iri}))))))
+    (throw (Exception. (str  {:type ::notIRI :IRI iri}))))))
  ([prefix name]
   (if (and (re-matches #"^[^\<\>\(\)\"\\\s]+" name)(re-matches #"^[^\<\>\(\)\"\\\s]*" prefix))
    {:name name :prefix prefix :iri (str prefix ":" name)}
@@ -94,8 +94,10 @@
  ([iri]
  	(if (string? iri)
   	(assoc (IRI iri) :innerType :className :type :className)
-  	(if (contains? iri :type)
-  		(throw (Exception. (str  {:type ::notClassName :iri iri})))
+  	(if (:type iri)
+    (if (= (:innerType iri) :className)
+     iri
+  		 (throw (Exception. (str  {:type ::notClassName :IRI iri}))))
   		(assoc iri :innerType :className :type :className))))
  ([prefix name]
   (assoc (IRI prefix name) :innerType :className :type :className))
@@ -107,8 +109,10 @@
  ([iri]
  	(if (string? iri)
   	(assoc (IRI iri) :type :roleName :innerType :roleName)
-  	(if (contains? iri :type)
-  		(throw (Exception. (str  {:type ::notRoleName :iri iri})))
+  	(if (:type iri)
+    (if (= (:innerType iri) :roleName)
+     iri
+  		 (throw (Exception. (str  {:type ::notRoleName :IRI iri}))))
   		(assoc iri :type :roleName :innerType :roleName))))
  ([prefix name]
   (assoc (IRI prefix name) :type :roleName :innerType :roleName))
@@ -170,8 +174,10 @@
  ([iri]
   (if (string? iri)
   	(-individual (-namedIndividual (IRI iri)))
-   (if (contains? iri :type)
-    (throw (Exception. (str  {:type ::notIndividual :iri iri})))
+   (if (:type iri)
+    (if (= (:type iri) :individual)
+     iri
+     (throw (Exception. (str  {:type ::notIndividual :IRI iri}))))
    	(-individual (if (= (get (:prefix name) 0) \_)(-anonymousIndividual iri)(-namedIndividual iri))))))
  ([prefix name]
   (-individual (if (= (get prefix 0) \_)(-anonymousIndividual prefix name)(-namedIndividual prefix name))))
@@ -185,22 +191,22 @@
    (assoc (IRI iri) :arity 1 :type :dataType :innerType :dataType)
    (if (:iri iri)
     (assoc iri :arity 1 :type :dataType :innerType :dataType)
-    (throw (Exception. (str  {:type ::notdataType :iri iri}))))))
+    (throw (Exception. (str  {:type ::notdataType :IRI iri}))))))
  ([prefix name]
-  (if (or (= (str prefix name) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix name)) (not (isReservedIRI? (str prefix name)))))
+  (if (or (= (str prefix name) "rdfs:Literal")(contains? dataTypeMaps (str prefix name)) (not (isReservedIRI? (str prefix name))))
    (assoc (IRI prefix name) :arity 1 :type :dataType :innerType :dataType)
-   (throw (Exception. (str  {:type ::notdataType :iri name})))))
+   (throw (Exception. (str  {:type ::notdataType :IRI name})))))
  ([prefix name namespace]
-  (if (or (= (str prefix name) "rdfs:Literal")(or (contains? dataTypeMaps (str prefix name)) (not (isReservedIRI? (str prefix name)))))
+  (if (or (= (str prefix name) "rdfs:Literal") (contains? dataTypeMaps (str prefix name)) (not (isReservedIRI? (str prefix name))))
    (assoc (IRI prefix name namespace) :arity 1 :type :dataType :innerType :dataType)
-   (throw (Exception. (str  {:type ::notdataType :iri name :namespace namespace}))))))
+   (throw (Exception. (str  {:type ::notdataType :IRI name :namespace namespace}))))))
 
 (defn dataType
  "Datatype := IRI"
  ([iri]
   (if (string? iri)
    (-dataType (IRI iri))
-   (if (contains? iri :type)
+   (if (:type iri)
     (if (= (:innerType iri) :dataType)
      iri
      (throw (Exception. (str  {:type ::notDataType :dataType iri}))))
@@ -266,14 +272,14 @@
  (if (and (:type literalString) (= (:type literalString) :literal))
   literalString
   (if (string? literalString)
-   (if-some [literalTypedMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"\^\^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))" literalString)]
+   (if-some [literalTypedMatch (re-matches #"^\"([\s\S]*?(?<!\\)(?:\\\\)*?)\"\s*\^\^\s^(?:(?:[<]([^>]+)[>])|([^\<\>\s\(\)\"\\]*\:[^\<\>\s\(\)\"\\]+))" literalString)]
     (typedLiteral (get literalTypedMatch 1)(if (get literalTypedMatch 2)(get literalTypedMatch 2)(get literalTypedMatch 3)))
-   (if-some [literalLangMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"\@([^\s\(\)\"\\\:]+)" literalString)]
-    (stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2))
-   (if-some [literalQuotedMatch (re-matches #"^\"([\s\S]*?(?<!\\))\"" literalString)]
-    (stringLiteralNoLanguage (get literalQuotedMatch 1))
-    (throw (Exception. (str {:type ::notLiteral :literal literalString}))))))
-   (throw (Exception. (str {:type ::notLiteral :literal literalString}))))))
+    (if-some [literalLangMatch (re-matches #"^\"([\s\S]*?(?<!\\)(?:\\\\)*?)\"\s*\@([^\s\(\)\"\\\:]+)" literalString)]
+     (stringLiteralWithLanguage (get literalLangMatch 1)(get literalLangMatch 2))
+     (if-some [literalQuotedMatch (re-matches #"^\"([\s\S]*?(?<!\\)(?:\\\\)*?)\"" literalString)]
+      (stringLiteralNoLanguage (get literalQuotedMatch 1))
+      (throw (Exception. (str {:type ::notLiteral :literal literalString}))))))
+  (throw (Exception. (str {:type ::notLiteral :literal literalString}))))))
 
 (defn- -dataOneOf 
  "DataOneOf := 'DataOneOf' '(' Literal { Literal } ')'"
@@ -357,19 +363,19 @@
 (defn dataAnd
  "DataIntersectionOf := 'DataIntersectionOf' '(' DataRange DataRange { DataRange } ')'"
 	([datarange1 datarange2]
-	 (let [dataRanges (into #{} [(dataRange datarange1) (dataRange datarange2)])]
+	 (let [dataRanges #{(dataRange datarange1) (dataRange datarange2)}]
    (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges)))))
 	([datarange1 datarange2 & dataranges]
-  (let [dataRanges (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))]
+  (let [dataRanges (into #{} (conj (if (= (type dataranges) clojure.lang.ArraySeq) (apply map dataRange dataranges)(map dataRange dataranges)) (dataRange datarange1) (dataRange datarange2)))]
 	  (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataAnd dataRanges))))))
 
 (defn dataOr 
  "DataUnionOf := 'DataUnionOf' '(' DataRange DataRange { DataRange } ')'"
 	([datarange1 datarange2]
-  (let [dataRanges (into #{} [(dataRange datarange1) (dataRange datarange2)])]
+  (let [dataRanges #{(dataRange datarange1) (dataRange datarange2)}]
    (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges)))))
  ([datarange1 datarange2 & dataranges]
-  (let [dataRanges (into #{} (map dataRange (flatten [datarange1 datarange2 dataranges])))]
+  (let [dataRanges (into #{} (conj (if (= (type dataranges) clojure.lang.ArraySeq) (apply map dataRange dataranges)(map dataRange dataranges)) (dataRange datarange1) (dataRange datarange2)))]
    (if (= 1 (count dataRanges)) (first dataRanges) (-dataRange (-dataOr dataRanges))))))
 
 (defn dataNot 
@@ -382,7 +388,7 @@
 	([Literal]
 	 (-dataRange (-dataOneOf #{(literal Literal)})))
 	([Literal & literals]
-	 (-dataRange (-dataOneOf (into #{} (map literal (flatten [Literal literals])))))))
+	 (-dataRange (-dataOneOf (into #{} (conj (if (= (type literals) clojure.lang.ArraySeq) (apply map literal literals)(map literal literals)) (literal Literal)))))))
 
 (defn datatypeRestriction
  "DatatypeRestriction := 'DatatypeRestriction' '(' Datatype RestrictedFacet { RestrictedFacet } ')'"
