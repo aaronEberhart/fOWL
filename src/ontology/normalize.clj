@@ -181,7 +181,7 @@
 
 (defn- getClassAxiomNNF 
  "Gets the NNF of a class axiom"
- [axiom](prn axiom)
+ [axiom]
  (if (= (:innerType axiom) :classImplication)
   (update (update axiom :consequent getClassNNF) :antecedent getClassNNF)
   (map getClassAxiomNNF (toClassImplications axiom))))
