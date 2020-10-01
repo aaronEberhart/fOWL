@@ -235,8 +235,8 @@
   :not (case (:innerType (:class class))
         :not (getClassDSNF (:class (:class class)))
         :or (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassDSNF (:classes (:class class))))))
-        :=exists (getClassDSNF (:class class))
-        :=dataExists (getClassDSNF (:class class))
+        :=exists (negate (getClassDSNF (:class class)))
+        :=dataExists (negate (getClassDSNF (:class class)))
         (deMorgan class getClassDSNF))
   (throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
