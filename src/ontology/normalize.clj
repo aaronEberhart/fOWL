@@ -81,11 +81,11 @@
               (update (update class :nat dec) :innerType <=exists)
               (ex/and (update (update class :nat zero) :innerType <=exists)
                       (update class :nat one))))
-   :=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
+   :=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class)) ]
              (if (> (:nat class) 0)
               (ex/or (update (update class :nat inc) :innerType >=exists)
-                     (update (update class :nat dec) :innerType <=exists)))
-              (update (update class :nat one) :innerType >=exists))
+                     (update (update class :nat dec) :innerType <=exists))
+              (update (update class :nat one) :innerType >=exists)))
   (throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
 (defn- getClassNNF 
@@ -109,7 +109,7 @@
   :and (update class :classes (constantlyMapToClassSet getClassNNF (:classes class)))
   :=dataExists (ex/and (update class :innerType >=dataExists)(update class :innerType <=dataExists))
   :=exists (let [class (if (:class class) (update class :class getClassNNF) class)]
-              (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
+            (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
   :not (if (= :not (:innerType (:class class)))
         (getClassNNF (:class (:class class)))
         (deMorgan class getClassNNF))
@@ -181,7 +181,7 @@
 
 (defn- getClassAxiomNNF 
  "Gets the NNF of a class axiom"
- [axiom]
+ [axiom](prn axiom)
  (if (= (:innerType axiom) :classImplication)
   (update (update axiom :consequent getClassNNF) :antecedent getClassNNF)
   (map getClassAxiomNNF (toClassImplications axiom))))
@@ -235,7 +235,7 @@
   :not (case (:innerType (:class class))
         :not (getClassDSNF (:class (:class class)))
         :or (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassDSNF (:classes (:class class))))))
-        :=exists (let [class (negate (update class :class getClassDSNF)) _ (prn "D" class)] class)
+        :=exists (getClassDSNF (:class class))
         :=dataExists (update class :class getClassDSNF)
         (deMorgan class getClassDSNF))
   (throw (Exception. (str  {:type ::notNormalizable :class class})))))
@@ -290,8 +290,8 @@
   :not (case (:innerType (:class class))
         :not (getClassCSNF (:class (:class class)))
         :and (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassCSNF (:classes (:class class))))))
-        :=exists (let [class (update class :class getClassCSNF) _ (prn "C" class)] class)
-        :=dataExists (update class :class getClassCSNF)
+        :=exists (getClassCSNF (:class class))
+        :=dataExists (getClassCSNF (:class class))
         (deMorgan class getClassCSNF))
   (throw (Exception. (str  {:type ::notNormalizable :class class})))))
 
