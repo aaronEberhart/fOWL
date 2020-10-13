@@ -9,17 +9,17 @@
  "AnnotationProperty := IRI"
  ([iri]
  (if (string? iri)
-    {:iri iri :type :annotationRole :innerType :annotationRole}
+    (assoc (co/IRI iri) :type :annotationRole :innerType :annotationRole)
     (if (:iri iri)
      (assoc iri :type :annotationRole :innerType :annotationRole)
      (throw (Exception. (str  {:type ::notStringIRI :iri iri}))))))
  ([prefix name]
    (if (and (string? name)(string? prefix))
-     {:name name :prefix prefix :iri (str prefix ":" name )}
+     (assoc (co/IRI prefix name) :type :annotationRole :innerType :annotationRole)
      (throw (Exception. (str  {:type ::notStringIRI :iri name})))))
   ([prefix name namespace]
    (if (and (and (string? name)(string? namespace))(string? prefix))
-     {:namespace namespace :name name :prefix prefix :iri (str "<" namespace name ">")}
+     (assoc (co/IRI prefix name namespace) :type :annotationRole :innerType :annotationRole)
      (throw (Exception. (str  {:type ::notStringIRI :iri name}))))))
 
 (defn annotationValue 

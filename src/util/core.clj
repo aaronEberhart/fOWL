@@ -42,7 +42,7 @@
   "Adapted From: https://github.com/clojure/clojure/blob/master/src/clj/clojure/walk.clj
    Traverses any collection, but optimized for (f OWL) structures
    Inner is used to recurse. Outer is applied to terminals."
-  [form inner outer]
+  [form inner outer](println form)
   (case (:innerType form)
 
    ;Not an OWL map
@@ -191,4 +191,10 @@
  "Adapted From: https://github.com/clojure/clojure/blob/master/src/clj/clojure/walk.clj
   Preorder traversal"
  [f form]
- (fowlWalk (f form) (partial fowlPrewalk f) identity))
+ (if (and (:innerType form)(not (:iri form)))
+  (loop [form (f form)
+         k (keys form)]
+   (if (empty? k)
+    form
+    (recur (update form (first k) (constantly (fowlWalk ((first k) form) (partial fowlPrewalk f) identity))) (rest k))))
+  (fowlWalk (f form) (partial fowlPrewalk f) identity)))

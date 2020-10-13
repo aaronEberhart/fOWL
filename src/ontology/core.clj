@@ -747,17 +747,17 @@
  [& args]
  (let [args (apply oio/extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
   (cond
-   (string? (first args)) (if (string? (first (rest args))) (apply ax/classImplication (cons ann args)) (if (= :class (:type (first (rest args))))(apply ax/classImplication (cons ann args)) (if (nil? (:type (first (rest args)))) (apply ax/classImplication (cons ann args)) (throw (Exception. (str {:type ::notImplication :annotations ann :args args}))))))
-   (nil? (:type (first args))) (if (string? (first (rest args))) (apply ax/classImplication (cons ann args)) (if (= :class (:type (first (rest args))))(apply ax/classImplication (cons ann args)) (if (nil? (:type (first (rest args)))) (apply ax/classImplication (cons ann args)) (throw (Exception. (str {:type ::notImplication :annotations ann :args args}))))))
-   (= :class (:type (first args))) (apply ax/classImplication (cons ann args))
+   (string? (first args)) (if (string? (first (rest args))) (apply ax/classImplication (if ann (cons ann args) args)) (if (= :class (:type (first (rest args))))(apply ax/classImplication (if ann (cons ann args) args)) (if (nil? (:type (first (rest args)))) (apply ax/classImplication (if ann (cons ann args) args)) (throw (Exception. (str {:type ::notImplication :annotations ann :args args}))))))
+   (nil? (:type (first args))) (if (string? (first (rest args))) (apply ax/classImplication (if ann (cons ann args) args)) (if (= :class (:type (first (rest args))))(apply ax/classImplication (if ann (cons ann args) args)) (if (nil? (:type (first (rest args)))) (apply ax/classImplication (if ann (cons ann args) args))(throw (Exception. (str {:type ::notImplication :annotations ann :args args}))))))
+   (= :class (:type (first args))) (apply ax/classImplication (if ann (cons ann args) args))
    (= :class (:type (first (rest args)))) (apply ax/classImplication (conj ann args))
-   (= :role (:type (first args))) (apply ax/roleImplication (cons ann args))
-   (= :roleChain (:type (first args))) (apply ax/roleImplication (cons ann args))
-   (= :role (:type (first (rest args)))) (apply ax/roleImplication (cons ann args))
-   (= :dataRole (:type (first args))) (apply ax/dataRoleImplication (cons ann args))
-   (= :dataRole (:type (first (rest args)))) (apply ax/dataRoleImplication (cons ann args))
-   (= :annotationRole (:type (first args))) (apply ax/annotationImplication (cons ann args))
-   (= :annotationRole (:type (first (rest args)))) (apply ax/annotationImplication (cons ann args))
+   (= :role (:type (first args))) (apply ax/roleImplication (if ann (cons ann args) args))
+   (= :roleChain (:type (first args))) (apply ax/roleImplication (if ann (cons ann args) args))
+   (= :role (:type (first (rest args)))) (apply ax/roleImplication (if ann (cons ann args) args))
+   (= :dataRole (:type (first args))) (apply ax/dataRoleImplication (if ann (cons ann args) args))
+   (= :dataRole (:type (first (rest args)))) (apply ax/dataRoleImplication (if ann (cons ann args) args))
+   (= :annotationRole (:type (first args))) (apply ax/annotationImplication (if ann (cons ann args) args))
+   (= :annotationRole (:type (first (rest args)))) (apply ax/annotationImplication (if ann (cons ann args) args))
    :else (throw (Exception. (str {:type ::notImplication :annotations ann :args args}))))))
 
 (defn fact
@@ -765,12 +765,12 @@
  [& args]
  (let [args (apply oio/extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
   (cond
-   (= 2 (count args)) (apply fs/classFact (cons ann args))
-   (= :role (:type (first args))) (apply fs/roleFact (cons ann args))
-   (= :literal (:type (last args))) (apply fs/dataRoleFact (cons ann args))
-   (string? (first args)) (apply fs/roleFact (cons ann args))   
-   (= :annotationRole (:type (first args))) (apply ax/annotationFact (cons ann args))
-   (= :dataRole (:type (first args))) (apply fs/dataRoleFact (cons ann args))
+   (= 2 (count args)) (apply fs/classFact (if ann (cons ann args) args))
+   (= :role (:type (first args))) (apply fs/roleFact (if ann (cons ann args) args))
+   (= :literal (:type (last args))) (apply fs/dataRoleFact (if ann (cons ann args) args))
+   (string? (first args)) (apply fs/roleFact (if ann (cons ann args) args))   
+   (= :annotationRole (:type (first args))) (apply ax/annotationFact (if ann (cons ann args) args))
+   (= :dataRole (:type (first args))) (apply fs/dataRoleFact (if ann (cons ann args) args))
    :else (throw (Exception. (str {:type ::notFact :annotations ann :args args}))))))
 
 (defn notFact
@@ -778,10 +778,10 @@
  [& args]
  (let [args (apply oio/extractParams args) ann (if (set? (first args)) (first args) nil) args (if (nil? ann) args (rest args))]
   (cond
-   (= :role (:type (first args))) (apply fs/notRoleFact (cons ann args)) 
-   (= :literal (:type (last args))) (apply fs/notDataRoleFact (cons ann args))    
-   (string? (first args)) (apply fs/notRoleFact (cons ann args))
-   (= :dataRole (:type (first args))) (apply fs/notDataRoleFact (cons ann args))
+   (= :role (:type (first args))) (apply fs/notRoleFact (if ann (cons ann args) args)) 
+   (= :literal (:type (last args))) (apply fs/notDataRoleFact (if ann (cons ann args) args))    
+   (string? (first args)) (apply fs/notRoleFact (if ann (cons ann args) args))
+   (= :dataRole (:type (first args))) (apply fs/notDataRoleFact (if ann (cons ann args) args))
    :else (throw (Exception. (str {:type ::notNotFact :annotations ann :args args}))))))
 
 (def Top

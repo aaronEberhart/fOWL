@@ -15,12 +15,17 @@
        (throw (Exception. (str  {:type ::notOntology :ontology ontology}))))
      (throw (Exception. (str  {:type ::notPrefixes :prefixes prefixes}))))))
 
+(defn- -prefix
+ "prefixDeclaration := 'Prefix' '(' prefixName '=' fullIRI ')'"
+ [prefixName longIRI]
+ (if (and (string? prefixName)(:iri longIRI))
+  {:prefix prefixName :iri (:iri longIRI) :type :prefix :innerType :prefix}
+  (throw (Exception. (str  {:type ::notIRIs :prefixName prefixName :longIRI longIRI})))))
+
 (defn prefix
  "prefixDeclaration := 'Prefix' '(' prefixName '=' fullIRI ')'"
  [prefixName longIRI]
- (if (and (string? prefixName)(string? longIRI))
-  {:prefix prefixName :iri longIRI :type :prefix :innerType :prefix}
-  (throw (Exception. (str  {:type ::notIRIs :prefixName prefixName :longIRI longIRI})))))
+ (-prefix prefixName (co/IRI longIRI)))
 
 (defn prefixes 
  "{ prefixDeclaration }" 

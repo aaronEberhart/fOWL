@@ -141,7 +141,7 @@
   :datatypeRestriction (str "DatatypeRestriction(" (swapPrefixes thing) " " (s/join " " (map toDLString (:restrictedValues thing)))")")
 
   ;filestuff
-  :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (s/join "\n" (map (fn [x] (toDLString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toDLString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toDLString (:versionIRI thing)) "\n")) "\n")) (if (not (empty? (:imports thing))) (str (s/join "\n" (map (fn [x] (toDLString x)) (:imports thing))) "\n")) (if (not (empty? (:annotations thing))) (str (s/join "\n" (map (fn [x] (toDLString x)) (:annotations thing))) "\n")) (if (not (empty? (:axioms thing))) (s/join "\n" (map (fn [x] (toDLString x)) (:axioms thing)))) "\n)")
+  :ontology (str (if (and (:prefixes thing)(not (empty? (:prefixes thing)))) (str (s/join "\n" (map (fn [x] (toDLString x)) (:prefixes thing))) "\n\n")) "Ontology(" (if (:ontologyIRI thing) (str (toDLString (:ontologyIRI thing)) "\n" (if (:versionIRI thing) (str (toDLString (:versionIRI thing)) "\n")) "\n")) (if (not (empty? (:imports thing))) (str (s/join "\n" (map (fn [x] (toDLString x)) (:imports thing))) "\n")) (if (not (empty? (:annotations thing))) (str (s/join "\n" (map (fn [x] (toDLString x)) (:annotations thing))) "\n\n")) (if (not (empty? (:axioms thing))) (s/join "\n" (map (fn [x] (toDLString x)) (:axioms thing)))) "\n)")
   :ontologyIRI (:iri thing)
   :versionIRI (:iri thing)
   :prefix (str "Prefix(" (:prefix thing) "=<" (:iri thing) ">)")
@@ -474,7 +474,7 @@
  (if-some [ontMatch (re-matches (:ontPat regexes) state)]
   [state prefixes]
  (if-some [prefMatch (re-matches (:prefixPat regexes) state)]
-   (recur (get prefMatch 3) (conj! prefixes (apply onf/prefix [(get prefMatch 1)(get prefMatch 2)])))
+   (recur (get prefMatch 3) (conj! prefixes (onf/prefix (get prefMatch 1)(get prefMatch 2))))
  [state prefixes]))))))
 
 (defn- parseOntologyIRILine 
