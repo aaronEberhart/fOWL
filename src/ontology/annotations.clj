@@ -31,7 +31,7 @@
     (assoc value :type :annotationValue)
     (if (= (:innerType value) :anonymousIndividual)
       (assoc value :type :annotationValue)
-      (if (:iri value)
+      (if (and (:iri value)(not (:type value))) ; CHECK
         (assoc value :innerType :annotationValue :type :annotationValue)
         (throw (Exception. (str  {:type ::notAnnotationValue :value value}))))))))
 

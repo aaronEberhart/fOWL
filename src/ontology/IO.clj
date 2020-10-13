@@ -112,7 +112,7 @@
  (case (:innerType thing)
 
   ;not an OWL map
-  nil (if (:iri thing) (:iri thing) (if (map? thing) (str "{" (s/join ", " (map #(str (toDLString %) " " (toDLString (% thing))) (keys thing))) "}") (if thing (str thing) "nil")))
+  nil (if (:iri thing) (:iri thing) (if (map? thing) (str "{" (s/join ", " (map #(str (toDLString %) " " (toDLString (get thing %))) (keys thing))) "}") (if thing (str thing) "nil")))
 
   ;atoms
   :top "⊤"
@@ -151,7 +151,7 @@
   :declaration (str "Declaration(" (if (:annotations thing) (str (s/join " " (map (fn [x] (toDLString x)) (:annotations thing))) " ") "") (getDeclType (:innerType (:name thing))) (toDLString (:name thing)) "))")
 
   ;data roles ⊑ ⊓ ⊔ ∃ ∀ ∘ ≡ ≤ ≥ ⊤ ⊥ U ∅ ¬
-  :partialDataRole (str "∃" (toDLString (:dataRole thing)) "[" (:value (:literal thing)) "]")
+  :partialDataRole (str "∃" (toDLString (:dataRole thing)) ".[" (:value (:literal thing)) "]")
   :=dataExists (str "=" (:nat thing) (toDLString (:dataRole thing)) ".[" (toDLString (:dataRange thing)) "]")
   :<=dataExists (str "≤" (:nat thing) (toDLString (:dataRole thing)) ".["  (toDLString (:dataRange thing)) "]")
   :>=dataExists (str "≥" (:nat thing) (toDLString (:dataRole thing)) ".[" (toDLString (:dataRange thing)) "]")
@@ -160,7 +160,7 @@
 
   ;roles
   :roleChain (s/join " ∘ " (map (fn [x] (toDLString x)) (:roles thing)))
-  :partialRole (str "∃" (toDLString (:role thing)) "{" (:individual thing) "}")
+  :partialRole (str "∃" (toDLString (:role thing)) ".{" (:individual thing) "}")
   :=exists (str "=" (:nat thing) (toDLString (:role thing)) (str "."  (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
   :<=exists (str "≤" (:nat thing) (toDLString (:role thing))  (str "." (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))
   :>=exists (str "≥" (:nat thing) (toDLString (:role thing))  (str "."  (if (:class thing) (if (or (= (:innerType (:class thing)) :or)(= (:innerType (:class thing)) :and)) (str "(" (toDLString (:class thing)) ")") (toDLString (:class thing))) "⊤")))

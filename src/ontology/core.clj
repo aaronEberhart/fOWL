@@ -78,8 +78,9 @@
  "Gets a set of all the iris used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (:iri %) (if (not= (:innerType %) :prefix) (do (send a conj %) %) %) %) object)
-       _ (await a)]
+       _ (msc/fowlPrewalk #(if (:iri %) (if (not= (:innerType %) :prefix) (do (send a conj %) %) %) %) object)
+       _ (await a)
+       ]
   @a))
 
 (defn getNames
@@ -379,6 +380,16 @@
  "Adds a set of annotations to an ontology"
  [ontology & annotations]
  (addStuffToOntologyWithFunction ontology annotations addAnnotation))
+
+(defn addDeclarationsForAllIRIs
+ "Adds a Declaration axiom for any IRI in the ontology that is not currently declared"
+ [ontology]
+ (loop [names (getNames ontology)
+        declarations (reduce (fn [set x] (conj set (:iri (:name x)))) #{} (filter #(= :declaration (:innerType %)) (:axioms ontology)))
+        ontology ontology]
+  (if (empty? names)
+   ontology
+   (recur (rest names) declarations (if (contains? declarations (:iri (first names))) ontology (addAxiom ontology (ax/declaration (first names))))))))
 
 (defn setOntologyIRI 
  "Sets the Ontology IRI of he ontology to the input IRI"

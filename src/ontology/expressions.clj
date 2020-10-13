@@ -76,7 +76,7 @@
            DataAllValuesFrom | DataHasValue | DataMinCardinality | DataMaxCardinality | DataExactCardinality"
  ([iri]
   (if (string? iri)
-  (-class (co/className (co/IRI iri)))
+   (-class (co/className (co/IRI iri)))
    (if (:type iri)
     (-class iri)
     (-class (co/className iri)))))
@@ -288,7 +288,7 @@
  (if (every? (fn [x] (= (:type x) :dataRole)) dataRoles)
   (if (= (:type dataRange) :dataRange)
    (if (= (:arity dataRange) (count dataRoles))
-   {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataAll :innerType :dataAll}
+    {:dataRoles dataRoles :dataRange dataRange :arity (:arity dataRange) :type :dataAll :innerType :dataAll}
     (throw (Exception. (str {:type ::incorrectArity :dataRange dataRange}))))
    (throw (Exception. (str {:type ::notDataRange :dataRange dataRange}))))
  (throw (Exception. (str {:type ::notDataRoles :role role})))))
@@ -375,7 +375,7 @@
  [dataRole literal]
  (if (= (:type dataRole) :dataRole)
   (if (= (:type literal) :literal)
-  {:literal literal :dataRole dataRole :type :partialDataRole :innerType :partialDataRole}
+   {:literal literal :dataRole dataRole :type :partialDataRole :innerType :partialDataRole}
    (throw (Exception. (str {:type ::notLiteral :literal literal}))))
  (throw (Exception. (str {:type ::notDataRole :dataRole dataRole})))))
 

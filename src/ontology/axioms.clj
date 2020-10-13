@@ -152,7 +152,7 @@
  "SubClassOf := 'SubClassOf' '(' axiomAnnotations subClassExpression superClassExpression ')'"
  ([antecedent consequent]
   (if (and(= (:type antecedent) :class)(= (:type consequent) :class))
-   {:antecedent antecedent :consequent consequent :type :classImplication :innerType :classImplication :outerType :classImplication}
+{:antecedent antecedent :consequent consequent :type :classImplication :innerType :classImplication :outerType :classImplication}
    (throw (Exception. (str {:type ::notAntecedentConsequentClasses :antecedent antecedent :consequent consequent})))))
  ([annotations antecedent consequent]
   (if (and(= (:type antecedent) :class)(= (:type consequent) :class))

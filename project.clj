@@ -3,7 +3,7 @@
  :url "https://github.com/aaronEberhart/fOWL"
  :scm {:name "git" :url "https://github.com/aaronEberhart/fOWL"}
  :license {:name "GNU General Public License v3.0"
- 	   :url "https://www.gnu.org/licenses/"}
+ 	         :url "https://www.gnu.org/licenses/"}
  :dependencies [[org.clojure/clojure "1.10.1"]]
  :main fowl.core
  :aot [fowl.core]

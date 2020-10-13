@@ -30,6 +30,7 @@
  "rdfs:Literal"
  {:namespace rdfsNS :name "Literal" :prefix "rdfs" :iri (str "<" rdfsNS "Literal" ">") :arity 1 :type :dataType :innerType :dataType})
 (def RDFLangString
+ "language tags"
  {:namespace rdfNS :name "langString" :prefix "rdf" :iri (str "<" rdfNS "langString" ">") :arity 1 :type :dataType :innerType :dataType})
 (def TopRole
  "owl:topObjectProperty"
@@ -45,7 +46,7 @@
  {:namespace owlNS :name "bottomDataProperty" :prefix "owl" :iri (str "<" owlNS "bottomDataProperty" ">") :type :dataRole :innerType :dataRoleName})
 
 (def reservedIRIs
-"The set of reserved IRIs"
+ "The set of reserved IRIs"
  #{"owl:backwardCompatibleWith" "owl:deprecated" "owl:incompatibleWith" "owl:priorVersion" "owl:rational" "owl:real"
    "owl:versionInfo" "rdf:langRange" "rdf:PlainLiteral" "rdf:XMLLiteral" "rdfs:comment" "rdfs:isDefinedBy" "rdfs:label" 
    "rdfs:seeAlso" "xsd:anyURI" "xsd:base64Binary" "xsd:boolean" "xsd:byte" "xsd:dateTime" "xsd:dateTimeStamp" "xsd:decimal" 
@@ -55,7 +56,7 @@
    "xsd:positiveInteger" "xsd:string" "xsd:token" "xsd:unsignedByte" "xsd:unsignedInt" "xsd:unsignedLong" "xsd:unsignedShort"})
 
 (def dataTypeMaps
-"The set of data type maps"
+ "The set of data type maps"
  #{"rdfs:Literal" "owl:rational" "xsd:double" "xsd:float" "xsd:decimal" "xsd:integer" "xsd:long" "xsd:int" "xsd:name" "xsd:language" 
    "xsd:byte" "xsd:nonNegativeInteger" "xsd:nonPositiveInteger" "xsd:positiveInteger" "xsd:negativeInteger" "xsd:unsignedLong" "xsd:anyURI" 
    "xsd:unsignedInt" "xsd:unsignedShort" "xsd:unsignedByte" "rdf:PlainLiteral" "xsd:string" "xsd:NCName" "xsd:Name"  "xsd:token" "owl:real" 
