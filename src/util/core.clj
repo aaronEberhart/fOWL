@@ -42,7 +42,7 @@
   "Adapted From: https://github.com/clojure/clojure/blob/master/src/clj/clojure/walk.clj
    Traverses any collection, but optimized for (f OWL) structures
    Inner is used to recurse. Outer is applied to terminals."
-  [form inner outer](println form)
+  [form inner outer]
   (case (:innerType form)
 
    ;Not an OWL map
