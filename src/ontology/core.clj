@@ -74,20 +74,11 @@
  ([ontology](onf/ontologyFile ontology))
  ([prefixes ontology](onf/ontologyFile prefixes ontology)))
 
-(defn getIRIs
- "Gets a set of all the iris used in this object"
- [object]
- (let [a (agent #{})
-       _ (msc/fowlPrewalk #(if (:iri %) (if (not= (:innerType %) :prefix) (do (send a conj %) %) %) %) object)
-       _ (await a)
-       ]
-  @a))
-
 (defn getNames
  "Gets the set of all the class, role, and dataRole, individual, dataType, and annotationRole names used in this object. This is identical with the 'Entity' definition in the OWL specification"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(case (:innerType %) :className (do (send a conj %) %) :roleName (do (send a conj %) %) :dataRoleName (do (send a conj %) %) :annotationRoleName (do (send a conj %) %) :namedIndividual (do (send a conj %) %) :dataType (do (send a conj (dissoc % :type)) %) %) object)
+       _ (msc/fowlPostwalk #(case (:innerType %) :className (do (send a conj (dissoc % :type)) %) :roleName (do (send a conj (dissoc % :type)) %) :dataRoleName (do (send a conj (dissoc % :type)) %) :annotationRoleName (do (send a conj (dissoc % :type)) %) :namedIndividual (do (send a conj (dissoc % :type)) %) :dataType (do (send a conj (dissoc % :type)) %) %) object)
        _ (await a)]
   @a))
 
@@ -331,7 +322,7 @@
  "Adds an axiom to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
  [ontology axiom] 
  (if (:prefixes ontology)
-  (let [names (getIRIs axiom)]
+  (let [names (getNames axiom)]
    (loop [axiom axiom
           prefixes (:prefixes ontology)
           ontology ontology]
@@ -363,7 +354,7 @@
  "Adds an annotation to an ontology. If it contains prefixes already in the ontology, they are automatically adjusted to match the ontology prefixes."
  [ontology annotation]
  (if (:prefixes ontology)
-  (let [names (getIRIs annotation)]
+  (let [names (getNames annotation)]
    (loop [annotation annotation
           prefixes (:prefixes ontology)
           ontology ontology]

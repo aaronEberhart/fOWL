@@ -139,7 +139,13 @@
 (defn dataRoleName
  "DataProperty := IRI"
  ([iri]
-  (assoc iri :type :dataRoleName :innerType :dataRoleName))
+  (if (string? iri)
+   (assoc (IRI iri) :type :dataRoleName :innerType :dataRoleName)
+   (if (:type iri)
+    (if (= (:innerType iri) :dataRoleName)
+     iri
+     (throw (Exception. (str  {:type ::notDataRoleName :IRI iri}))))
+    (assoc iri :type :dataRoleName :innerType :dataRoleName))))
  ([prefix name]
   (assoc (IRI prefix name) :type :dataRoleName :innerType :dataRoleName))
  ([prefix name namespace]
