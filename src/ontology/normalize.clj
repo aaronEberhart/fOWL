@@ -2,30 +2,6 @@
  "Functions that normalize ontology classes"
  (:require [ontology.axioms :as ax][ontology.expressions :as ex][ontology.components :as co]))
 
-(def ^:no-doc one
-  (constantly 1))
-(def ^:no-doc zero
-  (constantly 0))
-(def ^:no-doc -or
-  (constantly :or))
-(def ^:no-doc -and
-  (constantly :and))
-(def ^:no-doc all
-  (constantly :all))
-(def ^:no-doc exists
-  (constantly :exists))
-(def ^:no-doc <=exists
-  (constantly :<=exists))
-(def ^:no-doc >=exists
-  (constantly :>=exists))
-(def ^:no-doc dataAll
-  (constantly :dataAll))
-(def ^:no-doc dataExists
-  (constantly :dataExists))
-(def ^:no-doc <=dataExists
-  (constantly :<=dataExists))
-(def ^:no-doc >=dataExists
-  (constantly :>=dataExists))
 (def ^:no-doc atomics
   #{:className :>=dataExists :<=dataExists :dataExists :dataAll :Self :nominal :partialRole :partialDataRole})
 
@@ -45,13 +21,13 @@
 (defn- notFun [fun]
   (comp fun negate))
 
-(defn- constantlyMapToClassSet [fun classes]
-  (constantly (into #{} (map fun classes))))
+(defn- mapToClassSet [fun classes]
+  (into #{} (map fun classes)))
 
 (defn- checkInnerClass [class fun]
  (if (contains? atomics (:innerType (:class class)))
   class
-  (update class :class fun)))
+  (assoc class :class (fun (:class class)))))
 
 (defn- deMorgan [class fun]
  (case (:innerType (:class class))
@@ -60,39 +36,41 @@
   :nominal class
   :partialRole class
   :partialDataRole class
-  :and (update (update (:class class) :classes (constantlyMapToClassSet (notFun fun) (:classes (:class class)))) :innerType -or)
-  :or (update (update (:class class) :classes (constantlyMapToClassSet (notFun fun) (:classes (:class class)))) :innerType -and)
-  :exists (update (update (:class class) :class (notFun fun)) :innerType all)
-  :all (update (update (:class class) :class (notFun fun)) :innerType exists)
-  :<=exists (update (update (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class)) :nat inc) :innerType >=exists)
-  :dataExists (update (update (:class class) :dataRange co/dataNot) :innerType dataAll)
-  :dataAll (update (update (:class class) :dataRange co/dataNot) :innerType dataExists)
-  :<=dataExists (update (update (:class class) :nat inc) :innerType >=dataExists)
+  :and (assoc (assoc (:class class) :classes (mapToClassSet (notFun fun) (:classes (:class class)))) :innerType :or)
+  :or (assoc (assoc (:class class) :classes (mapToClassSet (notFun fun) (:classes (:class class)))) :innerType :and)
+  :exists (assoc (assoc (:class class) :class ((notFun fun) (:class (:class class)))) :innerType :all)
+  :all (assoc (assoc (:class class) :class ((notFun fun) (:class (:class class)))) :innerType :exists)
+  :<=exists (assoc (assoc (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class)) :nat (inc (:nat class))) :innerType :>=exists)
+  :dataExists (assoc (assoc (:class class) :dataRange (co/dataNot (:dataRange (:class class)))) :innerType :dataAll)
+  :dataAll (assoc (assoc (:class class) :dataRange (co/dataNot (:dataRange (:class class)))) :innerType :dataExists)
+  :<=dataExists (assoc (assoc (:class class) :nat (inc (:nat class))) :innerType :>=dataExists)
   :=dataExists (if (> (:nat (:class class)) 0)
-                (ex/or (update (update (:class class) :nat inc) :innerType >=dataExists)
-                       (update (update (:class class) :nat dec) :innerType <=dataExists))
-                (update (update (:class class) :nat one) :innerType >=dataExists))
+                (ex/or (assoc (assoc (:class class) :nat (inc (:nat class))) :innerType :>=dataExists)
+                       (assoc (assoc (:class class) :nat (dec (:nat class))) :innerType :<=dataExists))
+                (assoc (assoc (:class class) :nat 1) :innerType :>=dataExists))
   :>=dataExists (if (> (:nat (:class class)) 0)
-                 (update (update (:class class) :nat dec) :innerType <=dataExists)
-                 (ex/and (update (update (:class class) :nat zero) :innerType <=dataExists)
-                         (update (:class class) :nat one)))
+                 (assoc (assoc (:class class) :nat (dec (:nat class))) :innerType :<=dataExists)
+                 (ex/and (assoc (assoc (:class class) :nat 0) :innerType :<=dataExists)
+                         (assoc (:class class) :nat 1)))
   :>=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class))]
              (if (> (:nat class) 0)
-              (update (update class :nat dec) :innerType <=exists)
-              (ex/and (update (update class :nat zero) :innerType <=exists)
-                      (update class :nat one))))
+              (assoc (assoc class :nat (dec (:nat class))) :innerType :<=exists)
+              (ex/and (assoc (assoc class :nat 0) :innerType :<=exists)
+                      (assoc class :nat 1))))
   :=exists (let [class (if (:class (:class class)) (checkInnerClass (:class class) fun) (:class class)) ]
             (if (> (:nat class) 0)
-             (ex/or (update (update class :nat inc) :innerType >=exists)
-                    (update (update class :nat dec) :innerType <=exists))
-             (update (update class :nat one) :innerType >=exists)))
-  (throw (Exception. (str  {:type ::notNormalizable :class class})))))
+             (ex/or (assoc (assoc class :nat (inc (:nat class))) :innerType :>=exists)
+                    (assoc (assoc class :nat (dec (:nat class))) :innerType :<=exists))
+             (assoc (assoc class :nat 1) :innerType :>=exists)))
+  (throw (Exception. (str  {:type :notNormalizable :class class})))))
 
 (defn- getClassNNF 
  "Gets the NNF for a class"
  [class]
   (case (:innerType class)
   :className class
+  :top class
+  :bot class
   :Self class
   :nominal class
   :partialRole class
@@ -105,17 +83,20 @@
   :exists (if (:class class) (checkInnerClass class getClassNNF) class)
   :>=exists (if (:class class) (checkInnerClass class getClassNNF) class)
   :<=exists (if (:class class) (checkInnerClass class getClassNNF) class)
-  :or (update class :classes (constantlyMapToClassSet getClassNNF (:classes class)))
-  :and (update class :classes (constantlyMapToClassSet getClassNNF (:classes class)))
-  :=dataExists (ex/and (update class :innerType >=dataExists)(update class :innerType <=dataExists))
-  :=exists (let [class (if (:class class) (update class :class getClassNNF) class)]
-            (ex/and (update class :innerType >=exists) (update class :innerType <=exists)))
-  :not (if (= :not (:innerType (:class class)))
-        (getClassNNF (:class (:class class)))
+  :or (assoc class :classes (mapToClassSet getClassNNF (:classes class)))
+  :and (assoc class :classes (mapToClassSet getClassNNF (:classes class)))
+  :=dataExists (ex/and (assoc class :innerType :>=dataExists)(assoc class :innerType :<=dataExists))
+  :=exists (let [class (if (:class class) (assoc class :class (getClassNNF (:class class))) class)]
+            (ex/and (assoc class :innerType :>=exists) (assoc class :innerType :<=exists)))
+  :not (case (:innerType (:class class))
+        :not (getClassNNF (:class (:class class)))
+        :top co/Bot
+        :bot co/Top
         (deMorgan class getClassNNF))
-  (throw (Exception. (str  {:type ::notNormalizable :class class})))))
+  (throw (Exception. (str  {:type :notNormalizable :class class})))))
 
-(defn- iriPermutations [classes]
+(defn- iriPermutations 
+ [classes]
  (cons (cons (peek classes) (cons (first classes) nil)) (if (> (count classes) 2) (partition 2 1 classes))))
 
 (defn- disjToImp
@@ -144,7 +125,7 @@
 
 (defn- disjOrToImp
   ([class classes](reduce disjToImp #{} classes))
-  ([classes class1 class2](throw (Exception. (str  {:type ::notNormalizable :class classes})))))
+  ([classes class1 class2](throw (Exception. (str  {:type :notNormalizable :class classes})))))
 
 (defn toClassImplications 
  "Converts a class axiom to an equivalent axiom or set of axioms that are class implications"
@@ -157,7 +138,7 @@
   axiom))
 
 (defn toSyntacticEquivalent 
- "Converts an axiom to an equivalent axiom or set of axioms that are class, role, or dataRole implications if such an equivalence exists. Corresponds to the expanded definitions of syntactic shortcuts in the OWL 2 Specification."
+ "Converts an axiom to an equivalent axiom or set of axioms that are class, role, or dataRole implications if such an equivalence :exists. Corresponds to the expanded definitions of syntactic shortcuts in the OWL 2 Specification."
  [axiom]
  (case (:innerType axiom)
   :disjClasses (disjToImp (iriPermutations (into [] (:classes axiom))))
@@ -183,7 +164,7 @@
  "Gets the NNF of a class axiom"
  [axiom]
  (if (= (:innerType axiom) :classImplication)
-  (update (update axiom :consequent getClassNNF) :antecedent getClassNNF)
+  (assoc (assoc axiom :consequent (getClassNNF (:consequent axiom))) :antecedent (getClassNNF (:antecedent axiom)))
   (map getClassAxiomNNF (toClassImplications axiom))))
 
 (defn getNNF 
@@ -193,22 +174,23 @@
   :axiom (case (:outerType thing) 
           :classAxiom (getClassAxiomNNF thing)
           :fact (if (= (:innerType thing) :classFact) 
-                 (update thing :class getClassNNF) 
+                 (assoc thing :class (getClassNNF (:class thing))) 
                  thing)
           :roleAxiom (case (:innerType thing) 
-                      :roleDomain (update thing :class getClassNNF)
-                      :roleRange (update thing :class getClassNNF)
+                      :roleDomain (assoc thing :class (getClassNNF (:class thing)))
+                      :roleRange (assoc thing :class (getClassNNF (:class thing)))
                       (toSyntacticEquivalent thing))
           :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
-                          (update thing :class getClassNNF) 
+                          (assoc thing :class (getClassNNF (:class thing))) 
                           thing)
-          :hasKey (update thing :class getClassNNF)
-          :rule (update (update thing :head (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:head thing))) :body (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:body thing)))
+          :hasKey (assoc thing :class (getClassNNF (:class thing)))
+          :rule (assoc (assoc thing :head (mapToClassSet #(if (= (:innerType %) :classAtom) (assoc % :class (getClassNNF (:class %))) %) (:head thing))) :body (mapToClassSet #(if (= (:innerType %) :classAtom) (assoc % :class (getClassNNF (:class %))) %) (:body thing)))
           thing)
   :class (getClassNNF thing)
   thing))
 
-(defn- getClassDSNF [class]
+(defn- getClassDSNF 
+ [class](prn class)
  (case (:innerType class)
   :className class
   :Self class
@@ -225,24 +207,26 @@
   :exists (if (:class class) (checkInnerClass class getClassDSNF) class)
   :>=exists (if (:class class) (checkInnerClass class getClassDSNF) class)
   :<=exists (if (:class class) (checkInnerClass class getClassDSNF) class)
-  :or (update class :classes (constantlyMapToClassSet getClassDSNF (:classes class)))
-  :and (negate (update (update class :classes (constantlyMapToClassSet (notFun getClassDSNF) (:classes class))) :innerType -or))
+  :or (assoc class :classes (mapToClassSet getClassDSNF (:classes class)))
+  :and (negate (assoc (assoc class :classes (mapToClassSet (notFun getClassDSNF) (:classes class))) :innerType :or))
   :=dataExists (if (> (:nat class) 0)
-                (negate (ex/or (update (update class :nat inc) :innerType >=dataExists)
-                               (update (update class :nat dec) :innerType <=dataExists)))
-                (update class :innerType <=dataExists))
-  :=exists (let [class (if (:class class) (update class :class getClassDSNF) class)]
+                (negate (ex/or (assoc (assoc class :nat (inc (:nat class))) :innerType :>=dataExists)
+                               (assoc (assoc class :nat (dec (:nat class))) :innerType :<=dataExists)))
+                (assoc class :innerType :<=dataExists))
+  :=exists (let [class (if (:class class) (assoc class :class (getClassDSNF (:class class))) class)]
             (if (> (:nat class) 0)
-             (negate (ex/or (update (update class :nat (if (> (:nat class) 0) inc one)) :innerType >=exists) 
-                            (update (update class :nat (if (> (:nat class) 0) dec zero)) :innerType <=exists)))
-             (update class :innerType <=exists)))
+             (negate (ex/or (assoc (assoc class :nat (inc (:nat class))) :innerType :>=exists) 
+                            (assoc (assoc class :nat (dec (:nat class))) :innerType :<=exists)))
+             (assoc class :innerType :<=exists)))
   :not (case (:innerType (:class class))
+        :top co/Bot
+        :bot co/Top
         :not (getClassDSNF (:class (:class class)))
-        :or (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassDSNF (:classes (:class class))))))
+        :or (assoc class :class (assoc (:class class) :classes (mapToClassSet getClassDSNF (:classes (:class class)))))
         :=exists (negate (getClassDSNF (:class class)))
         :=dataExists (negate (getClassDSNF (:class class)))
         (deMorgan class getClassDSNF))
-  (throw (Exception. (str  {:type ::notNormalizable :class class})))))
+  (throw (Exception. (str  {:type :notNormalizable :class class})))))
 
 (defn- getClassAxiomDSNF [axiom]
   (if (= (:innerType axiom) :classImplication)
@@ -251,12 +235,12 @@
 
 (defn ^:no-doc getDSNF 
  "Gets the Disjunctive Syntactic Normal Form for an axiom or class. Unfinished"
- [thing]
+ [thing](prn thing)
  (case (:type thing)
   :axiom (case (:outerType thing) 
           :classAxiom (getClassAxiomDSNF thing)
           :fact (if (= (:innerType thing) :classFact) 
-                 (update thing :class getClassDSNF) 
+                 (assoc thing :class getClassDSNF) 
                  thing)
           :roleAxiom (case (:innerType thing) 
                       :roleDomain (getDSNF (toSyntacticEquivalent thing))
@@ -265,15 +249,18 @@
           :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
                           (getDSNF (toSyntacticEquivalent thing))
                           (toSyntacticEquivalent thing))
-          :hasKey (update thing :class getClassDSNF)
-          :rule (update (update thing :head (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassDSNF) %) (:head thing))) :body (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassDSNF) %) (:body thing)))
+          :hasKey (assoc thing :class getClassDSNF)
+          :rule (assoc (assoc thing :head (mapToClassSet #(if (= (:innerType %) :classAtom) (assoc % :class getClassDSNF) %) (:head thing))) :body (mapToClassSet #(if (= (:innerType %) :classAtom) (assoc % :class getClassDSNF) %) (:body thing)))
           thing)
   :class (getClassDSNF thing)
   thing))
 
-(defn- getClassCSNF [class]
+(defn- getClassCSNF 
+ [class](prn class)
   (case (:innerType class)
   :className class
+  :top class
+  :bot class
   :Self class
   :nominal class
   :partialRole (ex/exists (:role class) (ex/nominal (:individual class)))
@@ -286,22 +273,24 @@
   :exists (if (:class class) (checkInnerClass class getClassCSNF) class)
   :>=exists (if (:class class) (checkInnerClass class getClassCSNF) class)
   :<=exists (if (:class class) (checkInnerClass class getClassCSNF) class)
-  :or (negate (update (update class :classes (constantlyMapToClassSet (notFun getClassCSNF) (:classes class))) :innerType -and))
-  :and (update class :classes (constantlyMapToClassSet getClassCSNF (:classes class)))
+  :or (negate (assoc (assoc class :classes (mapToClassSet (notFun getClassCSNF) (:classes class))) :innerType :and))
+  :and (assoc class :classes (mapToClassSet getClassCSNF (:classes class)))
   :=dataExists (if (> (:nat class) 0)
-                (ex/and (update class :innerType >=dataExists)(update class :innerType <=dataExists))
-                (update class :innerType <=dataExists))
-  :=exists (let [class (if (:class class) (update class :class getClassCSNF) class)]
+                (ex/and (assoc class :innerType :>=dataExists)(assoc class :innerType :<=dataExists))
+                (assoc class :innerType :<=dataExists))
+  :=exists (let [class (if (:class class) (assoc class :class (getClassCSNF (:class class))) class)]
             (if (> (:nat class) 0)
-             (ex/and (update class :innerType >=exists) (update class :innerType <=exists))
-             (update class :innerType <=exists)))
+             (ex/and (assoc class :innerType :>=exists) (assoc class :innerType :<=exists))
+             (assoc class :innerType :<=exists)))
   :not (case (:innerType (:class class))
+        :top co/Bot
+        :bot co/Top
         :not (getClassCSNF (:class (:class class)))
-        :and (update class :class (constantly (update (:class class) :classes (constantlyMapToClassSet getClassCSNF (:classes (:class class))))))
+        :and (assoc class :class (assoc (:class class) :classes (mapToClassSet getClassCSNF (:classes (:class class)))))
         :=exists (negate (getClassCSNF (:class class)))
         :=dataExists (negate (getClassCSNF (:class class)))
         (deMorgan class getClassCSNF))
-  (throw (Exception. (str  {:type ::notNormalizable :class class})))))
+  (throw (Exception. (str  {:type :notNormalizable :class class})))))
 
 (defn- getClassAxiomCSNF [axiom]
   (if (= (:innerType axiom) :classImplication)
@@ -310,12 +299,12 @@
 
 (defn ^:no-doc getCSNF 
  "Gets the Conjunctive Syntactic Normal Form for an axiom or class. Unfinished"
- [thing]
+ [thing](prn thing)
  (case (:type thing)
   :axiom (case (:outerType thing) 
           :classAxiom (getClassAxiomCSNF thing)
           :fact (if (= (:innerType thing) :classFact) 
-                 (update thing :class getClassCSNF) 
+                 (assoc thing :class (getClassCSNF (:class thing))) 
                  thing)
           :roleAxiom (case (:innerType thing) 
                       :roleDomain (getCSNF (toSyntacticEquivalent thing))
@@ -324,8 +313,8 @@
           :dataRoleAxiom (if (= (:innerType thing) :dataRoleDomain) 
                           (getCSNF (toSyntacticEquivalent thing))
                           (toSyntacticEquivalent thing))
-          :hasKey (update thing :class getClassNNF)
-          :rule (update (update thing :head (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:head thing))) :body (constantlyMapToClassSet #(if (= (:innerType %) :classAtom) (update % :class getClassNNF) %) (:body thing)))
+          :hasKey (assoc thing :class (getClassCSNF (:class thing)))
+          :rule (assoc (assoc thing :head (mapToClassSet #(if (= (:innerType %) :classAtom) (assoc % :class (getClassCSNF (:class %))) %) (:head thing))) :body (mapToClassSet #(if (= (:innerType %) :classAtom) (assoc % :class (getClassCSNF (:class %))) %) (:body thing)))
           (toSyntacticEquivalent thing))
   :class (getClassCSNF thing)
   thing))

@@ -86,7 +86,7 @@
  "Gets a set of all the class names used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :className) (do (send a conj %) %) %) object)
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :className) (do (send a conj (dissoc % :type)) %) %) object)
        _ (await a)]
  @a))
 
@@ -94,7 +94,7 @@
  "Gets a set of all the role names used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :roleName) (do (send a conj %) %) %) object)
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :roleName) (do (send a conj (dissoc % :type)) %) %) object)
        _ (await a)]
  @a))
 
@@ -102,7 +102,7 @@
  "Gets the set of all the class, role, and dataRole names used in this object. Predicate means anything that can contain an individual (not a datatype)."
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(case (:innerType %) :className (do (send a conj %) %) :roleName (do (send a conj %) %) :dataRoleName (do (send a conj %) %) :nominal (do (send a conj %) %) %) object)
+       _ (msc/fowlPostwalk #(case (:innerType %) :className (do (send a conj (dissoc % :type)) %) :roleName (do (send a conj (dissoc % :type)) %) :dataRoleName (do (send a conj (dissoc % :type)) %) :nominal (do (send a conj %) %) %) object)
        _ (await a)]
  @a))
 
@@ -110,7 +110,7 @@
  "Gets a set of all the data role names used in this object"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(if (= (:innerType %) :dataRoleName) (do (send a conj %) %) %) object)
+       _ (msc/fowlPostwalk #(if (= (:innerType %) :dataRoleName) (do (send a conj (dissoc % :type)) %) %) object)
        _ (await a)]
  @a))
 
