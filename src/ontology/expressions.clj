@@ -80,7 +80,7 @@
    (if (:type iri)
     (-class iri)
     (-class (co/className iri)))))
- ([prefix name](prn prefix name)(-class (co/className prefix name)))
+ ([prefix name](-class (co/className prefix name)))
  ([prefix name namespace](-class (co/className prefix name namespace))))
 
 (defn- -and 

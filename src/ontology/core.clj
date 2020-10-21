@@ -13,7 +13,11 @@
 
 (def defaultPrefixes
  "The default prefixes for OWL"
- #{{:prefix "" :iri "empty:ontology#" :type :prefix :innerType :prefix}{:prefix "owl" :iri co/owlNS :type :prefix :innerType :prefix}{:prefix "rdf" :iri co/rdfNS :type :prefix :innerType :prefix}{:prefix "rdfs" :iri co/rdfsNS :type :prefix :innerType :prefix}{:prefix "xsd" :iri co/xsdNS :type :prefix :innerType :prefix}})
+ #{{:prefix "" :iri "empty:ontology#" :type :prefix :innerType :prefix}
+   {:prefix "owl" :iri co/owlNS :type :prefix :innerType :prefix}
+   {:prefix "rdf" :iri co/rdfNS :type :prefix :innerType :prefix}
+   {:prefix "rdfs" :iri co/rdfsNS :type :prefix :innerType :prefix}
+   {:prefix "xsd" :iri co/xsdNS :type :prefix :innerType :prefix}})
 
 (def emptyOntologyFile
  "Returns an empty ontology file with the default OWL prefixes."
@@ -78,7 +82,7 @@
  "Gets the set of all the class, role, and dataRole, individual, dataType, and annotationRole names used in this object. This is identical with the 'Entity' definition in the OWL specification"
  [object]
  (let [a (agent #{})
-       _ (msc/fowlPostwalk #(case (:innerType %) :className (do (send a conj (dissoc % :type)) %) :roleName (do (send a conj (dissoc % :type)) %) :dataRoleName (do (send a conj (dissoc % :type)) %) :annotationRoleName (do (send a conj (dissoc % :type)) %) :namedIndividual (do (send a conj (dissoc % :type)) %) :dataType (do (send a conj (dissoc % :type)) %) %) object)
+       _ (msc/fowlPostwalk #(case (:innerType %) :className (do (send a conj (dissoc % :type)) %) :roleName (do (send a conj (dissoc % :type)) %) :dataRoleName (do (send a conj (dissoc % :type)) %) :annotationRole (do (send a conj (dissoc % :type)) %) :namedIndividual (do (send a conj (dissoc % :type)) %) :dataType (do (send a conj (dissoc % :type)) %) %) object)
        _ (await a)]
   @a))
 

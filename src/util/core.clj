@@ -1,13 +1,10 @@
 (ns util.core
  "Assorted random useful fuctions")
 
-(def logfile 
- "for logging" 
- "output.txt")
 (defn strToFile 
  "for logging" 
  ([str]
-  (spit logfile (with-out-str (println str)) :append true))
+  (spit "output.txt" (with-out-str (println str)) :append true))
  ([file str]
   (spit file (with-out-str (println str)) :append true)))
 
@@ -86,13 +83,7 @@
    :datatypeRestriction (outer (update form :restrictedValues #(into #{} (map inner %))))
 
    ;filestuff
-   :ontology (-> (if (:prefixes form) (update form :prefixes #(into #{} (map outer %))) form)
-                 (#(if (:versionIRI %) (update % :versionIRI outer) %))
-                 (#(if (:ontologyIRI %) (update % :ontologyIRI outer) %))
-                 (#(update % :imports (fn [x] (into #{} (map outer x)))))
-                 (#(update % :annotations (fn [x] (into #{} (map inner x)))))
-                 (#(update % :axioms (fn [x] (into #{} (map inner x)))))
-                 outer)
+   :ontology (outer (#(update % :axioms (fn [x] (into #{} (map inner x)))) (#(update % :annotations (fn [x] (into #{} (map inner x))))(#(update % :imports (fn [x] (into #{} (map outer x))))(#(if (:ontologyIRI %) (update % :ontologyIRI outer) %) (#(if (:versionIRI %) (update % :versionIRI outer) %) (if (:prefixes form) (update form :prefixes #(into #{} (map outer %))) form)))))))
    :ontologyIRI (outer form) 
    :versionIRI (outer form) 
    :prefix (outer form) 

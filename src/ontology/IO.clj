@@ -4,35 +4,35 @@
            [ontology.axioms :as ax][ontology.components :as co][ontology.expressions :as ex][ontology.annotations :as ann]
            [ontology.facts :as fs][ontology.file :as onf][ontology.SWRL :as swrl]))
 
-(defn ^:no-doc hasIRI
+(def ^:no-doc hasIRI
   "Sees whether the thing has an iri key"
-  [thing]
-  (and (map? thing)(contains? thing :iri)))
+  (fn [thing]
+  (and (map? thing)(contains? thing :iri))))
 
-(defn ^:no-doc changePrefix?
+(def ^:no-doc changePrefix?
   "Sees whether the thing needs to change its prefix"
-  [prefix thing]
+  (fn [prefix thing]
   (and (not (or (= (:type thing) :prefix)(= (:type thing) :import)(= (:type thing) :ontologyIRI)(= (:type thing) :versionIRI)))
         (or (and (:iri thing) (not (:namespace thing)) (some? (re-matches (re-pattern (str (:prefix prefix) "\\S+")) (:iri thing))))
-            (and (= (:prefix thing) (:prefix prefix))))))
+            (and (= (:prefix thing) (:prefix prefix)))))))
 
-(defn ^:no-doc losePrefix
+(def ^:no-doc losePrefix
   "loses the prefix"
-  [prefix thing]
-  (dissoc (assoc thing :iri (get (re-matches (re-pattern (str "\\<?"(:iri prefix) "([^\\>]+)\\>?")) (:iri thing)) 1)) :namespace :prefix :name))
+  (fn [prefix thing]
+  (dissoc (assoc thing :iri (get (re-matches (re-pattern (str "\\<?"(:iri prefix) "([^\\>]+)\\>?")) (:iri thing)) 1)) :namespace :prefix :name)))
 
-(defn ^:no-doc gainPrefix
+(def ^:no-doc gainPrefix
   "gains the prefix"
-  [prefix thing]
+  (fn [prefix thing]
   (let [short (if (:name thing) (:name thing) (get (re-matches (re-pattern (str (:prefix prefix) "(\\S+)")) (:iri thing)) 1))
         pre (if (:prefix thing) (:prefix thing) (:prefix prefix))
         namespace (:iri prefix)]
-  (assoc thing :prefix pre :namespace namespace :iri (str "<" namespace short ">") :name short)))
+  (assoc thing :prefix pre :namespace namespace :iri (str "<" namespace short ">") :name short))))
 
-(defn ^:no-doc hasThisPrefix
+(def ^:no-doc hasThisPrefix
   "sees if the thing has the prefix"
-  [prefix thing]
-  (if (or (= (:prefix thing) (:prefix prefix))(not (:prefix thing))) thing))
+  (fn [prefix thing]
+  (if (or (= (:prefix thing) (:prefix prefix))(not (:prefix thing))) thing)))
 
 (def ^:no-doc extractParams
  "Separates annotations from other inputs for functions with variable arguments"
